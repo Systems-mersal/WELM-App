@@ -13,8 +13,7 @@ export function BrandBanner() {
   return (
     <View className="h-[90px] overflow-hidden rounded-[20px] bg-primaryDark px-5">
       <View className="h-full flex-row items-center justify-between">
-        <LocalSvg xml={splashLogoMarkXml} width={56} height={62} />
-        <View className="items-end">
+        <View className="items-start">
           <AppText
             className="text-[28px]"
             style={{ fontFamily: fontFamily.bold, lineHeight: 34, color: colors.primarySoft }}
@@ -34,6 +33,7 @@ export function BrandBanner() {
             {t("home:banner-tagline")}
           </AppText>
         </View>
+        <LocalSvg xml={splashLogoMarkXml} width={56} height={62} />
       </View>
     </View>
   );

@@ -108,19 +108,19 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             {vehicle.year ? ` ${vehicle.year}` : ""}
           </AppText>
 
-          <View className="mt-2 flex-row flex-wrap items-center justify-end gap-2">
+          <View className="mt-2 flex-row flex-wrap items-center justify-start gap-2">
             <AppText variant="caption" muted>
-              {t("vehicle-details:review-count", { count: 128 })}
+              {t(`vehicle-details:categories.${vehicle.category}`)}
             </AppText>
-            <AppText variant="caption" className="text-text">
-              {vehicle.rating}
-            </AppText>
-            <AppIcon name="star" size={14} color={colors.primary} />
             <AppText variant="caption" muted>
               •
             </AppText>
+            <AppIcon name="star" size={14} color={colors.primary} />
+            <AppText variant="caption" className="text-text">
+              {vehicle.rating}
+            </AppText>
             <AppText variant="caption" muted>
-              {t(`vehicle-details:categories.${vehicle.category}`)}
+              {t("vehicle-details:review-count", { count: 128 })}
             </AppText>
           </View>
 
@@ -154,7 +154,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
           <AppText variant="subtitle" className="mt-6 text-start">
             {t("vehicle-details:features")}
           </AppText>
-          <View className="mt-3 flex-row flex-wrap justify-end gap-2">
+          <View className="mt-3 flex-row flex-wrap justify-start gap-2">
             {FEATURE_KEYS.map((key) => (
               <View key={key} className="rounded-full border border-border px-3 py-2">
                 <AppText variant="caption">{t(`vehicle-details:feature-items.${key}`)}</AppText>
@@ -166,17 +166,17 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             {t("vehicle-details:terms-title")}
           </AppText>
           <View className="mt-3 rounded-[20px] bg-backgroundWarm px-4 py-4">
-            <View className="mb-3 flex-row items-center justify-end gap-2">
+            <View className="mb-3 flex-row items-center justify-start gap-2">
+              <AppIcon name="shield" size={16} color={colors.primary} />
               <AppText variant="body" className="flex-1 text-start">
                 {t("vehicle-details:insurance-included")}
               </AppText>
-              <AppIcon name="shield" size={16} color={colors.primary} />
             </View>
-            <View className="flex-row items-center justify-end gap-2">
+            <View className="flex-row items-center justify-start gap-2">
+              <AppIcon name="compass" size={16} color={colors.primary} />
               <AppText variant="body" className="flex-1 text-start">
                 {t("vehicle-details:mileage-included")}
               </AppText>
-              <AppIcon name="compass" size={16} color={colors.primary} />
             </View>
           </View>
 
@@ -196,24 +196,24 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
       <StickyBottomBar>
         <View className="flex-row items-center justify-between">
-          <AppButton
-            label={t("vehicle-details:book-now")}
-            onPress={handleBook}
-            className="h-14 min-w-[180px] rounded-[28px]"
-          />
-          <View className="items-end">
+          <View className="items-start">
             <View className="flex-row items-baseline gap-1">
-              <AppText variant="caption" muted>
-                {t("vehicle-details:per-day")}
-              </AppText>
               <AppText variant="subtitle" className="text-primary">
                 {vehicle.pricePerDay} {t("common:currency")}
+              </AppText>
+              <AppText variant="caption" muted>
+                {t("vehicle-details:per-day")}
               </AppText>
             </View>
             <AppText variant="caption" muted className="mt-0.5">
               {t("vehicle-details:vat-included")}
             </AppText>
           </View>
+          <AppButton
+            label={t("vehicle-details:book-now")}
+            onPress={handleBook}
+            className="h-14 min-w-[180px] rounded-[28px]"
+          />
         </View>
       </StickyBottomBar>
     </View>

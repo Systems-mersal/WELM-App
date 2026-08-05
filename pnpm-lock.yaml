@@ -38,6 +38,9 @@ importers:
       axios:
         specifier: ^1.18.1
         version: 1.19.0
+      babel-preset-expo:
+        specifier: ~57.0.0
+        version: 57.0.5(@babel/core@7.29.7)(@babel/runtime@7.29.7)(expo@57.0.10)(react-refresh@0.14.2)
       expo:
         specifier: ~57.0.10
         version: 57.0.10(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(react-dom@16.14.0(react@19.2.3))(react-native-web@0.9.13(react-art@16.13.1(react@19.2.3))(react-dom@16.14.0(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(react-native@0.86.2(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
@@ -4155,7 +4158,9 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   '@react-native/normalize-colors@0.86.2': {}
 

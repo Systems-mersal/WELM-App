@@ -68,10 +68,7 @@ export function NotificationsScreen({ navigation }: Props) {
     >
       {items.map((item) => (
         <View key={item.key} className="mb-3 flex-row rounded-xl bg-white p-3.5">
-          <AppText variant="caption" muted className="w-14">
-            {item.time}
-          </AppText>
-          <View className="ms-2 flex-1 items-end">
+          <View className="me-2 flex-1 items-start">
             <View className="flex-row items-center gap-2">
               <View
                 className="h-2 w-2 rounded-full"
@@ -85,6 +82,9 @@ export function NotificationsScreen({ navigation }: Props) {
               {item.body}
             </AppText>
           </View>
+          <AppText variant="caption" muted className="w-14 text-end">
+            {item.time}
+          </AppText>
         </View>
       ))}
     </Screen>

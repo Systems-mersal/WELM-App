@@ -17,18 +17,9 @@ export function HomeHeader({ onNotificationsPress }: HomeHeaderProps) {
 
   return (
     <View className="flex-row items-center justify-between py-4">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t("common:a11y.notifications")}
-        onPress={onNotificationsPress}
-        className="rounded-[14px] border border-border bg-white p-3 active:opacity-70"
-        hitSlop={8}
-      >
-        <AppIcon name="bell" size={20} color={colors.text} />
-      </Pressable>
-
       <View className="flex-row items-center gap-3">
-        <View className="items-end gap-0.5">
+        <Avatar source={avatarSource} size={44} />
+        <View className="items-start gap-0.5">
           <AppText
             className="text-[13px] text-textMuted"
             style={{ fontFamily: fontFamily.regular }}
@@ -42,8 +33,17 @@ export function HomeHeader({ onNotificationsPress }: HomeHeaderProps) {
             {t("user-name")}
           </AppText>
         </View>
-        <Avatar source={avatarSource} size={44} />
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("common:a11y.notifications")}
+        onPress={onNotificationsPress}
+        className="rounded-[14px] border border-border bg-white p-3 active:opacity-70"
+        hitSlop={8}
+      >
+        <AppIcon name="bell" size={20} color={colors.text} />
+      </Pressable>
     </View>
   );
 }

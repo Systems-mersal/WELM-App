@@ -75,29 +75,29 @@ export function BookingReviewScreen({ navigation, route }: Props) {
         contentContainerStyle={{ paddingBottom: insets.bottom + 120, paddingHorizontal: 20 }}
       >
         <View className="mt-4 flex-row rounded-[20px] bg-white p-4">
+          <View className="me-3 flex-1 items-start justify-center">
+            <AppText variant="label" className="text-start">
+              {vehicleName}
+            </AppText>
+            <View className="mt-1 flex-row items-center gap-1">
+              <AppIcon name="calendar" size={14} color={colors.textMuted} />
+              <AppText variant="caption" muted>
+                {t("date-range")}
+              </AppText>
+            </View>
+            <View className="mt-1 flex-row items-center gap-1">
+              <AppIcon name="map-pin" size={12} color={colors.textMuted} />
+              <AppText variant="caption" muted>
+                {t("location-value")}
+              </AppText>
+            </View>
+          </View>
           <View className="h-[70px] w-[100px] items-center justify-center overflow-hidden rounded-2xl bg-background">
             <Image
               source={vehicle.imageSource}
               style={{ width: 90, height: 54 }}
               resizeMode="contain"
             />
-          </View>
-          <View className="ms-3 flex-1 items-end justify-center">
-            <AppText variant="label" className="text-start">
-              {vehicleName}
-            </AppText>
-            <View className="mt-1 flex-row items-center gap-1">
-              <AppText variant="caption" muted>
-                {t("date-range")}
-              </AppText>
-              <AppIcon name="calendar" size={14} color={colors.textMuted} />
-            </View>
-            <View className="mt-1 flex-row items-center gap-1">
-              <AppText variant="caption" muted>
-                {t("location-value")}
-              </AppText>
-              <AppIcon name="map-pin" size={12} color={colors.textMuted} />
-            </View>
           </View>
         </View>
 
@@ -107,33 +107,35 @@ export function BookingReviewScreen({ navigation, route }: Props) {
           </AppText>
           <View className="mb-4 h-px bg-border" />
           {priceRows.map((row) => (
-            <View key={row.label} className="mb-4 flex-row items-center justify-between">
-              <AppText variant="label">{row.amount} {t("common:currency")}</AppText>
+            <View key={row.label} className="mb-4 flex-row items-center justify-between gap-3">
               <AppText variant="body" muted className="flex-1 text-start">
                 {row.label}
+              </AppText>
+              <AppText variant="label">
+                {row.amount} {t("common:currency")}
               </AppText>
             </View>
           ))}
           <View className="mb-4 h-px bg-border" />
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between gap-3">
+            <AppText variant="subtitle">{t("total")}</AppText>
             <AppText variant="title" className="text-primary">
               {grandTotal} {t("common:currency")}
             </AppText>
-            <AppText variant="subtitle">{t("total")}</AppText>
           </View>
         </View>
 
         <View className="mt-4 flex-row items-center rounded-[20px] bg-white px-3 py-2.5">
+          <View className="me-3 flex-1 items-start">
+            <AppText variant="body" muted>
+              {t("promo-placeholder")}
+            </AppText>
+          </View>
           <Pressable className="rounded-full bg-primary px-[18px] py-2 active:opacity-80">
             <AppText variant="caption" className="text-white">
               {t("apply")}
             </AppText>
           </Pressable>
-          <View className="ms-3 flex-1 flex-row items-center justify-end gap-2">
-            <AppText variant="body" muted>
-              {t("promo-placeholder")}
-            </AppText>
-          </View>
         </View>
 
         <View className="mt-4 rounded-[20px] bg-white px-[18px] py-[18px]">

@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, View } from "react-native";
+import { isRTL } from "../../lib/rtl";
 
 interface StickyBottomBarProps {
   children: React.ReactNode;
@@ -22,6 +23,9 @@ interface ToggleSwitchProps {
 }
 
 export function ToggleSwitch({ value, onValueChange }: ToggleSwitchProps) {
+  // Keep switch thumb motion physically LTR (ON = right), even in RTL layouts.
+  const thumbOnEnd = isRTL() ? !value : value;
+
   return (
     <Pressable
       accessibilityRole="switch"
@@ -33,7 +37,7 @@ export function ToggleSwitch({ value, onValueChange }: ToggleSwitchProps) {
     >
       <View
         className={`h-5 w-5 rounded-full bg-white shadow-sm ${
-          value ? "self-end" : "self-start"
+          thumbOnEnd ? "self-end" : "self-start"
         }`}
       />
     </Pressable>

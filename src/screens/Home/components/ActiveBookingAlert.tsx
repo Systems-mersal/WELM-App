@@ -21,11 +21,9 @@ export function ActiveBookingAlert({ onPress }: ActiveBookingAlertProps) {
       onPress={onPress}
       className="mt-2 w-full flex-row items-center justify-between rounded-[16px] border border-success bg-successBg p-3 active:opacity-80"
     >
-      <View className="h-6 w-6 items-center justify-center">
-        <AppIcon name={chevronEnd()} size={14} color={colors.primary} />
-      </View>
+      <View className="h-[10px] w-[10px] rounded-[10px] bg-success" />
 
-      <View className="flex-1 items-end gap-0.5 px-2">
+      <View className="flex-1 items-start gap-0.5 px-2">
         <AppText
           className="text-start text-[14px] text-primary"
           style={{ fontFamily: fontFamily.bold }}
@@ -40,7 +38,9 @@ export function ActiveBookingAlert({ onPress }: ActiveBookingAlertProps) {
         </AppText>
       </View>
 
-      <View className="h-[10px] w-[10px] rounded-[10px] bg-success" />
+      <View className="h-6 w-6 items-center justify-center">
+        <AppIcon name={chevronEnd()} size={14} color={colors.primary} />
+      </View>
     </Pressable>
   );
 }

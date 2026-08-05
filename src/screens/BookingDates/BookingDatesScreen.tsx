@@ -94,10 +94,7 @@ export function BookingDatesScreen({ navigation, route }: Props) {
       >
         <View className="mt-3 rounded-[20px] bg-white px-[18px] py-[18px]">
           <View className="flex-row items-start justify-between">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-              <AppIcon name="map-pin" size={20} color={colors.primary} />
-            </View>
-            <View className="ms-3 flex-1 items-end">
+            <View className="me-3 flex-1 items-start">
               <AppText variant="caption" muted>
                 {t("pickup-location")}
               </AppText>
@@ -105,15 +102,18 @@ export function BookingDatesScreen({ navigation, route }: Props) {
                 {t("pickup-location-value")}
               </AppText>
             </View>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+              <AppIcon name="map-pin" size={20} color={colors.primary} />
+            </View>
           </View>
 
           <View className="my-4 h-px bg-border" />
 
-          <View className="flex-row items-center justify-between">
-            <ToggleSwitch value={differentReturn} onValueChange={setDifferentReturn} />
+          <View className="flex-row items-center justify-between gap-3">
             <AppText variant="body" className="flex-1 text-start">
               {t("different-return-location")}
             </AppText>
+            <ToggleSwitch value={differentReturn} onValueChange={setDifferentReturn} />
           </View>
         </View>
 
@@ -169,11 +169,8 @@ export function BookingDatesScreen({ navigation, route }: Props) {
 
         <View className="mt-4 flex-row gap-3">
           <View className="flex-1 rounded-[20px] bg-white px-4 py-3.5">
-            <View className="flex-row items-center justify-between">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                <AppIcon name="clock" size={18} color={colors.primary} />
-              </View>
-              <View className="flex-1 items-end">
+            <View className="flex-row items-center justify-between gap-2">
+              <View className="flex-1 items-start">
                 <AppText variant="caption" muted>
                   {t("pickup-time")}
                 </AppText>
@@ -181,20 +178,23 @@ export function BookingDatesScreen({ navigation, route }: Props) {
                   {t("pickup-time-value")}
                 </AppText>
               </View>
-            </View>
-          </View>
-          <View className="flex-1 rounded-[20px] bg-white px-4 py-3.5">
-            <View className="flex-row items-center justify-between">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                 <AppIcon name="clock" size={18} color={colors.primary} />
               </View>
-              <View className="flex-1 items-end">
+            </View>
+          </View>
+          <View className="flex-1 rounded-[20px] bg-white px-4 py-3.5">
+            <View className="flex-row items-center justify-between gap-2">
+              <View className="flex-1 items-start">
                 <AppText variant="caption" muted>
                   {t("return-time")}
                 </AppText>
                 <AppText variant="label" className="mt-0.5">
                   {t("return-time-value")}
                 </AppText>
+              </View>
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                <AppIcon name="clock" size={18} color={colors.primary} />
               </View>
             </View>
           </View>
@@ -203,6 +203,14 @@ export function BookingDatesScreen({ navigation, route }: Props) {
 
       <StickyBottomBar>
         <View className="flex-row items-center justify-between">
+          <View className="items-start">
+            <AppText variant="subtitle" className="text-primary">
+              {totalPrice} {t("common:currency")}
+            </AppText>
+            <AppText variant="caption" muted>
+              {t("days", { count: BOOKING_DAYS })}
+            </AppText>
+          </View>
           <AppButton
             label={t("continue")}
             onPress={() => {
@@ -215,14 +223,6 @@ export function BookingDatesScreen({ navigation, route }: Props) {
             }}
             className="h-[58px] min-w-[126px] rounded-[29px]"
           />
-          <View className="items-end">
-            <AppText variant="subtitle" className="text-primary">
-              {totalPrice} {t("common:currency")}
-            </AppText>
-            <AppText variant="caption" muted>
-              {t("days", { count: BOOKING_DAYS })}
-            </AppText>
-          </View>
         </View>
       </StickyBottomBar>
     </View>

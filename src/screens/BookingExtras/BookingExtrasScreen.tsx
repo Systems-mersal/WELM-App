@@ -72,11 +72,7 @@ export function BookingExtrasScreen({ navigation, route }: Props) {
             key={key}
             className="mb-3 flex-row items-center rounded-[20px] bg-white px-[18px] py-[18px]"
           >
-            <ToggleSwitch
-              value={selected[key]}
-              onValueChange={() => toggleExtra(key)}
-            />
-            <View className="ms-4 flex-1 items-end">
+            <View className="me-4 flex-1 items-start">
               <AppText variant="label" className="text-start">
                 {t(`booking-extras:items.${key}.name`)}
               </AppText>
@@ -87,21 +83,17 @@ export function BookingExtrasScreen({ navigation, route }: Props) {
                 {t(`booking-extras:items.${key}.price`)}
               </AppText>
             </View>
+            <ToggleSwitch
+              value={selected[key]}
+              onValueChange={() => toggleExtra(key)}
+            />
           </View>
         ))}
       </ScrollView>
 
       <StickyBottomBar className="py-[26px]">
         <View className="flex-row items-center justify-between">
-          <AppButton
-            label={t("continue")}
-            onPress={() => {
-              setExtras(EXTRA_KEYS.filter((key) => selected[key]));
-              navigation.navigate("BookingReview", { vehicleId: route.params.vehicleId });
-            }}
-            className="h-[58px] min-w-[161px] rounded-[29px]"
-          />
-          <View className="items-end">
+          <View className="items-start">
             <AppText variant="caption" muted>
               {t("total-extras")}
             </AppText>
@@ -112,6 +104,14 @@ export function BookingExtrasScreen({ navigation, route }: Props) {
               {t("vat-disclaimer")}
             </AppText>
           </View>
+          <AppButton
+            label={t("continue")}
+            onPress={() => {
+              setExtras(EXTRA_KEYS.filter((key) => selected[key]));
+              navigation.navigate("BookingReview", { vehicleId: route.params.vehicleId });
+            }}
+            className="h-[58px] min-w-[161px] rounded-[29px]"
+          />
         </View>
       </StickyBottomBar>
     </View>
