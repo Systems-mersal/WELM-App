@@ -1,0 +1,6 @@
+{
+  "title": "Favorites",
+  "count": "{{count}} cars in favorites",
+  "empty": "No favorite cars yet",
+  "empty-desc": "Save cars you like to find them here easily"
+}

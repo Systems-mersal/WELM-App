@@ -1,0 +1,22 @@
+{
+  "welcome": "Welcome",
+  "greeting": "Welcome",
+  "user-name": "Ahmed Mohammed",
+  "featured": "Featured Car",
+  "view-all": "View All",
+  "book-now": "Book Now",
+  "per-day": "/day",
+  "search-placeholder": "Search for your dream car...",
+  "active-booking": "You have an active booking now",
+  "active-booking-detail": "Mercedes E-Class - ends tomorrow 4:00 PM",
+  "active-booking-cta": "View Booking",
+  "banner-brand": "WELM",
+  "banner-tagline": "For luxury car rental",
+  "categories": {
+    "luxury": "Luxury",
+    "electric": "Electric",
+    "sport": "Sport",
+    "sedan": "Sedan",
+    "suv": "SUV"
+  }
+}

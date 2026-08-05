@@ -1,0 +1,9 @@
+{
+  "header": "Verification Code",
+  "title": "Enter Verification Code",
+  "sent-to": "A 4-digit code was sent to",
+  "resend-in": "Resend in {{time}}",
+  "verify": "Verify",
+  "didnt-receive": "Didn't receive the code?",
+  "resend": "Resend"
+}

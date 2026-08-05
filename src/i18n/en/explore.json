@@ -1,0 +1,13 @@
+{
+  "search-placeholder": "Search for a car...",
+  "search-results": "Search Results",
+  "cars-available": "{{count}} cars available",
+  "filters": {
+    "all": "All",
+    "type": "Type",
+    "price": "Price",
+    "location": "Location",
+    "rating": "Rating"
+  },
+  "instant-book": "Instant Book"
+}

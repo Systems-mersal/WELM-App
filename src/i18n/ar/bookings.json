@@ -1,0 +1,21 @@
+{
+  "title": "حجوزاتي",
+  "tabs": {
+    "current": "الحالية",
+    "upcoming": "القادمة",
+    "past": "السابقة"
+  },
+  "active-booking": "الحجز النشط",
+  "past-bookings": "الحجوزات السابقة",
+  "active-now": "نشط الآن",
+  "rebook": "أعد الحجز",
+  "date-range": "{{start}} — {{end}}",
+  "dates": {
+    "active-start": "١ أغسطس",
+    "active-end": "٥ أغسطس",
+    "past1-start": "١٠ يوليو",
+    "past1-end": "١٤ يوليو"
+  },
+  "empty-upcoming": "لا توجد حجوزات قادمة",
+  "empty-past": "لا توجد حجوزات سابقة"
+}

@@ -1,0 +1,36 @@
+{
+  "title": "تفاصيل السيارة",
+  "specs": "المواصفات",
+  "features": "مزايا السيارة",
+  "reviews": "التقييمات",
+  "review-count": "({{count}} تقييم)",
+  "per-day": "/يوم",
+  "book-now": "احجز الآن",
+  "seats": "مقاعد",
+  "capacity": "السعة",
+  "seats-count": "{{count}} مقاعد",
+  "transmission": "ناقل الحركة",
+  "fuel-type": "نوع الوقود",
+  "model-year": "الموديل",
+  "automatic": "أوتوماتيك",
+  "manual": "يدوي",
+  "petrol": "بنزين",
+  "electric": "كهرباء",
+  "terms-title": "شروط التأجير والمعلومات",
+  "insurance-included": "تأمين شامل بالكامل متضمن",
+  "mileage-included": "المسافة المقطوعة مجاناً: ٣٠٠ كم/يوم",
+  "pickup-location": "موقع الاستلام",
+  "vat-included": "شامل ضريبة القيمة المضافة",
+  "feature-items": {
+    "wifi": "إنترنت مجاني",
+    "sound": "نظام صوتي ثلاثي",
+    "ac": "تكييف خلفي مستقل"
+  },
+  "categories": {
+    "luxury": "سيدان فخمة",
+    "electric": "كهربائية",
+    "sport": "رياضية",
+    "sedan": "سيدان",
+    "suv": "دفع رباعي"
+  }
+}

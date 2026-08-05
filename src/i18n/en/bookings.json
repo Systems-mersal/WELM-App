@@ -1,0 +1,21 @@
+{
+  "title": "My Bookings",
+  "tabs": {
+    "current": "Current",
+    "upcoming": "Upcoming",
+    "past": "Past"
+  },
+  "active-booking": "Active Booking",
+  "past-bookings": "Past Bookings",
+  "active-now": "Active Now",
+  "rebook": "Rebook",
+  "date-range": "{{start}} — {{end}}",
+  "dates": {
+    "active-start": "Aug 1",
+    "active-end": "Aug 5",
+    "past1-start": "Jul 10",
+    "past1-end": "Jul 14"
+  },
+  "empty-upcoming": "No upcoming bookings",
+  "empty-past": "No past bookings"
+}

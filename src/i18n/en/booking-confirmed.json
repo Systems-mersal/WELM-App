@@ -1,0 +1,13 @@
+{
+  "title": "Your booking is confirmed!",
+  "subtitle": "Congratulations, your payment is confirmed and your luxury car is ready for pickup.",
+  "booking-id": "Reference Booking ID",
+  "booking-ref": "WELM-983742",
+  "vehicle-label": "Booked Vehicle",
+  "period-label": "Rental Period",
+  "period-value": "5 days (May 13 - May 17)",
+  "location-label": "Pickup Location",
+  "location-value": "King Khalid Airport, Gate 5",
+  "view-booking": "View Booking Details",
+  "back-to-home": "Back to Home"
+}

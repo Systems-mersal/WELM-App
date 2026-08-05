@@ -1,0 +1,30 @@
+{
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore",
+    "bookings": "Bookings",
+    "favorites": "Favorites",
+    "profile": "Profile"
+  },
+  "loading": "Loading...",
+  "error": "Something went wrong",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "save": "Save",
+  "confirm": "Confirm",
+  "back": "Back",
+  "next": "Next",
+  "done": "Done",
+  "currency": "SAR",
+  "a11y": {
+    "notifications": "Notifications",
+    "filter": "Filter",
+    "search": "Search",
+    "favorite": "Favorite",
+    "add": "Add",
+    "coming-soon": "Coming soon",
+    "country-sa": "Saudi Arabia",
+    "sign-in-apple": "Sign in with Apple",
+    "sign-in-x": "Sign in with X"
+  }
+}

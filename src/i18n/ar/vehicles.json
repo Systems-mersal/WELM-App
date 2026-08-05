@@ -1,0 +1,17 @@
+{
+  "bmw-x5": "بي إم دبليو X5 2025",
+  "mercedes-e350": "مرسيدس E350",
+  "porsche-cayenne": "بورشه كايين",
+  "tesla-model-s": "تسلا موديل S",
+  "audi-a8": "أودي A8 فخمة",
+  "lexus-es": "لكزس ES 2025",
+  "bmw-x3": "بي إم دبليو X3",
+  "audi-a6": "أودي A6 فخمة",
+  "range-rover-velar": "رنج روفر فيلار",
+  "locations": {
+    "khobar": "الخبر",
+    "dammam": "الدمام",
+    "riyadh": "الرياض",
+    "jeddah": "جدة"
+  }
+}

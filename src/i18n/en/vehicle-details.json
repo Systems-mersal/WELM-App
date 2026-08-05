@@ -1,0 +1,36 @@
+{
+  "title": "Vehicle Details",
+  "specs": "Specifications",
+  "features": "Vehicle Features",
+  "reviews": "Reviews",
+  "review-count": "({{count}} reviews)",
+  "per-day": "/day",
+  "book-now": "Book Now",
+  "seats": "Seats",
+  "capacity": "Capacity",
+  "seats-count": "{{count}} seats",
+  "transmission": "Transmission",
+  "fuel-type": "Fuel Type",
+  "model-year": "Model Year",
+  "automatic": "Automatic",
+  "manual": "Manual",
+  "petrol": "Petrol",
+  "electric": "Electric",
+  "terms-title": "Rental Terms & Info",
+  "insurance-included": "Full comprehensive insurance included",
+  "mileage-included": "Free mileage: 300 km/day",
+  "pickup-location": "Pickup Location",
+  "vat-included": "VAT included",
+  "feature-items": {
+    "wifi": "Free Wi-Fi",
+    "sound": "Premium sound system",
+    "ac": "Independent rear AC"
+  },
+  "categories": {
+    "luxury": "Luxury Sedan",
+    "electric": "Electric",
+    "sport": "Sport",
+    "sedan": "Sedan",
+    "suv": "SUV"
+  }
+}

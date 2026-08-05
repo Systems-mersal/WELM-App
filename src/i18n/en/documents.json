@@ -1,0 +1,27 @@
+{
+  "title": "Documents & Licenses",
+  "subtitle": "Upload your documents for verification",
+  "driving-license": "Driving License",
+  "id-card": "National ID",
+  "passport": "Passport",
+  "upload": "Upload",
+  "upload-new": "Upload New Document",
+  "update": "Update",
+  "uploaded": "Uploaded",
+  "pending": "Pending Review",
+  "verified": "Verified & Accepted",
+  "uploaded-at": "Uploaded: {{date}}",
+  "license-number": "License No.: {{number}}",
+  "id-number": "ID No.: {{number}}",
+  "passport-number": "Passport No.: {{number}}",
+  "dates": {
+    "license": "Jan 12, 2026",
+    "id": "Jan 10, 2026",
+    "passport": "Today 2:45 PM"
+  },
+  "masked-numbers": {
+    "license": "****2948",
+    "id": "****0842",
+    "passport": "****8821"
+  }
+}

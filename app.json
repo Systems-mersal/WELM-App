@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "WELM",
+    "slug": "welm",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.welm.tajeerplus"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B3D3D",
+        "foregroundImage": "./assets/icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.welm.tajeerplus"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-localization",
+      "expo-font"
+    ]
+  }
+}

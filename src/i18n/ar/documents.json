@@ -1,0 +1,27 @@
+{
+  "title": "الوثائق والرخص",
+  "subtitle": "ارفع مستنداتك للتحقق",
+  "driving-license": "رخصة القيادة",
+  "id-card": "الهوية الوطنية",
+  "passport": "جواز السفر",
+  "upload": "رفع",
+  "upload-new": "رفع مستند جديد",
+  "update": "تحديث",
+  "uploaded": "تم الرفع",
+  "pending": "قيد المراجعة",
+  "verified": "مقبول وموثق",
+  "uploaded-at": "تم الرفع: {{date}}",
+  "license-number": "رقم الرخصة: {{number}}",
+  "id-number": "رقم الهوية: {{number}}",
+  "passport-number": "رقم الجواز: {{number}}",
+  "dates": {
+    "license": "١٢ يناير ٢٠٢٦",
+    "id": "١٠ يناير ٢٠٢٦",
+    "passport": "اليوم ٢:٤٥ م"
+  },
+  "masked-numbers": {
+    "license": "****٢٩٤٨",
+    "id": "****٠٨٤٢",
+    "passport": "****٨٨٢١"
+  }
+}

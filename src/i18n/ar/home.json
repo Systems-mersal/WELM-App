@@ -1,0 +1,22 @@
+{
+  "welcome": "مرحباً بك",
+  "greeting": "مرحباً بك",
+  "user-name": "أحمد محمد",
+  "featured": "سيارة متميزة",
+  "view-all": "عرض الكل",
+  "book-now": "احجز الآن",
+  "per-day": "/يوم",
+  "search-placeholder": "ابحث عن سيارة أحلامك...",
+  "active-booking": "لديك حجز نشط الآن",
+  "active-booking-detail": "مرسيدس E-Class - تنتهي غداً 4:00 م",
+  "active-booking-cta": "عرض الحجز",
+  "banner-brand": "WELM",
+  "banner-tagline": "لتأجير السيارات الفارهة",
+  "categories": {
+    "luxury": "فاخرة",
+    "electric": "كهربائية",
+    "sport": "رياضية",
+    "sedan": "سيدان",
+    "suv": "SUV"
+  }
+}

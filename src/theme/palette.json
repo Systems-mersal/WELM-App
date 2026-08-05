@@ -1,0 +1,38 @@
+{
+  "colors": {
+    "primary": "#117066",
+    "primaryDark": "#115e59",
+    "primaryDeep": "#0d4a46",
+    "primarySoft": "#a5d3ce",
+    "primaryMuted": "#e6f4f1",
+    "peach": "#ffccaa",
+    "peachGold": "#fec172",
+    "star": "#f5b400",
+    "background": "#f9fafb",
+    "backgroundWarm": "#f9f6f2",
+    "text": "#1f2937",
+    "textMuted": "#6b7280",
+    "border": "#e5e7eb",
+    "success": "#10b981",
+    "successBg": "#d1fae5",
+    "warning": "#f59e0b",
+    "danger": "#ef4444",
+    "white": "#ffffff"
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 32
+  },
+  "radius": {
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "pill": 27,
+    "full": 9999
+  }
+}

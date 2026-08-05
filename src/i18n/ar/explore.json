@@ -1,0 +1,13 @@
+{
+  "search-placeholder": "ابحث عن سيارة...",
+  "search-results": "نتائج البحث",
+  "cars-available": "{{count}} سيارات متاحة",
+  "filters": {
+    "all": "الكل",
+    "type": "النوع",
+    "price": "السعر",
+    "location": "الموقع",
+    "rating": "التقييم"
+  },
+  "instant-book": "حجز فوري"
+}

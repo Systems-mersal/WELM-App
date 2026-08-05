@@ -1,0 +1,28 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications",
+  "empty-desc": "Latest updates and offers will appear here",
+  "mark-all-read": "Mark all as read",
+  "items": {
+    "booking-confirmed": {
+      "title": "Booking confirmed successfully",
+      "body": "Your BMW X5 booking has been confirmed. You can pick it up tomorrow at 10:00 AM.",
+      "time": "1 hour ago"
+    },
+    "payment-received": {
+      "title": "Payment received",
+      "body": "Thank you, a payment of 450 SAR was received for booking #W-29402.",
+      "time": "3 hours ago"
+    },
+    "license-update": {
+      "title": "Driving license update required",
+      "body": "Your driving license will expire soon. Please update your documents to avoid service interruption.",
+      "time": "2 days ago"
+    },
+    "weekend-offer": {
+      "title": "Special offer: 15% off this weekend",
+      "body": "Enjoy 15% off all sport cars this weekend. Use code: WEEKEND15.",
+      "time": "3 days ago"
+    }
+  }
+}

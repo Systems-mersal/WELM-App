@@ -1,0 +1,17 @@
+{
+  "bmw-x5": "BMW X5 2025",
+  "mercedes-e350": "Mercedes E350",
+  "porsche-cayenne": "Porsche Cayenne",
+  "tesla-model-s": "Tesla Model S",
+  "audi-a8": "Audi A8 Luxury",
+  "lexus-es": "Lexus ES 2025",
+  "bmw-x3": "BMW X3",
+  "audi-a6": "Audi A6 Luxury",
+  "range-rover-velar": "Range Rover Velar",
+  "locations": {
+    "khobar": "Khobar",
+    "dammam": "Dammam",
+    "riyadh": "Riyadh",
+    "jeddah": "Jeddah"
+  }
+}

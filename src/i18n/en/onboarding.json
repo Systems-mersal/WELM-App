@@ -1,0 +1,17 @@
+{
+  "skip": "Skip",
+  "next": "Next",
+  "get-started": "Get Started",
+  "step1": {
+    "title": "Discover Premium Cars",
+    "desc": "Browse a wide selection of luxury vehicles from the best rental companies in the Kingdom"
+  },
+  "step2": {
+    "title": "Book with Ease",
+    "desc": "Pick your dates and location, then book your favorite car in a few simple steps"
+  },
+  "step3": {
+    "title": "Pick Up Anywhere",
+    "desc": "Collect your car from the airport or any location you choose with premium delivery service"
+  }
+}

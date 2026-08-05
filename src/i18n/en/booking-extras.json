@@ -1,0 +1,35 @@
+{
+  "title": "Booking Extras",
+  "step": "Step {{current}} of {{total}}",
+  "subtitle": "Choose the extras that suit you",
+  "continue": "Continue",
+  "total-extras": "Total Extras",
+  "vat-disclaimer": "VAT included",
+  "items": {
+    "insurance": {
+      "name": "Full Comprehensive Insurance",
+      "description": "Full coverage against accidents and damage",
+      "price": "200 SAR/day"
+    },
+    "driver": {
+      "name": "Licensed Additional Driver",
+      "description": "Professional certified driver for your trips",
+      "price": "150 SAR/day"
+    },
+    "child-seat": {
+      "name": "Safe Child Seat",
+      "description": "Certified child seat for safety",
+      "price": "50 SAR/day"
+    },
+    "gps": {
+      "name": "Smart GPS Navigation",
+      "description": "Smart navigation with live updates",
+      "price": "30 SAR/day"
+    },
+    "airport": {
+      "name": "Airport Pickup & Drop-off",
+      "description": "Direct pickup and drop-off at the airport",
+      "price": "100 SAR"
+    }
+  }
+}
