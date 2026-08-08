@@ -1,6 +1,6 @@
 import React from "react";
 import { TextInput, View, type TextInputProps } from "react-native";
-import { writingTextAlign } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import { colors } from "../../theme/colors";
 import { fontFamily } from "../../theme/typography";
 import { AppText } from "../typography/AppText";
@@ -19,6 +19,8 @@ export function AppInput({
   inputClassName = "",
   ...props
 }: AppInputProps) {
+  const { textAlign, writingDirection } = useRtl();
+
   return (
     <View className={`w-full ${containerClassName}`}>
       {label ? (
@@ -32,7 +34,8 @@ export function AppInput({
         style={{
           fontFamily: fontFamily.regular,
           fontSize: 16,
-          textAlign: writingTextAlign(),
+          textAlign,
+          writingDirection,
         }}
         {...props}
       />

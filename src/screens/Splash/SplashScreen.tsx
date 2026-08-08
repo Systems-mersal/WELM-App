@@ -1,14 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { CommonActions } from "@react-navigation/native";
 
 import { splashLogoMarkXml } from "../../assets/figma/splash/logoMarkXml";
 import { splashWordmarkXml } from "../../assets/figma/splash/wordmarkXml";
 import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
-import { getHasSeenOnboarding } from "../../lib/onboarding-storage";
+import {
+  clearHasSeenOnboarding,
+  getHasSeenOnboarding,
+} from "../../lib/onboarding-storage";
 import type { RootStackParamList } from "../../navigation/types";
 import { colors } from "../../theme/colors";
 
@@ -18,34 +22,42 @@ const SPLASH_DELAY_MS = 2000;
 
 export function SplashScreen({ navigation }: Props) {
   const { t } = useTranslation("splash");
-  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    isMountedRef.current = true;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
 
-    const bootstrap = async () => {
-      const startedAt = Date.now();
-      let hasSeenOnboarding = false;
+    // Schedule synchronously so React Strict Mode / remounts can always clear it.
+    const timeoutId = setTimeout(() => {
+      void (async () => {
+        // Dev reloads keep AsyncStorage; clear so onboarding is testable every launch.
+        if (__DEV__) {
+          await clearHasSeenOnboarding();
+        }
 
-      try {
-        hasSeenOnboarding = await getHasSeenOnboarding();
-      } catch {
-        hasSeenOnboarding = false;
-      }
+        let hasSeenOnboarding = false;
+        try {
+          hasSeenOnboarding = await getHasSeenOnboarding();
+        } catch {
+          hasSeenOnboarding = false;
+        }
 
-      const remaining = Math.max(0, SPLASH_DELAY_MS - (Date.now() - startedAt));
-      timeoutId = setTimeout(() => {
-        if (!isMountedRef.current) return;
-        navigation.replace(hasSeenOnboarding ? "Login" : "Onboarding");
-      }, remaining);
-    };
+        if (cancelled) {
+          return;
+        }
 
-    void bootstrap();
+        const nextRoute = hasSeenOnboarding ? "Login" : "Onboarding";
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: nextRoute }],
+          }),
+        );
+      })();
+    }, SPLASH_DELAY_MS);
 
     return () => {
-      isMountedRef.current = false;
-      if (timeoutId) clearTimeout(timeoutId);
+      cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, [navigation]);
 

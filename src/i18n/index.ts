@@ -1,8 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { getLocales } from "expo-localization";
-import { I18nManager } from "react-native";
 
+import { defaultLocale, isAppLocale, type AppLocale } from "./routing";
 import arCommon from "./ar/common.json";
 import arSplash from "./ar/splash.json";
 import arOnboarding from "./ar/onboarding.json";
@@ -64,18 +64,15 @@ export const namespaces = [
 
 export type AppNamespace = (typeof namespaces)[number];
 
-const deviceLanguage = getLocales()[0]?.languageCode ?? "ar";
-const defaultLanguage = deviceLanguage === "en" ? "en" : "ar";
-
-I18nManager.allowRTL(true);
-if (defaultLanguage === "ar") {
-  I18nManager.forceRTL(true);
-}
+const deviceLanguageCode = getLocales()[0]?.languageCode;
+export const defaultLanguage: AppLocale = isAppLocale(deviceLanguageCode)
+  ? deviceLanguageCode
+  : defaultLocale;
 
 void i18n.use(initReactI18next).init({
   compatibilityJSON: "v4",
   lng: defaultLanguage,
-  fallbackLng: "ar",
+  fallbackLng: defaultLocale,
   defaultNS: "common",
   ns: [...namespaces],
   resources: {

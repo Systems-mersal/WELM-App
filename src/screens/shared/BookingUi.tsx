@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, View } from "react-native";
-import { isRTL } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 
 interface StickyBottomBarProps {
   children: React.ReactNode;
@@ -23,8 +23,9 @@ interface ToggleSwitchProps {
 }
 
 export function ToggleSwitch({ value, onValueChange }: ToggleSwitchProps) {
+  const { isRTL } = useRtl();
   // Keep switch thumb motion physically LTR (ON = right), even in RTL layouts.
-  const thumbOnEnd = isRTL() ? !value : value;
+  const thumbOnEnd = isRTL ? !value : value;
 
   return (
     <Pressable

@@ -3,7 +3,7 @@ import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { AppText } from "../../../components/typography/AppText";
-import { chevronEnd } from "../../../lib/rtl";
+import { useRtl } from "../../../hooks/useRtl";
 import { colors } from "../../../theme/colors";
 import { fontFamily } from "../../../theme/typography";
 
@@ -13,6 +13,7 @@ export interface ActiveBookingAlertProps {
 
 export function ActiveBookingAlert({ onPress }: ActiveBookingAlertProps) {
   const { t } = useTranslation("home");
+  const { chevronEnd } = useRtl();
 
   return (
     <Pressable
@@ -39,7 +40,7 @@ export function ActiveBookingAlert({ onPress }: ActiveBookingAlertProps) {
       </View>
 
       <View className="h-6 w-6 items-center justify-center">
-        <AppIcon name={chevronEnd()} size={14} color={colors.primary} />
+        <AppIcon name={chevronEnd} size={14} color={colors.primary} />
       </View>
     </Pressable>
   );

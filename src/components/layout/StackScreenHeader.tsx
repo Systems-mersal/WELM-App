@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon } from "../icons/AppIcon";
 import { AppText } from "../typography/AppText";
-import { chevronStart } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import { colors } from "../../theme/colors";
 import { spacing } from "../../theme/spacing";
 
@@ -26,6 +26,7 @@ export function StackScreenHeader({
 }: StackScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");
+  const { chevronStart } = useRtl();
 
   const spacer = <View className="h-11 w-11" />;
 
@@ -37,7 +38,7 @@ export function StackScreenHeader({
       className="h-11 w-11 items-center justify-center rounded-full bg-background active:opacity-70"
       hitSlop={8}
     >
-      <AppIcon name={chevronStart()} size={20} color={colors.text} />
+      <AppIcon name={chevronStart} size={20} color={colors.text} />
     </Pressable>
   );
 

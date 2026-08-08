@@ -4,47 +4,45 @@ import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton } from "../../components/buttons/AppButton";
+import { LanguageSwitcher } from "../../components/common/LanguageSwitcher";
 import { AppText } from "../../components/typography/AppText";
 import { Screen } from "../../components/common/Screen";
-import { useLanguage } from "../../hooks/useLanguage";
 import { useAuthStore } from "../../stores/auth-store";
 import type { MainTabNavigationProp } from "../../navigation/types";
 import { ProfileHeader, ProfileStats } from "./components/ProfileHeader";
-import { SettingsList } from "./components/SettingsRow";
+import { SettingsRow } from "./components/SettingsRow";
 
 export function ProfileScreen() {
   const { t } = useTranslation(["profile", "common"]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<MainTabNavigationProp<"Profile">>();
-  const { language, toggleLanguage } = useLanguage();
 
-  const settingsRows = useMemo(
-    () => [
-      { key: "personalInfo", label: t("rows.personal-info") },
-      { key: "paymentMethods", label: t("rows.payment-methods") },
-      {
-        key: "notifications",
-        label: t("rows.notifications"),
-        onPress: () => navigation.navigate("Notifications"),
-      },
-      {
-        key: "documents",
-        label: t("rows.documents"),
-        onPress: () => navigation.navigate("Documents"),
-      },
-      {
-        key: "language",
-        label: t("rows.language"),
-        value: language === "ar" ? t("rows.language-ar") : t("rows.language-en"),
-        onPress: () => {
-          void toggleLanguage();
+  const topRows = useMemo(
+    () =>
+      [
+        { key: "personalInfo", label: t("rows.personal-info") },
+        { key: "paymentMethods", label: t("rows.payment-methods") },
+        {
+          key: "notifications",
+          label: t("rows.notifications"),
+          onPress: () => navigation.navigate("Notifications"),
         },
-      },
+        {
+          key: "documents",
+          label: t("rows.documents"),
+          onPress: () => navigation.navigate("Documents"),
+        },
+      ] as Array<{ key: string; label: string; onPress?: () => void }>,
+    [navigation, t],
+  );
+
+  const bottomRows = useMemo(
+    () => [
       { key: "support", label: t("rows.support") },
       { key: "terms", label: t("rows.terms") },
       { key: "privacy", label: t("rows.privacy") },
     ],
-    [language, navigation, t, toggleLanguage],
+    [t],
   );
 
   const clearSession = useAuthStore((state) => state.clearSession);
@@ -93,7 +91,20 @@ export function ProfileScreen() {
           <AppText variant="subtitle" className="mb-1 mt-6">
             {t("account-settings")}
           </AppText>
-          <SettingsList rows={settingsRows} />
+
+          <View className="mt-6 rounded-[20px] bg-white px-4">
+            {topRows.map((row) => (
+              <View key={row.key}>
+                <SettingsRow label={row.label} onPress={row.onPress} />
+              </View>
+            ))}
+            <LanguageSwitcher />
+            {bottomRows.map((row) => (
+              <View key={row.key}>
+                <SettingsRow label={row.label} />
+              </View>
+            ))}
+          </View>
 
           <AppButton
             label={t("logout")}

@@ -10,7 +10,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
 import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
-import { getWritingDirection, writingTextAlign } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
@@ -20,9 +20,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation(["login", "common"]);
+  const { textAlign } = useRtl();
   const [phone, setPhone] = useState("");
-  const phoneTextAlign = writingTextAlign();
-  const phoneWritingDirection = getWritingDirection();
 
   const handleContinue = useCallback(() => {
     navigation.navigate("Otp", { phone: phone.trim() || undefined });
@@ -93,8 +92,8 @@ export function LoginScreen({ navigation }: Props) {
               style={{
                 fontFamily: fontFamily.regular,
                 fontSize: fontSize.body,
-                textAlign: phoneTextAlign,
-                writingDirection: phoneWritingDirection,
+                textAlign,
+                writingDirection: "ltr",
               }}
             />
           </View>

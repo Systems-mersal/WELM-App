@@ -8,7 +8,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { AppText } from "../../components/typography/AppText";
 import { getVehicleById } from "../../constants/vehicles";
-import { chevronEnd, chevronStart } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { useBookingDraftStore } from "../../stores/booking-draft-store";
 import { colors } from "../../theme/colors";
@@ -34,6 +34,7 @@ function getFirstWeekday(year: number, month: number): number {
 export function BookingDatesScreen({ navigation, route }: Props) {
   const { t } = useTranslation(["booking-dates", "common"]);
   const insets = useSafeAreaInsets();
+  const { chevronStart, chevronEnd } = useRtl();
   const [differentReturn, setDifferentReturn] = useState(false);
   const [displayMonth, setDisplayMonth] = useState(BOOKING_MONTH);
 
@@ -124,7 +125,7 @@ export function BookingDatesScreen({ navigation, route }: Props) {
               onPress={() => setDisplayMonth((m) => Math.max(0, m - 1))}
               className="h-8 w-8 items-center justify-center rounded-full bg-background active:opacity-70"
             >
-              <AppIcon name={chevronStart()} size={16} color={colors.text} />
+              <AppIcon name={chevronStart} size={16} color={colors.text} />
             </Pressable>
             <AppText variant="subtitle">
               {t(`months.${displayMonth}`)} {BOOKING_YEAR}
@@ -134,7 +135,7 @@ export function BookingDatesScreen({ navigation, route }: Props) {
               onPress={() => setDisplayMonth((m) => Math.min(11, m + 1))}
               className="h-8 w-8 items-center justify-center rounded-full bg-background active:opacity-70"
             >
-              <AppIcon name={chevronEnd()} size={16} color={colors.text} />
+              <AppIcon name={chevronEnd} size={16} color={colors.text} />
             </Pressable>
           </View>
 

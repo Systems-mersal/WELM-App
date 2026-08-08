@@ -10,7 +10,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { AppText } from "../../components/typography/AppText";
 import { getVehicleById } from "../../constants/vehicles";
-import { chevronStart } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { useBookingDraftStore } from "../../stores/booking-draft-store";
 import { colors } from "../../theme/colors";
@@ -23,6 +23,7 @@ const FEATURE_KEYS = ["wifi", "sound", "ac"] as const;
 export function VehicleDetailsScreen({ navigation, route }: Props) {
   const { t } = useTranslation(["vehicle-details", "vehicles", "common"]);
   const insets = useSafeAreaInsets();
+  const { chevronStart } = useRtl();
   const [isFavorite, setIsFavorite] = useState(false);
 
   const vehicle = getVehicleById(route.params.vehicleId);
@@ -91,7 +92,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
               onPress={() => navigation.goBack()}
               className="h-[38px] w-[38px] items-center justify-center rounded-full bg-white/90 active:opacity-70"
             >
-              <AppIcon name={chevronStart()} size={18} color={colors.text} />
+              <AppIcon name={chevronStart} size={18} color={colors.text} />
             </Pressable>
           </View>
           <View className="absolute inset-x-0 bottom-3 flex-row items-center justify-center gap-1.5">

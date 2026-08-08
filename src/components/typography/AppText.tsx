@@ -1,5 +1,6 @@
 import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
+import { useRtl } from "../../hooks/useRtl";
 import { fontFamily, fontSize, lineHeight } from "../../theme/typography";
 
 export type AppTextVariant =
@@ -40,6 +41,8 @@ const variantStyles: Record<
   },
 };
 
+const ALIGN_CLASS_RE = /\btext-(center|left|right|start|end|justify)\b/;
+
 export function AppText({
   variant = "body",
   className = "",
@@ -48,6 +51,8 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const config = variantStyles[variant];
+  const { textAlign, writingDirection } = useRtl();
+  const hasExplicitAlign = ALIGN_CLASS_RE.test(className);
 
   return (
     <Text
@@ -57,6 +62,8 @@ export function AppText({
           fontFamily: config.weight,
           fontSize: config.size,
           lineHeight: config.lineHeight,
+          writingDirection,
+          ...(hasExplicitAlign ? {} : { textAlign }),
         },
         style,
       ]}

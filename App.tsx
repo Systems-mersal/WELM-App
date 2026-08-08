@@ -1,9 +1,7 @@
-import React, { useEffect } from "react";
-import { ActivityIndicator, I18nManager, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   Cairo_400Regular,
@@ -18,7 +16,9 @@ import {
 import { I18nextProvider } from "react-i18next";
 
 import "./src/styles/global.css";
-import i18n from "./src/i18n";
+import i18n, { defaultLanguage } from "./src/i18n";
+import { LocaleRoot } from "./src/components/locale/LocaleRoot";
+import { getStoredLanguage } from "./src/lib/language-storage";
 import { queryClient } from "./src/lib/query-client";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { colors } from "./src/theme/colors";
@@ -32,16 +32,33 @@ export default function App() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [localeReady, setLocaleReady] = useState(false);
 
   useEffect(() => {
-    const isArabic = i18n.language?.startsWith("ar");
-    if (isArabic && !I18nManager.isRTL) {
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(true);
+    let cancelled = false;
+
+    async function bootstrapLocale() {
+      const stored = await getStoredLanguage();
+
+      if (stored && stored !== i18n.language) {
+        await i18n.changeLanguage(stored);
+      } else if (!stored && defaultLanguage !== i18n.language) {
+        await i18n.changeLanguage(defaultLanguage);
+      }
+
+      if (!cancelled) {
+        setLocaleReady(true);
+      }
     }
+
+    void bootstrapLocale();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !localeReady) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color={colors.primary} />
@@ -53,10 +70,9 @@ export default function App() {
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
-          <NavigationContainer>
-            <StatusBar style="dark" />
+          <LocaleRoot>
             <RootNavigator />
-          </NavigationContainer>
+          </LocaleRoot>
         </QueryClientProvider>
       </I18nextProvider>
     </SafeAreaProvider>

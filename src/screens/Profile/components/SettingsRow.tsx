@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, View } from "react-native";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { AppText } from "../../../components/typography/AppText";
-import { chevronEnd } from "../../../lib/rtl";
+import { useRtl } from "../../../hooks/useRtl";
 import { colors } from "../../../theme/colors";
 
 export interface SettingsRowProps {
@@ -12,6 +12,7 @@ export interface SettingsRowProps {
 }
 
 export function SettingsRow({ label, value, onPress }: SettingsRowProps) {
+  const { chevronEnd } = useRtl();
   const interactive = typeof onPress === "function";
   const content = (
     <>
@@ -25,7 +26,7 @@ export function SettingsRow({ label, value, onPress }: SettingsRowProps) {
           </AppText>
         ) : null}
         {interactive ? (
-          <AppIcon name={chevronEnd()} size={18} color={colors.textMuted} />
+          <AppIcon name={chevronEnd} size={18} color={colors.textMuted} />
         ) : null}
       </View>
     </>

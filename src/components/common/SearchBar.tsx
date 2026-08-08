@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { writingTextAlign } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import { colors } from "../../theme/colors";
 import { fontFamily } from "../../theme/typography";
 import { AppIcon } from "../icons/AppIcon";
@@ -24,8 +24,8 @@ export function SearchBar({
   variant = "home",
 }: SearchBarProps) {
   const { t } = useTranslation("common");
+  const { textAlign, writingDirection } = useRtl();
   const isHome = variant === "home";
-  const textAlign = writingTextAlign();
 
   return (
     <View
@@ -45,7 +45,12 @@ export function SearchBar({
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         className="flex-1 text-start text-[14px] text-textMuted"
-        style={{ fontFamily: fontFamily.regular, fontSize: 14, textAlign }}
+        style={{
+          fontFamily: fontFamily.regular,
+          fontSize: 14,
+          textAlign,
+          writingDirection,
+        }}
       />
 
       {isHome && onFilterPress ? (

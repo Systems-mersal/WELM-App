@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { AppText } from "../../components/typography/AppText";
-import { chevronStart } from "../../lib/rtl";
+import { useRtl } from "../../hooks/useRtl";
 import { colors } from "../../theme/colors";
 
 interface BookingStepHeaderProps {
@@ -16,6 +16,7 @@ interface BookingStepHeaderProps {
 export function BookingStepHeader({ step, title, onBack }: BookingStepHeaderProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");
+  const { chevronStart } = useRtl();
 
   return (
     <View
@@ -39,7 +40,7 @@ export function BookingStepHeader({ step, title, onBack }: BookingStepHeaderProp
           onPress={onBack}
           className="h-10 w-10 items-center justify-center rounded-full bg-white/15 active:opacity-70"
         >
-          <AppIcon name={chevronStart()} size={20} color={colors.white} />
+          <AppIcon name={chevronStart} size={20} color={colors.white} />
         </Pressable>
       </View>
     </View>
