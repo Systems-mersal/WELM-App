@@ -22,7 +22,14 @@ const FEATHER_ICON_MAP = {
   plus: "plus",
 } as const;
 
-export type AppIconName = keyof typeof FEATHER_ICON_MAP | "apple";
+const IONICONS_LOGO_MAP = {
+  apple: "logo-apple",
+  google: "logo-google",
+} as const;
+
+export type AppIconName =
+  | keyof typeof FEATHER_ICON_MAP
+  | keyof typeof IONICONS_LOGO_MAP;
 
 export interface AppIconProps {
   name: AppIconName;
@@ -37,11 +44,23 @@ export function AppIcon({
   color = colors.text,
   testID,
 }: AppIconProps) {
-  if (name === "apple") {
-    return <Ionicons name="logo-apple" size={size} color={color} testID={testID} />;
+  if (name in IONICONS_LOGO_MAP) {
+    return (
+      <Ionicons
+        name={IONICONS_LOGO_MAP[name as keyof typeof IONICONS_LOGO_MAP]}
+        size={size}
+        color={color}
+        testID={testID}
+      />
+    );
   }
 
   return (
-    <Feather name={FEATHER_ICON_MAP[name]} size={size} color={color} testID={testID} />
+    <Feather
+      name={FEATHER_ICON_MAP[name as keyof typeof FEATHER_ICON_MAP]}
+      size={size}
+      color={color}
+      testID={testID}
+    />
   );
 }

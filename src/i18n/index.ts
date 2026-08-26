@@ -7,6 +7,8 @@ import arCommon from "./ar/common.json";
 import arSplash from "./ar/splash.json";
 import arOnboarding from "./ar/onboarding.json";
 import arLogin from "./ar/login.json";
+import arCreateAccount from "./ar/create-account.json";
+import arLegal from "./ar/legal.json";
 import arOtp from "./ar/otp.json";
 import arHome from "./ar/home.json";
 import arExplore from "./ar/explore.json";
@@ -26,6 +28,8 @@ import enCommon from "./en/common.json";
 import enSplash from "./en/splash.json";
 import enOnboarding from "./en/onboarding.json";
 import enLogin from "./en/login.json";
+import enCreateAccount from "./en/create-account.json";
+import enLegal from "./en/legal.json";
 import enOtp from "./en/otp.json";
 import enHome from "./en/home.json";
 import enExplore from "./en/explore.json";
@@ -46,6 +50,8 @@ export const namespaces = [
   "splash",
   "onboarding",
   "login",
+  "create-account",
+  "legal",
   "otp",
   "home",
   "explore",
@@ -81,6 +87,8 @@ void i18n.use(initReactI18next).init({
       splash: arSplash,
       onboarding: arOnboarding,
       login: arLogin,
+      "create-account": arCreateAccount,
+      legal: arLegal,
       otp: arOtp,
       home: arHome,
       explore: arExplore,
@@ -101,6 +109,8 @@ void i18n.use(initReactI18next).init({
       splash: enSplash,
       onboarding: enOnboarding,
       login: enLogin,
+      "create-account": enCreateAccount,
+      legal: enLegal,
       otp: enOtp,
       home: enHome,
       explore: enExplore,

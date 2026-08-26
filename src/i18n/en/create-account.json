@@ -1,0 +1,20 @@
+{
+  "header": "Create account",
+  "brand": "WELM",
+  "title": "Create a new account",
+  "subtitle": "Join WELM for an unmatched luxury car rental experience",
+  "social-section": "Sign up with",
+  "social-caption": "We'll never post without your permission",
+  "or": "or",
+  "phone": "Mobile Number",
+  "phone-placeholder": "5XXXXXXXX",
+  "terms-agree": "I agree to the ",
+  "terms-link": "Terms of Use",
+  "terms-and": " and ",
+  "privacy-link": "Privacy Policy",
+  "terms-error": "Please accept the terms to continue",
+  "a11y-terms": "Accept terms and privacy policy",
+  "continue-phone": "Continue with mobile number",
+  "has-account": "Already have an account?",
+  "sign-in": "Sign in"
+}

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import type { SocialAuthSuccess } from "../features/auth/social/types";
+
 export type AuthUser = {
   id: string;
   name: string;
@@ -10,6 +12,9 @@ export type AuthUser = {
 type AuthState = {
   token: string | null;
   user: AuthUser | null;
+  /** Memory-only OAuth credential. Not a session — do not persist. */
+  pendingSocial: SocialAuthSuccess | null;
+  setPendingSocial: (credential: SocialAuthSuccess | null) => void;
   setSession: (token: string, user: AuthUser) => void;
   clearSession: () => void;
 };
@@ -18,6 +23,10 @@ type AuthState = {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
-  setSession: (token, user) => set({ token, user }),
-  clearSession: () => set({ token: null, user: null }),
+  pendingSocial: null,
+  setPendingSocial: (credential) => {
+    set({ pendingSocial: credential });
+  },
+  setSession: (token, user) => set({ token, user, pendingSocial: null }),
+  clearSession: () => set({ token: null, user: null, pendingSocial: null }),
 }));

@@ -4,7 +4,9 @@ import { BookingConfirmedScreen } from "../screens/BookingConfirmed/BookingConfi
 import { BookingDatesScreen } from "../screens/BookingDates/BookingDatesScreen";
 import { BookingExtrasScreen } from "../screens/BookingExtras/BookingExtrasScreen";
 import { BookingReviewScreen } from "../screens/BookingReview/BookingReviewScreen";
+import { CreateAccountScreen } from "../screens/CreateAccount/CreateAccountScreen";
 import { DocumentsScreen } from "../screens/Documents/DocumentsScreen";
+import { LegalScreen } from "../screens/Legal/LegalScreen";
 import { LoginScreen } from "../screens/Login/LoginScreen";
 import { NotificationsScreen } from "../screens/Notifications/NotificationsScreen";
 import { OnboardingScreen } from "../screens/Onboarding/OnboardingScreen";
@@ -25,6 +27,8 @@ export function RootNavigator() {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+      <Stack.Screen name="Legal" component={LegalScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen} />
