@@ -19,6 +19,7 @@ import "./src/styles/global.css";
 import i18n, { defaultLanguage } from "./src/i18n";
 import { LocaleRoot } from "./src/components/locale/LocaleRoot";
 import { getStoredLanguage } from "./src/lib/language-storage";
+import { PaymentProvider } from "./src/payments";
 import { queryClient } from "./src/lib/query-client";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { colors } from "./src/theme/colors";
@@ -70,9 +71,11 @@ export default function App() {
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
-          <LocaleRoot>
-            <RootNavigator />
-          </LocaleRoot>
+          <PaymentProvider>
+            <LocaleRoot>
+              <RootNavigator />
+            </LocaleRoot>
+          </PaymentProvider>
         </QueryClientProvider>
       </I18nextProvider>
     </SafeAreaProvider>
