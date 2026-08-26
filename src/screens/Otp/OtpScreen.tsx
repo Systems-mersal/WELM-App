@@ -47,6 +47,7 @@ export function OtpScreen({ navigation, route }: Props) {
   }, [secondsLeft]);
 
   const handleVerify = useCallback(() => {
+    // TODO(US-8 #2): after signup OTP, gate Home until Complete Profile → Location.
     setSession("dev-token", {
       id: "user-1",
       name: "User",

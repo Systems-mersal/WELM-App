@@ -39,10 +39,18 @@ export function ProfileScreen() {
   const bottomRows = useMemo(
     () => [
       { key: "support", label: t("rows.support") },
-      { key: "terms", label: t("rows.terms") },
-      { key: "privacy", label: t("rows.privacy") },
+      {
+        key: "terms",
+        label: t("rows.terms"),
+        onPress: () => navigation.navigate("Legal", { kind: "terms" }),
+      },
+      {
+        key: "privacy",
+        label: t("rows.privacy"),
+        onPress: () => navigation.navigate("Legal", { kind: "privacy" }),
+      },
     ],
-    [t],
+    [navigation, t],
   );
 
   const clearSession = useAuthStore((state) => state.clearSession);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import * as WebBrowser from "expo-web-browser";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   Cairo_400Regular,
@@ -21,7 +22,10 @@ import { LocaleRoot } from "./src/components/locale/LocaleRoot";
 import { getStoredLanguage } from "./src/lib/language-storage";
 import { queryClient } from "./src/lib/query-client";
 import { RootNavigator } from "./src/navigation/RootNavigator";
+import { useAuthStore } from "./src/stores/auth-store";
 import { colors } from "./src/theme/colors";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -33,11 +37,12 @@ export default function App() {
     Inter_700Bold,
   });
   const [localeReady, setLocaleReady] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function bootstrapLocale() {
+    async function bootstrap() {
       const stored = await getStoredLanguage();
 
       if (stored && stored !== i18n.language) {
@@ -46,19 +51,22 @@ export default function App() {
         await i18n.changeLanguage(defaultLanguage);
       }
 
+      await useAuthStore.getState().hydrate();
+
       if (!cancelled) {
         setLocaleReady(true);
+        setAuthReady(true);
       }
     }
 
-    void bootstrapLocale();
+    void bootstrap();
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (!fontsLoaded || !localeReady) {
+  if (!fontsLoaded || !localeReady || !authReady) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color={colors.primary} />

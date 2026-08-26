@@ -28,7 +28,7 @@ export function LoginScreen({ navigation }: Props) {
   }, [navigation, phone]);
 
   const handleCreateAccount = useCallback(() => {
-    navigation.navigate("Otp");
+    navigation.navigate("CreateAccount");
   }, [navigation]);
 
   return (

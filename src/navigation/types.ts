@@ -14,7 +14,9 @@ export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Login: undefined;
-  Otp: { phone?: string } | undefined;
+  Otp: { phone?: string; intent?: "signup" } | undefined;
+  CreateAccount: undefined;
+  Legal: { kind: "terms" | "privacy" };
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   VehicleDetails: { vehicleId: string };
   BookingDates: { vehicleId: string };

@@ -11,7 +11,7 @@ import { AppText } from "../typography/AppText";
 export interface AppButtonProps extends Omit<PressableProps, "children"> {
   label: string;
   loading?: boolean;
-  variant?: "primary" | "outline" | "ghost";
+  variant?: "primary" | "outline" | "ghost" | "muted";
   className?: string;
   textClassName?: string;
 }
@@ -32,14 +32,18 @@ export function AppButton({
       ? "bg-primary"
       : variant === "outline"
         ? "bg-transparent border border-primary"
-        : "bg-transparent";
+        : variant === "muted"
+          ? "bg-border"
+          : "bg-transparent";
 
   const labelClass =
     variant === "primary"
       ? "text-white"
       : variant === "outline"
         ? "text-primary"
-        : "text-primary";
+        : variant === "muted"
+          ? "text-textMuted"
+          : "text-primary";
 
   return (
     <Pressable
@@ -51,7 +55,15 @@ export function AppButton({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? colors.white : colors.primary} />
+        <ActivityIndicator
+          color={
+            variant === "primary"
+              ? colors.white
+              : variant === "muted"
+                ? colors.textMuted
+                : colors.primary
+          }
+        />
       ) : (
         <AppText variant="button" className={`${labelClass} ${textClassName}`}>
           {label}
