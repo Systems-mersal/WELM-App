@@ -76,6 +76,9 @@ export function CreateAccountScreen({ navigation }: Props) {
         return;
       }
 
+      // Social auth requests name + email (+ Apple identity) only.
+      // The phone field on this screen is for the mobile OTP path — never pass
+      // it into signInWithSocial or any social provider API.
       const result = await signInWithSocial(provider);
       if (
         result.status === SocialAuthStatus.CANCELLED ||
@@ -89,7 +92,7 @@ export function CreateAccountScreen({ navigation }: Props) {
       }
 
       // TODO(US-2.2): POST /api/welm/auth/social — then setSession(access, user, refresh)
-      // TODO(US-3): if isNew === true → Link Mobile
+      // TODO(US-3): if isNew === true → Link Mobile (WELM backend only; not Apple/Google/X)
       // TODO(US-5): if isNew === false → existing-user flow
       setPendingSocial(result);
     },

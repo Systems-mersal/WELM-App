@@ -9,6 +9,14 @@ import {
 } from "./types";
 import { signInWithX } from "./x-auth";
 
+/**
+ * Social sign-in entry point.
+ *
+ * Privacy policy for this layer:
+ * - Request only name + email (Apple also returns identity tokens).
+ * - Never send the user's phone number to Apple / Google / X.
+ * - Phone linking is a separate WELM/backend step after social success.
+ */
 export async function signInWithSocial(
   provider: SocialProvider,
 ): Promise<SocialAuthResult> {

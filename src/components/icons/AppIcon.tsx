@@ -14,7 +14,7 @@ const FEATHER_ICON_MAP = {
   "chevron-right": "chevron-right",
   sliders: "sliders",
   "map-pin": "map-pin",
-  x: "x",
+  close: "x",
   check: "check",
   clock: "clock",
   shield: "shield",
@@ -25,6 +25,8 @@ const FEATHER_ICON_MAP = {
 const IONICONS_LOGO_MAP = {
   apple: "logo-apple",
   google: "logo-google",
+  /** Official X (x.com) brand mark — not Feather's generic close "x". */
+  x: "logo-x",
 } as const;
 
 export type AppIconName =

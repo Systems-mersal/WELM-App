@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { appleIconXml } from "../../assets/figma/login/appleIconXml";
 import { loginLogoMarkXml } from "../../assets/figma/login/logoMarkXml";
 import { xIconXml } from "../../assets/figma/login/xIconXml";
 import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
+import { AppIcon } from "../../components/icons/AppIcon";
 import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
 import { useRtl } from "../../hooks/useRtl";
@@ -112,14 +112,16 @@ export function LoginScreen({ navigation }: Props) {
         </View>
 
         <View className="mt-6 flex-row items-center justify-center gap-4">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("common:a11y.sign-in-apple")}
-            onPress={alertComingSoon}
-            className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
-          >
-            <LocalSvg xml={appleIconXml} width={24} height={24} />
-          </Pressable>
+          {Platform.OS === "ios" ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("common:a11y.sign-in-apple")}
+              onPress={alertComingSoon}
+              className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
+            >
+              <AppIcon name="apple" size={24} />
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("common:a11y.sign-in-x")}

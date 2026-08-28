@@ -18,12 +18,16 @@ export type SocialAuthFailed = {
 export type SocialAuthSuccess = {
   status: SocialAuthStatus.SUCCESS;
   provider: SocialProvider;
+  /** Display name from the provider (may be null). */
   name: string | null;
+  /** Email from the provider (may be null / private relay for Apple). */
   email: string | null;
+  /** Apple / OIDC identity token — never includes phone. */
   identityToken: string | null;
   accessToken: string | null;
   authorizationCode: string | null;
   nonce: string | null;
+  // Intentionally no `phone` field — phone must not be posted to social networks.
 };
 
 export type SocialAuthResult =

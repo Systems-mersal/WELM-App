@@ -19,11 +19,10 @@ const GOOGLE_DISCOVERY: AuthSession.DiscoveryDocument = {
 };
 
 const GOOGLE_SCOPES = [
+  // OpenID Connect only — name + email. Never request phone or write scopes.
   "openid",
   "profile",
   "email",
-  "https://www.googleapis.com/auth/userinfo.profile",
-  "https://www.googleapis.com/auth/userinfo.email",
 ];
 
 type GoogleIdTokenClaims = {

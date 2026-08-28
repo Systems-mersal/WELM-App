@@ -8,12 +8,37 @@ import {
   type SocialAuthResult,
 } from "./types";
 
-function appleErrorCode(error: object): string | null {
-  if (!("code" in error)) {
-    return null;
+/** Expo + native ASAuthorizationError.canceled variants. */
+const APPLE_CANCEL_CODES = new Set([
+  "ERR_REQUEST_CANCELED",
+  "ERR_CANCELED",
+  "1001",
+  1001,
+]);
+
+function isAppleCancelError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
   }
-  const code = error.code;
-  return typeof code === "string" ? code : null;
+
+  if ("code" in error) {
+    const code = (error as { code: unknown }).code;
+    if (APPLE_CANCEL_CODES.has(code as string | number)) {
+      return true;
+    }
+    if (typeof code === "string" && /cancel/i.test(code)) {
+      return true;
+    }
+  }
+
+  if ("message" in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === "string" && /cancel/i.test(message)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function appleDisplayName(
@@ -43,6 +68,7 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
 
   try {
     const credential = await AppleAuthentication.signInAsync({
+      // Name + email only. Never request or send the user's phone to Apple.
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
@@ -61,11 +87,7 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
       nonce,
     };
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      appleErrorCode(error) === "ERR_REQUEST_CANCELED"
-    ) {
+    if (isAppleCancelError(error)) {
       return { status: SocialAuthStatus.CANCELLED };
     }
     return { status: SocialAuthStatus.FAILED };

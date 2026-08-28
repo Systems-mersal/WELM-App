@@ -1,4 +1,6 @@
 PODS:
+  - EXApplication (57.0.2):
+    - ExpoModulesCore
   - EXConstants (57.0.9):
     - ExpoModulesCore
   - Expo (57.0.10):
@@ -27,7 +29,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoAppleAuthentication (57.0.1):
+    - ExpoModulesCore
   - ExpoAsset (57.0.8):
+    - ExpoModulesCore
+  - ExpoCrypto (57.0.2):
     - ExpoModulesCore
   - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
@@ -39,7 +45,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (57.0.1):
     - ExpoModulesCore
-  - ExpoLinking (57.0.5):
+  - ExpoLinking (57.0.7):
     - ExpoModulesCore
   - ExpoLocalization (57.0.1):
     - ExpoModulesCore
@@ -75,6 +81,8 @@ PODS:
   - ExpoModulesWorklets (57.0.9):
     - ExpoModulesCore
     - ExpoModulesJSI
+  - ExpoWebBrowser (57.0.2):
+    - ExpoModulesCore
   - FBLazyVector (0.86.2)
   - hermes-engine (250829098.0.16):
     - hermes-engine/Pre-built (= 250829098.0.16)
@@ -2384,9 +2392,12 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
+  - EXApplication (from `../node_modules/expo-auth-session/node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
+  - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - "ExpoDomWebView (from `../node_modules/expo/node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo/node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -2398,6 +2409,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
+  - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2496,12 +2508,18 @@ SPEC REPOS:
     - StripeUICore
 
 EXTERNAL SOURCES:
+  EXApplication:
+    :path: "../node_modules/expo-auth-session/node_modules/expo-application/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   Expo:
     :path: "../node_modules/expo"
+  ExpoAppleAuthentication:
+    :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoCrypto:
+    :path: "../node_modules/expo-crypto/ios"
   ExpoDomWebView:
     :path: "../node_modules/expo/node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
@@ -2524,6 +2542,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
     :path: "../node_modules/expo-modules-core"
+  ExpoWebBrowser:
+    :path: "../node_modules/expo-web-browser/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2693,20 +2713,24 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  EXApplication: f62b1a7f8a6efe1d43f38bfbe98cf4acea9b9421
   EXConstants: 4de2a921b65368dba903006a2106252512d6843e
   Expo: 97acda04c5ed8488af8028d364d0af9f633b9689
+  ExpoAppleAuthentication: 26483d4d22c799e5adfb2de6ab47a5debd796476
   ExpoAsset: 30e087f60834271bf932173005914085074ce182
+  ExpoCrypto: 5dfc4e4342f45b78463771559a60915cd2d9200b
   ExpoDomWebView: fa9c72fe29dd4649197a7ecb07ddd870d55c4eda
   ExpoFileSystem: 3030d5166d05eb90b8f40d433f6007797310861f
   ExpoFont: 17668fb7b4e06edf35e015183eb7bc09d83be637
   ExpoKeepAwake: 20a87dafdd9d84d68673e8eaf1a1c7eed8f92659
   ExpoLinearGradient: 93e951fa19ee7b4bb1a8e2c97227bcfc4bacfa9a
-  ExpoLinking: bf2536dae511c60982db438b4cd65f8a33c329eb
+  ExpoLinking: 4297efe06dbf2142277b2522aa35b30db10de838
   ExpoLocalization: 17c950d2a25996f2f8e07acdfed5e3c1e258c17e
   ExpoLogBox: 40f17ecef6fcb296b5f5ee4d6ec85cc82ce6ba0f
   ExpoModulesCore: e8bc7c713377f8a0f26b18f48a30a06768d2d02f
   ExpoModulesJSI: 6cb6d299ace493e7dd20ba94c99e8c4799b07afd
   ExpoModulesWorklets: 9ea512d97f44f89ef40f647f1f332b4643cca62b
+  ExpoWebBrowser: f93f4989f6c2a34cfaba5461ea3572c191947e0f
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: 36401edf6e3bd53ad33f433ac154d63cdf58b591
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
