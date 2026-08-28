@@ -25,5 +25,12 @@
     "support": "الدعم والمساعدة",
     "terms": "الشروط والأحكام",
     "privacy": "سياسة الخصوصية"
+  },
+  "payments": {
+    "section-title": "إضافة رصيد",
+    "section-subtitle": "اشحن {{amount}} {{currency}} عبر Apple Pay",
+    "success-title": "تم الدفع بنجاح",
+    "success-message": "تمت إضافة {{amount}} {{currency}} إلى حسابك.",
+    "error-title": "فشل الدفع"
   }
 }

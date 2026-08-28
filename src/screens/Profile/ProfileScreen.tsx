@@ -7,6 +7,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { LanguageSwitcher } from "../../components/common/LanguageSwitcher";
 import { AppText } from "../../components/typography/AppText";
 import { Screen } from "../../components/common/Screen";
+import { ProfileApplePaySection } from "../../payments";
 import { useAuthStore } from "../../stores/auth-store";
 import type { MainTabNavigationProp } from "../../navigation/types";
 import { ProfileHeader, ProfileStats } from "./components/ProfileHeader";
@@ -94,6 +95,8 @@ export function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
         <ProfileStats />
+
+        <ProfileApplePaySection />
 
         <View className="px-6">
           <AppText variant="subtitle" className="mb-1 mt-6">

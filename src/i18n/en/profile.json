@@ -25,5 +25,12 @@
     "support": "Support & Help",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy"
+  },
+  "payments": {
+    "section-title": "Add Funds",
+    "section-subtitle": "Top up {{amount}} {{currency}} with Apple Pay",
+    "success-title": "Payment successful",
+    "success-message": "Added {{amount}} {{currency}} to your account.",
+    "error-title": "Payment failed"
   }
 }
