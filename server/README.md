@@ -51,7 +51,7 @@ Response:
 
 Apple Pay must be tested on a **physical iPhone**, not the simulator.
 
-Point the app’s `EXPO_PUBLIC_API_URL` at your Mac’s LAN IP (e.g. `http://192.168.1.10:3001`), not `localhost`.
+Point the app’s `EXPO_PUBLIC_PAYMENTS_API_URL` at your Mac’s LAN IP (e.g. `http://192.168.1.10:3001`), not `localhost`. Keep `EXPO_PUBLIC_API_URL` aimed at Tajeer Plus (e.g. `:3000`).
 
 ## Apple Pay / Stripe Dashboard (manual)
 

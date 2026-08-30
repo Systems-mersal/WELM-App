@@ -16,10 +16,12 @@ Target layout (screens may still live under `src/screens/` while features grow):
 
 - `src/features/*` — domain barrels (auth, bookings, …)
 - `src/stores/` — Zustand client state (`auth-store`, `booking-draft-store`)
-- `src/lib/` — `api-client` (axios), `query-client`, storage, RTL helpers
+- `src/lib/` — `api-client` (axios → `EXPO_PUBLIC_API_URL` / Tajeer Plus), `query-client`, storage, RTL helpers
 - `src/services/` — thin re-exports / future API modules
 
 Keep axios, zustand, and React Query installed; wire them as backends land. Do not remove them as “unused.”
+
+**API / auth:** Point the app at Tajeer Plus HTTP only. Do not add `@supabase/supabase-js` or `EXPO_PUBLIC_SUPABASE_*`. Attach `Authorization: Bearer` from `useAuthStore`; persist access + refresh in `auth-storage`; OAuth return is `welm://auth/callback`.
 
 ## Design tokens
 

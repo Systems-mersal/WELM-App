@@ -14,7 +14,7 @@ Copy `.env.example` → `.env` and fill:
 
 | Variable | Purpose |
 |----------|---------|
-| `EXPO_PUBLIC_API_URL` | Payments server base URL (`http://localhost:3001` or LAN IP for device) |
+| `EXPO_PUBLIC_PAYMENTS_API_URL` | Local Stripe stub base URL (`http://localhost:3001` or LAN IP). Defaults to `:3001` if unset. Do not reuse `EXPO_PUBLIC_API_URL` (that is Tajeer Plus). |
 | `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
 | `EXPO_PUBLIC_APPLE_MERCHANT_ID` | Apple Merchant ID (must match `app.json` plugin + `PaymentProvider`) |
 

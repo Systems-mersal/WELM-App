@@ -1,5 +1,4 @@
 import * as AppleAuthentication from "expo-apple-authentication";
-import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
 
 import {
@@ -51,6 +50,12 @@ function appleDisplayName(
   return formatted.length > 0 ? formatted : null;
 }
 
+/**
+ * Native Sign in with Apple (iOS only).
+ * Scopes: FULL_NAME + EMAIL only — never phone.
+ * No nonce — avoids GoTrue hex/base64url nonce mismatches with Apple.
+ * Does not call Supabase; caller posts identityToken to Tajeer Plus.
+ */
 export async function signInWithApple(): Promise<SocialAuthResult> {
   if (Platform.OS !== "ios") {
     return { status: SocialAuthStatus.UNAVAILABLE };
@@ -61,20 +66,28 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
     return { status: SocialAuthStatus.UNAVAILABLE };
   }
 
-  const bytes = await Crypto.getRandomBytesAsync(16);
-  const nonce = Array.from(bytes, (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
-
   try {
     const credential = await AppleAuthentication.signInAsync({
-      // Name + email only. Never request or send the user's phone to Apple.
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
-      nonce,
     });
+
+    if (!credential.identityToken) {
+      if (__DEV__) {
+        console.warn("[apple-auth] signInAsync returned without identityToken");
+      }
+      return { status: SocialAuthStatus.FAILED };
+    }
+
+    // identityToken must be a JWT (three base64url segments).
+    if (credential.identityToken.split(".").length !== 3) {
+      if (__DEV__) {
+        console.warn("[apple-auth] identityToken is not a JWT");
+      }
+      return { status: SocialAuthStatus.FAILED };
+    }
 
     return {
       status: SocialAuthStatus.SUCCESS,
@@ -84,11 +97,14 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
       identityToken: credential.identityToken,
       accessToken: null,
       authorizationCode: credential.authorizationCode,
-      nonce,
+      nonce: null,
     };
   } catch (error) {
     if (isAppleCancelError(error)) {
       return { status: SocialAuthStatus.CANCELLED };
+    }
+    if (__DEV__) {
+      console.warn("[apple-auth] signInAsync failed", error);
     }
     return { status: SocialAuthStatus.FAILED };
   }

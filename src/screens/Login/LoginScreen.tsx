@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -10,11 +10,21 @@ import { Screen } from "../../components/common/Screen";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
+import {
+  WelmAuthApiError,
+  exchangeSocialCredential,
+  mapWelmSessionToAuthUser,
+  routeAfterWelmAuth,
+  signInWithAppleToWelm,
+  signInWithSocial,
+  SocialAuthStatus,
+  SocialProvider,
+} from "../../features/auth";
 import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
+import { useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
-import { alertComingSoon } from "../../utils/comingSoon";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -22,6 +32,8 @@ export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation(["login", "common"]);
   const { textAlign } = useRtl();
   const [phone, setPhone] = useState("");
+  const [socialBusy, setSocialBusy] = useState(false);
+  const setSession = useAuthStore((state) => state.setSession);
 
   const handleContinue = useCallback(() => {
     navigation.navigate("Otp", { phone: phone.trim() || undefined });
@@ -30,6 +42,75 @@ export function LoginScreen({ navigation }: Props) {
   const handleCreateAccount = useCallback(() => {
     navigation.navigate("CreateAccount");
   }, [navigation]);
+
+  const handleSocialPress = useCallback(
+    async (provider: SocialProvider) => {
+      if (socialBusy) {
+        return;
+      }
+      setSocialBusy(true);
+      try {
+        if (provider === SocialProvider.APPLE) {
+          const result = await signInWithAppleToWelm();
+          if (
+            result.status === SocialAuthStatus.CANCELLED ||
+            result.status === SocialAuthStatus.UNAVAILABLE
+          ) {
+            return;
+          }
+          if (result.status === SocialAuthStatus.FAILED) {
+            Alert.alert(t("common:error"));
+            return;
+          }
+          routeAfterWelmAuth(navigation, result.session);
+          return;
+        }
+
+        const result = await signInWithSocial(provider);
+        if (
+          result.status === SocialAuthStatus.CANCELLED ||
+          result.status === SocialAuthStatus.UNAVAILABLE
+        ) {
+          return;
+        }
+        if (result.status === SocialAuthStatus.FAILED) {
+          Alert.alert(t("common:error"));
+          return;
+        }
+
+        try {
+          const session = await exchangeSocialCredential(result);
+          setSession(
+            session.accessToken,
+            mapWelmSessionToAuthUser(session),
+            session.refreshToken,
+          );
+          routeAfterWelmAuth(navigation, session);
+        } catch (error) {
+          const message =
+            error instanceof WelmAuthApiError
+              ? error.code === "undeployed" || error.code === "disabled"
+                ? t("common:auth.api-unavailable")
+                : error.message
+              : t("common:error");
+          Alert.alert(t("common:error"), message);
+        }
+      } catch (error) {
+        if (provider === SocialProvider.APPLE) {
+          const message =
+            error instanceof WelmAuthApiError
+              ? error.code === "undeployed" || error.code === "disabled"
+                ? t("common:auth.api-unavailable")
+                : error.message
+              : t("common:error");
+          Alert.alert(t("common:error"), message);
+        }
+      } finally {
+        setSocialBusy(false);
+      }
+    },
+    [navigation, setSession, socialBusy, t],
+  );
 
   return (
     <Screen
@@ -116,7 +197,9 @@ export function LoginScreen({ navigation }: Props) {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t("common:a11y.sign-in-apple")}
-              onPress={alertComingSoon}
+              onPress={() => {
+                void handleSocialPress(SocialProvider.APPLE);
+              }}
               className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
             >
               <AppIcon name="apple" size={24} />
@@ -124,8 +207,20 @@ export function LoginScreen({ navigation }: Props) {
           ) : null}
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={t("common:a11y.sign-in-google")}
+            onPress={() => {
+              void handleSocialPress(SocialProvider.GOOGLE);
+            }}
+            className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
+          >
+            <AppIcon name="google" size={24} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel={t("common:a11y.sign-in-x")}
-            onPress={alertComingSoon}
+            onPress={() => {
+              void handleSocialPress(SocialProvider.X);
+            }}
             className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
           >
             <LocalSvg xml={xIconXml} width={24} height={24} />

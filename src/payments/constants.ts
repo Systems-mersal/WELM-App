@@ -22,9 +22,10 @@ export const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "pk_test_REPLACE_ME";
 
 /**
- * Local payments API base URL.
+ * Local Stripe PaymentIntent stub (`/server`), not Tajeer Plus.
+ * Keep separate from `EXPO_PUBLIC_API_URL` (Tajeer Plus origin).
  * Simulator: http://localhost:3001
  * Physical device: http://<your-mac-lan-ip>:3001
  */
 export const PAYMENTS_API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
+  process.env.EXPO_PUBLIC_PAYMENTS_API_URL ?? "http://localhost:3001";

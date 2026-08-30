@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Platform, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -13,6 +13,11 @@ import { LocalSvg } from "../../components/icons/LocalSvg";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
+  WelmAuthApiError,
+  exchangeSocialCredential,
+  mapWelmSessionToAuthUser,
+  routeAfterWelmAuth,
+  signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
@@ -28,12 +33,15 @@ type Props = NativeStackScreenProps<RootStackParamList, "CreateAccount">;
 export function CreateAccountScreen({ navigation }: Props) {
   const { t } = useTranslation(["create-account", "common"]);
   const setPendingSocial = useAuthStore((state) => state.setPendingSocial);
+  const setSession = useAuthStore((state) => state.setSession);
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [termsError, setTermsError] = useState(false);
+  const [socialBusy, setSocialBusy] = useState(false);
 
   const canSubmit = acceptedTerms && isValidSaudiMobile(phone);
 
+  // Apple stays on iOS even when Google / X are shown (App Store guideline).
   const socialButtons = useMemo(
     () => [
       ...(Platform.OS === "ios"
@@ -69,34 +77,129 @@ export function CreateAccountScreen({ navigation }: Props) {
     });
   }, []);
 
+  const handleApplePress = useCallback(async () => {
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+    if (socialBusy) {
+      return;
+    }
+
+    // Phone stays on this screen for OTP only — never sent to Apple or Tajeer social.
+    setSocialBusy(true);
+    try {
+      const result = await signInWithAppleToWelm();
+
+      // Cancel (ERR_REQUEST_CANCELED) → stay on Create Account, no US-6 banner.
+      if (result.status === SocialAuthStatus.CANCELLED) {
+        return;
+      }
+      if (result.status === SocialAuthStatus.UNAVAILABLE) {
+        Alert.alert(t("common:error"), t("common:auth.apple-unavailable"));
+        return;
+      }
+      if (result.status === SocialAuthStatus.FAILED) {
+        Alert.alert(t("common:error"), t("common:auth.apple-failed"));
+        return;
+      }
+
+      // Session already persisted (incl. private-relay email from API user.email).
+      if (__DEV__) {
+        console.log("[welm] Apple session ok", {
+          userId: result.session.user.id,
+          email: result.session.user.email,
+          isNew: result.session.isNew,
+        });
+      }
+
+      routeAfterWelmAuth(navigation, result.session);
+
+      if (result.session.isNew) {
+        Alert.alert(
+          t("common:auth.account-created-title"),
+          t("common:auth.signed-in-link-phone"),
+        );
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.warn("[welm] Apple → API failed", error);
+      }
+      const message =
+        error instanceof WelmAuthApiError
+          ? error.code === "undeployed" || error.code === "disabled"
+            ? t("common:auth.api-unavailable")
+            : error.message
+          : t("common:error");
+      Alert.alert(t("common:error"), message);
+    } finally {
+      setSocialBusy(false);
+    }
+  }, [acceptedTerms, navigation, socialBusy, t]);
+
   const handleSocialPress = useCallback(
     async (provider: SocialProvider) => {
+      if (provider === SocialProvider.APPLE) {
+        await handleApplePress();
+        return;
+      }
+
       if (!acceptedTerms) {
         setTermsError(true);
         return;
       }
-
-      // Social auth requests name + email (+ Apple identity) only.
-      // The phone field on this screen is for the mobile OTP path — never pass
-      // it into signInWithSocial or any social provider API.
-      const result = await signInWithSocial(provider);
-      if (
-        result.status === SocialAuthStatus.CANCELLED ||
-        result.status === SocialAuthStatus.UNAVAILABLE
-      ) {
-        return;
-      }
-      if (result.status === SocialAuthStatus.FAILED) {
-        Alert.alert(t("common:error"));
+      if (socialBusy) {
         return;
       }
 
-      // TODO(US-2.2): POST /api/welm/auth/social — then setSession(access, user, refresh)
-      // TODO(US-3): if isNew === true → Link Mobile (WELM backend only; not Apple/Google/X)
-      // TODO(US-5): if isNew === false → existing-user flow
-      setPendingSocial(result);
+      // Google / X — US-2.4 / US-2.5 (out of scope for this ticket).
+      setSocialBusy(true);
+      try {
+        const result = await signInWithSocial(provider);
+        if (
+          result.status === SocialAuthStatus.CANCELLED ||
+          result.status === SocialAuthStatus.UNAVAILABLE
+        ) {
+          return;
+        }
+        if (result.status === SocialAuthStatus.FAILED) {
+          Alert.alert(t("common:error"));
+          return;
+        }
+
+        try {
+          const session = await exchangeSocialCredential(result);
+          setSession(
+            session.accessToken,
+            mapWelmSessionToAuthUser(session),
+            session.refreshToken,
+          );
+          if (session.isNew) {
+            setPendingSocial(result);
+          }
+          routeAfterWelmAuth(navigation, session);
+        } catch (error) {
+          const message =
+            error instanceof WelmAuthApiError
+              ? error.code === "undeployed" || error.code === "disabled"
+                ? t("common:auth.api-unavailable")
+                : error.message
+              : t("common:error");
+          Alert.alert(t("common:error"), message);
+        }
+      } finally {
+        setSocialBusy(false);
+      }
     },
-    [acceptedTerms, setPendingSocial, t],
+    [
+      acceptedTerms,
+      handleApplePress,
+      navigation,
+      setPendingSocial,
+      setSession,
+      socialBusy,
+      t,
+    ],
   );
 
   const handleContinue = useCallback(() => {
@@ -119,6 +222,7 @@ export function CreateAccountScreen({ navigation }: Props) {
   const socialDimmed = !acceptedTerms;
 
   return (
+    <View className="flex-1">
     <Screen
       keyboard
       edges={["bottom"]}
@@ -255,5 +359,19 @@ export function CreateAccountScreen({ navigation }: Props) {
         </Pressable>
       </View>
     </Screen>
+    {socialBusy ? (
+      <View
+        pointerEvents="auto"
+        className="absolute inset-0 items-center justify-center bg-black/20"
+      >
+        <View className="rounded-2xl bg-white px-6 py-5">
+          <ActivityIndicator size="large" color={colors.primary} />
+          <AppText variant="caption" muted className="mt-3 text-center">
+            {t("common:loading")}
+          </AppText>
+        </View>
+      </View>
+    ) : null}
+    </View>
   );
 }

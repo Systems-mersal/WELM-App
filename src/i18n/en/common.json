@@ -8,6 +8,13 @@
   },
   "loading": "Loading...",
   "error": "Something went wrong",
+  "auth": {
+    "api-unavailable": "Sign-in is not available yet. The WELM auth API is not deployed on this server. Do not configure Supabase in the app.",
+    "signed-in-link-phone": "Your Apple account is connected. Enter your Saudi mobile number below to finish setup.",
+    "account-created-title": "Account created",
+    "apple-unavailable": "Sign in with Apple is not available on this device.",
+    "apple-failed": "Apple sign-in did not complete. Try again, or use a physical iPhone if you are on the Simulator."
+  },
   "retry": "Retry",
   "cancel": "Cancel",
   "save": "Save",

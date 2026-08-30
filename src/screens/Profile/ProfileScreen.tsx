@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Alert, View } from "react-native";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { LanguageSwitcher } from "../../components/common/LanguageSwitcher";
 import { AppText } from "../../components/typography/AppText";
 import { Screen } from "../../components/common/Screen";
+import { logoutWelmSession } from "../../features/auth";
 import { ProfileApplePaySection } from "../../payments";
 import { useAuthStore } from "../../stores/auth-store";
 import type { MainTabNavigationProp } from "../../navigation/types";
@@ -17,6 +18,9 @@ export function ProfileScreen() {
   const { t } = useTranslation(["profile", "common"]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<MainTabNavigationProp<"Profile">>();
+  const clearSession = useAuthStore((state) => state.clearSession);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const loggingOutRef = useRef(false);
 
   const topRows = useMemo(
     () =>
@@ -54,26 +58,49 @@ export function ProfileScreen() {
     [navigation, t],
   );
 
-  const clearSession = useAuthStore((state) => state.clearSession);
+  const leaveToLogin = useCallback(() => {
+    clearSession();
+    navigation.getParent()?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      }),
+    );
+  }, [clearSession, navigation]);
 
-  const handleLogout = () => {
+  const performLogout = useCallback(async () => {
+    if (loggingOutRef.current) {
+      return;
+    }
+    loggingOutRef.current = true;
+    setLoggingOut(true);
+    try {
+      // Best-effort server revoke; local session always clears next.
+      await logoutWelmSession();
+    } catch {
+      // Network / undeployed API — still sign out locally.
+    } finally {
+      leaveToLogin();
+      loggingOutRef.current = false;
+      setLoggingOut(false);
+    }
+  }, [leaveToLogin]);
+
+  const handleLogout = useCallback(() => {
+    if (loggingOutRef.current) {
+      return;
+    }
     Alert.alert(t("logout-title"), t("logout-message"), [
       { text: t("common:cancel"), style: "cancel" },
       {
         text: t("logout-confirm"),
         style: "destructive",
         onPress: () => {
-          clearSession();
-          navigation.getParent()?.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: "Login" }],
-            }),
-          );
+          void performLogout();
         },
       },
     ]);
-  };
+  }, [performLogout, t]);
 
   return (
     <View className="flex-1 bg-background">
@@ -120,6 +147,8 @@ export function ProfileScreen() {
           <AppButton
             label={t("logout")}
             variant="outline"
+            loading={loggingOut}
+            disabled={loggingOut}
             className="mt-6 border-danger"
             textClassName="text-danger"
             onPress={handleLogout}

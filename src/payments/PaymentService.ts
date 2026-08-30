@@ -27,7 +27,8 @@ function networkError(detail?: string): PaymentError {
     code: "network",
     message:
       detail ??
-      "Could not reach the payments server. Check that it is running and EXPO_PUBLIC_API_URL is correct.",
+      "Could not reach the payments server. Check that it is running and EXPO_PUBLIC_PAYMENTS_API_URL is correct.",
+
   };
 }
 
