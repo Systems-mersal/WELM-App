@@ -14,8 +14,17 @@ export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Login: undefined;
-  Otp: { phone?: string; intent?: "signup" } | undefined;
+  Otp:
+    | {
+        phone?: string;
+        intent?: "signup" | "social";
+        provider?: "apple" | "google" | "x";
+      }
+    | undefined;
   CreateAccount: undefined;
+  LinkMobile: { provider: "apple" | "google" | "x" };
+  AccountExists: undefined;
+  ProfileGate: undefined;
   Legal: { kind: "terms" | "privacy" };
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   VehicleDetails: { vehicleId: string };

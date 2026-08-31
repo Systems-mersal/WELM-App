@@ -7,6 +7,13 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
+import {
+  reportWelmAuthFailure,
+  routePastAuthGate,
+  startWelmPhoneOtp,
+  verifyWelmPhoneOtp,
+  welmAuthUserMessage,
+} from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../stores/auth-store";
 import { fontFamily, fontSize } from "../../theme/typography";
@@ -25,12 +32,18 @@ function formatTimer(seconds: number): string {
 export function OtpScreen({ navigation, route }: Props) {
   const { t } = useTranslation(["otp", "common"]);
   const phone = route.params?.phone ?? "+966 5XX XXX XXXX";
+  const intent = route.params?.intent;
+  const isSocial = intent === "social";
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [activeIndex, setActiveIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [busy, setBusy] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const setSession = useAuthStore((state) => state.setSession);
+
+  const code = otp.join("");
+  const canVerify = code.length === OTP_LENGTH;
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -46,25 +59,62 @@ export function OtpScreen({ navigation, route }: Props) {
     return () => clearInterval(timer);
   }, [secondsLeft]);
 
-  const handleVerify = useCallback(() => {
-    // TODO(US-8 #2): after signup OTP, gate Home until Complete Profile → Location.
+  const handleVerify = useCallback(async () => {
+    if (!canVerify || busy) {
+      return;
+    }
+
+    if (isSocial) {
+      setBusy(true);
+      try {
+        const verified = await verifyWelmPhoneOtp(phone, code);
+        const { accessToken, refreshToken, user } = useAuthStore.getState();
+        if (accessToken && user) {
+          setSession(accessToken, { ...user, phone: verified.phone }, refreshToken);
+        }
+        routePastAuthGate(navigation);
+      } catch (error) {
+        const message = welmAuthUserMessage(error, {
+          unavailable: t("common:auth.api-unavailable"),
+          fallback: t("common:error"),
+        });
+        reportWelmAuthFailure(error, message, t("common:error"));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    // Phone login / non-social signup still mocked (not US-2.6 social).
     setSession("dev-token", {
       id: "user-1",
       name: "User",
       phone,
     });
     navigation.replace("MainTabs");
-  }, [navigation, phone, setSession]);
+  }, [busy, canVerify, code, isSocial, navigation, phone, setSession, t]);
 
-  const handleResend = useCallback(() => {
-    if (secondsLeft > 0) {
+  const handleResend = useCallback(async () => {
+    if (secondsLeft > 0 || busy) {
       return;
+    }
+    if (isSocial) {
+      try {
+        await startWelmPhoneOtp(phone);
+      } catch (error) {
+        const message = welmAuthUserMessage(error, {
+          unavailable: t("common:auth.api-unavailable"),
+          fallback: t("common:error"),
+        });
+        reportWelmAuthFailure(error, message, t("common:error"));
+        return;
+      }
     }
     setSecondsLeft(RESEND_SECONDS);
     setOtp(Array(OTP_LENGTH).fill(""));
     setActiveIndex(0);
     inputRefs.current[0]?.focus();
-  }, [secondsLeft]);
+  }, [busy, isSocial, phone, secondsLeft, t]);
 
   const handleChange = useCallback(
     (value: string, index: number) => {
@@ -164,7 +214,15 @@ export function OtpScreen({ navigation, route }: Props) {
         </View>
 
         <View className="mt-8">
-          <AppButton label={t("verify")} onPress={handleVerify} />
+          <AppButton
+            label={t("verify")}
+            onPress={() => {
+              void handleVerify();
+            }}
+            loading={busy}
+            disabled={!canVerify}
+            variant={canVerify ? "primary" : "muted"}
+          />
         </View>
 
         <View className="mt-auto flex-row flex-wrap items-center justify-center gap-1 pt-10">
@@ -173,7 +231,9 @@ export function OtpScreen({ navigation, route }: Props) {
           </AppText>
           <Pressable
             accessibilityRole="button"
-            onPress={handleResend}
+            onPress={() => {
+              void handleResend();
+            }}
             disabled={secondsLeft > 0}
             hitSlop={8}
           >

@@ -9,8 +9,11 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.welm.tajeerplus",
-      "usesAppleSignIn": true
+      "bundleIdentifier": "com.welmm.tajeerplus",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development."
+      }
     },
     "android": {
       "adaptiveIcon": {

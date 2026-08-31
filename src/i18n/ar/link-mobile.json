@@ -1,0 +1,12 @@
+{
+  "header": "تأكيد الجوال",
+  "linked-apple": "تم الربط مع Apple",
+  "linked-google": "تم الربط مع Google",
+  "linked-x": "تم الربط مع X",
+  "unlink": "إلغاء الربط والرجوع",
+  "title": "أكّد رقم جوالك",
+  "subtitle": "رقم الجوال السعودي مطلوب حتى بعد Apple أو Google أو X لإتمام عقود التأجير.",
+  "phone-placeholder": "5X XXX XXXX",
+  "send-otp": "إرسال رمز التحقق",
+  "footer": "لن ننشر رقمك على حسابك الاجتماعي"
+}

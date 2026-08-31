@@ -8,6 +8,9 @@ import arSplash from "./ar/splash.json";
 import arOnboarding from "./ar/onboarding.json";
 import arLogin from "./ar/login.json";
 import arCreateAccount from "./ar/create-account.json";
+import arLinkMobile from "./ar/link-mobile.json";
+import arAccountExists from "./ar/account-exists.json";
+import arProfileGate from "./ar/profile-gate.json";
 import arLegal from "./ar/legal.json";
 import arOtp from "./ar/otp.json";
 import arHome from "./ar/home.json";
@@ -29,6 +32,9 @@ import enSplash from "./en/splash.json";
 import enOnboarding from "./en/onboarding.json";
 import enLogin from "./en/login.json";
 import enCreateAccount from "./en/create-account.json";
+import enLinkMobile from "./en/link-mobile.json";
+import enAccountExists from "./en/account-exists.json";
+import enProfileGate from "./en/profile-gate.json";
 import enLegal from "./en/legal.json";
 import enOtp from "./en/otp.json";
 import enHome from "./en/home.json";
@@ -51,6 +57,9 @@ export const namespaces = [
   "onboarding",
   "login",
   "create-account",
+  "link-mobile",
+  "account-exists",
+  "profile-gate",
   "legal",
   "otp",
   "home",
@@ -88,6 +97,9 @@ void i18n.use(initReactI18next).init({
       onboarding: arOnboarding,
       login: arLogin,
       "create-account": arCreateAccount,
+      "link-mobile": arLinkMobile,
+      "account-exists": arAccountExists,
+      "profile-gate": arProfileGate,
       legal: arLegal,
       otp: arOtp,
       home: arHome,
@@ -110,6 +122,9 @@ void i18n.use(initReactI18next).init({
       onboarding: enOnboarding,
       login: enLogin,
       "create-account": enCreateAccount,
+      "link-mobile": enLinkMobile,
+      "account-exists": enAccountExists,
+      "profile-gate": enProfileGate,
       legal: enLegal,
       otp: enOtp,
       home: enHome,

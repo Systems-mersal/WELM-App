@@ -2,6 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import type { WelmAuthSession } from "../features/auth/api/types";
 import { useAuthStore, type AuthUser } from "../stores/auth-store";
+import { getApiBaseUrl } from "./api-base-url";
 
 function isWelmAuthRoute(url: string | undefined): boolean {
   return typeof url === "string" && url.includes("/api/welm/auth");
@@ -15,8 +16,10 @@ function toAuthUser(session: WelmAuthSession): AuthUser {
   return {
     id: session.user.id,
     name: session.user.name,
+    firstName: session.user.firstName,
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    handle: session.user.handle ?? undefined,
   };
 }
 
@@ -25,7 +28,7 @@ function toAuthUser(session: WelmAuthSession): AuthUser {
  * Auth is Bearer from the WELM session store — not Supabase.
  */
 export const apiClient = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000",
+  baseURL: getApiBaseUrl(),
   timeout: 15000,
   headers: {
     Accept: "application/json",
@@ -37,6 +40,12 @@ apiClient.interceptors.request.use((config) => {
   const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (__DEV__) {
+    const base = config.baseURL ?? getApiBaseUrl();
+    console.log(
+      `[welm/http] → ${(config.method ?? "get").toUpperCase()} ${base}${config.url ?? ""}`,
+    );
   }
   return config;
 });
@@ -51,10 +60,7 @@ async function tryRefreshSession(): Promise<boolean> {
   }
 
   try {
-    const baseURL =
-      apiClient.defaults.baseURL ??
-      process.env.EXPO_PUBLIC_API_URL ??
-      "http://localhost:3000";
+    const baseURL = apiClient.defaults.baseURL ?? getApiBaseUrl();
     const { data } = await axios.post<WelmAuthSession>(
       `${baseURL.replace(/\/$/, "")}/api/welm/auth/refresh`,
       { refreshToken },
@@ -80,9 +86,35 @@ async function tryRefreshSession(): Promise<boolean> {
   }
 }
 
+function welmHttpOutcome(url: string | undefined, data: unknown): string {
+  if (!url?.includes("/api/welm/auth/social")) {
+    return "";
+  }
+  if (!data || typeof data !== "object" || !("isNew" in data)) {
+    return "";
+  }
+  return (data as { isNew?: boolean }).isNew
+    ? " SIGNUP → Link Mobile"
+    : " SIGN IN → Account Exists";
+}
+
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (__DEV__) {
+      console.log(
+        `[welm/http] ← ${response.status} ${response.config.url ?? ""}${welmHttpOutcome(response.config.url, response.data)}`,
+      );
+    }
+    return response;
+  },
   async (error: AxiosError) => {
+    if (__DEV__) {
+      const errBody = error.response?.data as { error?: string } | undefined;
+      console.warn(
+        `[welm/http] ← ${error.response?.status ?? error.code} ${error.config?.baseURL ?? ""}${error.config?.url ?? ""}`,
+        errBody?.error ?? error.message,
+      );
+    }
     const status = error.response?.status;
     const config = error.config as
       | (InternalAxiosRequestConfig & { _welmRetry?: boolean })

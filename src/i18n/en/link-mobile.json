@@ -1,0 +1,12 @@
+{
+  "header": "Confirm mobile",
+  "linked-apple": "Connected with Apple",
+  "linked-google": "Connected with Google",
+  "linked-x": "Connected with X",
+  "unlink": "Unlink and go back",
+  "title": "Confirm your mobile number",
+  "subtitle": "A Saudi mobile number is required even after Apple, Google, or X so we can complete rental contracts.",
+  "phone-placeholder": "5X XXX XXXX",
+  "send-otp": "Send verification code",
+  "footer": "We will never post your number on your social account"
+}

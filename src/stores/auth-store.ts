@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import type { WelmAuthSession } from "../features/auth/api/types";
 import type { SocialAuthSuccess } from "../features/auth/social/types";
 import {
   clearAuthSession,
@@ -10,8 +11,10 @@ import {
 export type AuthUser = {
   id: string;
   name: string;
+  firstName?: string;
   phone?: string;
   email?: string;
+  handle?: string;
 };
 
 type AuthState = {
@@ -21,7 +24,13 @@ type AuthState = {
   hydrated: boolean;
   /** Memory-only OAuth credential. Not a session — do not persist. */
   pendingSocial: SocialAuthSuccess | null;
+  /**
+   * Existing WELM consumer (US-5). Tokens stay in memory until
+   * "continue as {firstName}". Never written to auth-storage.
+   */
+  pendingSession: WelmAuthSession | null;
   setPendingSocial: (credential: SocialAuthSuccess | null) => void;
+  setPendingSession: (session: WelmAuthSession | null) => void;
   setSession: (
     accessToken: string,
     user: AuthUser,
@@ -38,11 +47,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   hydrated: false,
   pendingSocial: null,
+  pendingSession: null,
   setPendingSocial: (credential) => {
     set({ pendingSocial: credential });
   },
+  setPendingSession: (session) => {
+    set({ pendingSession: session });
+  },
   setSession: (accessToken, user, refreshToken = null) => {
-    set({ accessToken, refreshToken, user, pendingSocial: null });
+    set({
+      accessToken,
+      refreshToken,
+      user,
+      pendingSocial: null,
+      pendingSession: null,
+    });
     void saveAuthSession({ accessToken, refreshToken, user });
   },
   clearSession: () => {
@@ -51,6 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       refreshToken: null,
       user: null,
       pendingSocial: null,
+      pendingSession: null,
     });
     void clearAuthSession();
   },
@@ -65,10 +85,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken: stored.refreshToken,
         user: stored.user,
         pendingSocial: null,
+        pendingSession: null,
         hydrated: true,
       });
       return;
     }
-    set({ hydrated: true, pendingSocial: null });
+    set({ hydrated: true, pendingSocial: null, pendingSession: null });
   },
 }));

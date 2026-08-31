@@ -10,6 +10,7 @@ export type StoredAuthSession = {
     name: string;
     phone?: string;
     email?: string;
+    handle?: string;
   };
 };
 

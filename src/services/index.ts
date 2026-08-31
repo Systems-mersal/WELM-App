@@ -6,4 +6,6 @@ export {
   fetchWelmMe,
   logoutWelmSession,
   refreshWelmSession,
+  startWelmPhoneOtp,
+  verifyWelmPhoneOtp,
 } from "../features/auth";

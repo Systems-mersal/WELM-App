@@ -1,47 +1,45 @@
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../../navigation/types";
-import type { WelmAuthSession } from "../api/types";
+import type { WelmAuthProvider, WelmAuthSession } from "../api/types";
+import { completeSocialSignIn } from "../session/apply-welm-auth";
+import type { WelmPostAuthDestination } from "../session/destination";
 
-export type WelmPostAuthDestination = "link-mobile" | "home";
-
-/**
- * US-2.6 — decide next screen from Tajeer Plus `isNew`.
- * isNew → US-3 Link Mobile (screen TBD)
- * !isNew → US-5 existing consumer home
- */
-export function getWelmPostAuthDestination(
-  session: Pick<WelmAuthSession, "isNew">,
-): WelmPostAuthDestination {
-  return session.isNew ? "link-mobile" : "home";
-}
+export type { WelmPostAuthDestination };
+export { getWelmPostAuthDestination } from "../session/destination";
 
 type AuthStackNavigation = NativeStackNavigationProp<
   RootStackParamList,
   "CreateAccount" | "Login"
 >;
 
+function resolveProvider(
+  session: WelmAuthSession,
+  fallback?: string,
+): WelmAuthProvider {
+  const value = session.provider ?? fallback;
+  if (value === "google" || value === "x" || value === "apple") {
+    return value;
+  }
+  return "apple";
+}
+
 /**
- * Apply US-2.6 routing after a successful WELM session is stored.
- * Link-mobile UI (US-3) is not built yet — stay on Create Account so the
- * phone OTP path remains available. Existing users go to MainTabs.
+ * Persist or park the session, then route US-3 / US-5.
  */
 export function routeAfterWelmAuth(
   navigation: AuthStackNavigation,
-  session: Pick<WelmAuthSession, "isNew">,
+  session: WelmAuthSession,
+  provider?: string,
 ): void {
-  const destination = getWelmPostAuthDestination(session);
+  const destination = completeSocialSignIn(session);
 
-  if (destination === "home") {
-    navigation.replace("MainTabs");
+  if (destination === "link-mobile") {
+    navigation.replace("LinkMobile", {
+      provider: resolveProvider(session, provider),
+    });
     return;
   }
 
-  // destination === "link-mobile" (US-3 TBD)
-  // Prefer Create Account so the user can continue with Saudi mobile OTP.
-  const state = navigation.getState();
-  const current = state.routes[state.index]?.name;
-  if (current !== "CreateAccount") {
-    navigation.navigate("CreateAccount");
-  }
+  navigation.replace("AccountExists");
 }

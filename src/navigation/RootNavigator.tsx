@@ -5,12 +5,15 @@ import { BookingDatesScreen } from "../screens/BookingDates/BookingDatesScreen";
 import { BookingExtrasScreen } from "../screens/BookingExtras/BookingExtrasScreen";
 import { BookingReviewScreen } from "../screens/BookingReview/BookingReviewScreen";
 import { CreateAccountScreen } from "../screens/CreateAccount/CreateAccountScreen";
+import { AccountExistsScreen } from "../screens/AccountExists/AccountExistsScreen";
 import { DocumentsScreen } from "../screens/Documents/DocumentsScreen";
 import { LegalScreen } from "../screens/Legal/LegalScreen";
+import { LinkMobileScreen } from "../screens/LinkMobile/LinkMobileScreen";
 import { LoginScreen } from "../screens/Login/LoginScreen";
 import { NotificationsScreen } from "../screens/Notifications/NotificationsScreen";
 import { OnboardingScreen } from "../screens/Onboarding/OnboardingScreen";
 import { OtpScreen } from "../screens/Otp/OtpScreen";
+import { ProfileGateScreen } from "../screens/ProfileGate/ProfileGateScreen";
 import { SplashScreen } from "../screens/Splash/SplashScreen";
 import { VehicleDetailsScreen } from "../screens/VehicleDetails/VehicleDetailsScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
@@ -28,8 +31,11 @@ export function RootNavigator() {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+      <Stack.Screen name="LinkMobile" component={LinkMobileScreen} />
+      <Stack.Screen name="AccountExists" component={AccountExistsScreen} />
       <Stack.Screen name="Legal" component={LegalScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />
+      <Stack.Screen name="ProfileGate" component={ProfileGateScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen} />
       <Stack.Screen name="BookingDates" component={BookingDatesScreen} />

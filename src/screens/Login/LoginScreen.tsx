@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -11,18 +11,17 @@ import { AppIcon } from "../../components/icons/AppIcon";
 import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
 import {
-  WelmAuthApiError,
   exchangeSocialCredential,
-  mapWelmSessionToAuthUser,
+  reportWelmAuthFailure,
   routeAfterWelmAuth,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
+  welmAuthUserMessage,
 } from "../../features/auth";
 import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
-import { useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
 
@@ -33,7 +32,6 @@ export function LoginScreen({ navigation }: Props) {
   const { textAlign } = useRtl();
   const [phone, setPhone] = useState("");
   const [socialBusy, setSocialBusy] = useState(false);
-  const setSession = useAuthStore((state) => state.setSession);
 
   const handleContinue = useCallback(() => {
     navigation.navigate("Otp", { phone: phone.trim() || undefined });
@@ -59,10 +57,10 @@ export function LoginScreen({ navigation }: Props) {
             return;
           }
           if (result.status === SocialAuthStatus.FAILED) {
-            Alert.alert(t("common:error"));
+            reportWelmAuthFailure(result, t("common:error"), t("common:error"));
             return;
           }
-          routeAfterWelmAuth(navigation, result.session);
+          routeAfterWelmAuth(navigation, result.session, "apple");
           return;
         }
 
@@ -74,42 +72,33 @@ export function LoginScreen({ navigation }: Props) {
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
-          Alert.alert(t("common:error"));
+          reportWelmAuthFailure(result, t("common:error"), t("common:error"));
           return;
         }
 
         try {
           const session = await exchangeSocialCredential(result);
-          setSession(
-            session.accessToken,
-            mapWelmSessionToAuthUser(session),
-            session.refreshToken,
-          );
-          routeAfterWelmAuth(navigation, session);
+          routeAfterWelmAuth(navigation, session, provider);
         } catch (error) {
-          const message =
-            error instanceof WelmAuthApiError
-              ? error.code === "undeployed" || error.code === "disabled"
-                ? t("common:auth.api-unavailable")
-                : error.message
-              : t("common:error");
-          Alert.alert(t("common:error"), message);
+          const message = welmAuthUserMessage(error, {
+            unavailable: t("common:auth.api-unavailable"),
+            fallback: t("common:error"),
+          });
+          reportWelmAuthFailure(error, message, t("common:error"));
         }
       } catch (error) {
         if (provider === SocialProvider.APPLE) {
-          const message =
-            error instanceof WelmAuthApiError
-              ? error.code === "undeployed" || error.code === "disabled"
-                ? t("common:auth.api-unavailable")
-                : error.message
-              : t("common:error");
-          Alert.alert(t("common:error"), message);
+          const message = welmAuthUserMessage(error, {
+            unavailable: t("common:auth.api-unavailable"),
+            fallback: t("common:error"),
+          });
+          reportWelmAuthFailure(error, message, t("common:error"));
         }
       } finally {
         setSocialBusy(false);
       }
     },
-    [navigation, setSession, socialBusy, t],
+    [navigation, socialBusy, t],
   );
 
   return (

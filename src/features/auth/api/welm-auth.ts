@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { getApiBaseUrl } from "../../../lib/api-base-url";
 import { apiClient } from "../../../lib/api-client";
 import type { AuthUser } from "../../../stores/auth-store";
 import type { SocialAuthSuccess } from "../social/types";
@@ -7,6 +8,8 @@ import {
   WelmAuthApiError,
   type WelmAuthSession,
   type WelmMeResponse,
+  type WelmPhoneStartResponse,
+  type WelmPhoneVerifyResponse,
   type WelmSocialAuthRequest,
 } from "./types";
 
@@ -67,7 +70,7 @@ function mapAxiosError(error: unknown): WelmAuthApiError {
     return new WelmAuthApiError("unauthorized", message, status);
   }
 
-  if (status === 400 || status === 403) {
+  if (status === 400 || status === 403 || status === 409) {
     return new WelmAuthApiError("invalid", message, status);
   }
 
@@ -78,8 +81,13 @@ export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
   return {
     id: session.user.id,
     name: session.user.name,
+    firstName:
+      session.user.firstName ||
+      session.user.name.trim().split(/\s+/)[0] ||
+      "User",
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    handle: session.user.handle ?? undefined,
   };
 }
 
@@ -93,6 +101,7 @@ export function socialSuccessToRequest(
     authorizationCode: credential.authorizationCode,
     fullName: credential.name,
     nonce: credential.nonce,
+    email: credential.email,
   };
 }
 
@@ -169,6 +178,47 @@ export async function fetchWelmMe(): Promise<WelmMeResponse> {
 
 /** Hosted OAuth start URL (X / optional Google) — never points at supabase.co. */
 export function getWelmOAuthStartUrl(provider: "x" | "google"): string {
-  const base = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}/api/welm/auth/oauth/start?provider=${provider}`;
+  return `${getApiBaseUrl()}/api/welm/auth/oauth/start?provider=${provider}`;
+}
+
+const PHONE_START_PATH = "/api/welm/auth/phone/start";
+const PHONE_VERIFY_PATH = "/api/welm/auth/phone/verify";
+
+/** POST /api/welm/auth/phone/start — never sent to Apple/Google/X. */
+export async function startWelmPhoneOtp(
+  phone: string,
+): Promise<WelmPhoneStartResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPhoneStartResponse>(
+      PHONE_START_PATH,
+      { phone },
+    );
+    if (!data?.sent || !data.phone) {
+      throw new WelmAuthApiError("unknown", "Invalid phone start response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/phone/verify */
+export async function verifyWelmPhoneOtp(
+  phone: string,
+  code: string,
+): Promise<WelmPhoneVerifyResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPhoneVerifyResponse>(
+      PHONE_VERIFY_PATH,
+      { phone, code },
+    );
+    if (!data?.verified) {
+      throw new WelmAuthApiError("unknown", "Invalid phone verify response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
 }

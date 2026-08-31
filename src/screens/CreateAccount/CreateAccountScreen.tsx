@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Pressable, View } from "react-native";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -13,17 +13,16 @@ import { LocalSvg } from "../../components/icons/LocalSvg";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
-  WelmAuthApiError,
   exchangeSocialCredential,
-  mapWelmSessionToAuthUser,
+  reportWelmAuthFailure,
   routeAfterWelmAuth,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
+  welmAuthUserMessage,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
-import { useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
 import { isValidSaudiMobile, normalizeSaudiMobile } from "../../utils/saudi-mobile";
@@ -32,12 +31,11 @@ type Props = NativeStackScreenProps<RootStackParamList, "CreateAccount">;
 
 export function CreateAccountScreen({ navigation }: Props) {
   const { t } = useTranslation(["create-account", "common"]);
-  const setPendingSocial = useAuthStore((state) => state.setPendingSocial);
-  const setSession = useAuthStore((state) => state.setSession);
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [termsError, setTermsError] = useState(false);
   const [socialBusy, setSocialBusy] = useState(false);
+  const appleSheetOpen = useRef(false);
 
   const canSubmit = acceptedTerms && isValidSaudiMobile(phone);
 
@@ -82,29 +80,40 @@ export function CreateAccountScreen({ navigation }: Props) {
       setTermsError(true);
       return;
     }
-    if (socialBusy) {
+    if (socialBusy || appleSheetOpen.current) {
       return;
     }
 
     // Phone stays on this screen for OTP only — never sent to Apple or Tajeer social.
-    setSocialBusy(true);
+    // Overlay starts only after the native sheet returns (not during the password prompt).
+    appleSheetOpen.current = true;
     try {
-      const result = await signInWithAppleToWelm();
+      const result = await signInWithAppleToWelm({
+        onNativeSuccess: () => setSocialBusy(true),
+      });
 
       // Cancel (ERR_REQUEST_CANCELED) → stay on Create Account, no US-6 banner.
       if (result.status === SocialAuthStatus.CANCELLED) {
         return;
       }
       if (result.status === SocialAuthStatus.UNAVAILABLE) {
-        Alert.alert(t("common:error"), t("common:auth.apple-unavailable"));
+        reportWelmAuthFailure(
+          result,
+          t("common:auth.apple-unavailable"),
+          t("common:error"),
+        );
         return;
       }
       if (result.status === SocialAuthStatus.FAILED) {
-        Alert.alert(t("common:error"), t("common:auth.apple-failed"));
+        reportWelmAuthFailure(
+          result,
+          t("common:auth.apple-failed"),
+          t("common:error"),
+        );
         return;
       }
 
-      // Session already persisted (incl. private-relay email from API user.email).
+      // US-2.6: completeSocialSignIn then LinkMobile / AccountExists.
       if (__DEV__) {
         console.log("[welm] Apple session ok", {
           userId: result.session.user.id,
@@ -113,26 +122,18 @@ export function CreateAccountScreen({ navigation }: Props) {
         });
       }
 
-      routeAfterWelmAuth(navigation, result.session);
-
-      if (result.session.isNew) {
-        Alert.alert(
-          t("common:auth.account-created-title"),
-          t("common:auth.signed-in-link-phone"),
-        );
-      }
+      routeAfterWelmAuth(navigation, result.session, "apple");
     } catch (error) {
       if (__DEV__) {
         console.warn("[welm] Apple → API failed", error);
       }
-      const message =
-        error instanceof WelmAuthApiError
-          ? error.code === "undeployed" || error.code === "disabled"
-            ? t("common:auth.api-unavailable")
-            : error.message
-          : t("common:error");
-      Alert.alert(t("common:error"), message);
+      const message = welmAuthUserMessage(error, {
+        unavailable: t("common:auth.api-unavailable"),
+        fallback: t("common:error"),
+      });
+      reportWelmAuthFailure(error, message, t("common:error"));
     } finally {
+      appleSheetOpen.current = false;
       setSocialBusy(false);
     }
   }, [acceptedTerms, navigation, socialBusy, t]);
@@ -163,29 +164,23 @@ export function CreateAccountScreen({ navigation }: Props) {
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
-          Alert.alert(t("common:error"));
+          reportWelmAuthFailure(
+            result,
+            t("common:error"),
+            t("common:error"),
+          );
           return;
         }
 
         try {
           const session = await exchangeSocialCredential(result);
-          setSession(
-            session.accessToken,
-            mapWelmSessionToAuthUser(session),
-            session.refreshToken,
-          );
-          if (session.isNew) {
-            setPendingSocial(result);
-          }
-          routeAfterWelmAuth(navigation, session);
+          routeAfterWelmAuth(navigation, session, provider);
         } catch (error) {
-          const message =
-            error instanceof WelmAuthApiError
-              ? error.code === "undeployed" || error.code === "disabled"
-                ? t("common:auth.api-unavailable")
-                : error.message
-              : t("common:error");
-          Alert.alert(t("common:error"), message);
+          const message = welmAuthUserMessage(error, {
+            unavailable: t("common:auth.api-unavailable"),
+            fallback: t("common:error"),
+          });
+          reportWelmAuthFailure(error, message, t("common:error"));
         }
       } finally {
         setSocialBusy(false);
@@ -195,8 +190,6 @@ export function CreateAccountScreen({ navigation }: Props) {
       acceptedTerms,
       handleApplePress,
       navigation,
-      setPendingSocial,
-      setSession,
       socialBusy,
       t,
     ],

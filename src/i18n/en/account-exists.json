@@ -1,0 +1,8 @@
+{
+  "header": "Create account",
+  "title": "You already have an account",
+  "subtitle": "The email {{email}} is linked to a WELM account",
+  "sign-in": "Sign in",
+  "use-other-social": "Use another social account",
+  "continue-as": "Continue as {{name}}"
+}

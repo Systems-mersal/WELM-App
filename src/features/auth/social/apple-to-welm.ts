@@ -1,11 +1,7 @@
 import { Platform } from "react-native";
 
-import {
-  exchangeSocialAuth,
-  mapWelmSessionToAuthUser,
-} from "../api/welm-auth";
+import { exchangeSocialAuth } from "../api/welm-auth";
 import type { WelmAuthSession } from "../api/types";
-import { useAuthStore } from "../../../stores/auth-store";
 import { signInWithApple } from "../social/apple-auth";
 import { SocialAuthStatus, SocialProvider } from "../social/types";
 
@@ -15,11 +11,19 @@ export type AppleSignInToWelmResult =
   | { status: SocialAuthStatus.FAILED }
   | { status: SocialAuthStatus.SUCCESS; session: WelmAuthSession };
 
+export type SignInWithAppleToWelmOptions = {
+  /** Called after the native sheet succeeds, before the Tajeer HTTP exchange. */
+  onNativeSuccess?: () => void;
+};
+
 /**
- * Native Apple → POST /api/welm/auth/social → persist session.
+ * Native Apple → POST /api/welm/auth/social.
+ * Persistence is decided by applyWelmAuthSession (US-3 vs US-5).
  * Never calls Supabase. Never posts phone.
  */
-export async function signInWithAppleToWelm(): Promise<AppleSignInToWelmResult> {
+export async function signInWithAppleToWelm(
+  options?: SignInWithAppleToWelmOptions,
+): Promise<AppleSignInToWelmResult> {
   if (Platform.OS !== "ios") {
     return { status: SocialAuthStatus.UNAVAILABLE };
   }
@@ -33,20 +37,14 @@ export async function signInWithAppleToWelm(): Promise<AppleSignInToWelmResult> 
     return { status: SocialAuthStatus.FAILED };
   }
 
+  options?.onNativeSuccess?.();
+
   const session = await exchangeSocialAuth({
     provider: SocialProvider.APPLE,
     idToken: apple.identityToken,
     fullName: apple.name,
+    email: apple.email,
   });
-
-  // Persist tokens + API user (including Apple private-relay email).
-  useAuthStore
-    .getState()
-    .setSession(
-      session.accessToken,
-      mapWelmSessionToAuthUser(session),
-      session.refreshToken,
-    );
 
   return { status: SocialAuthStatus.SUCCESS, session };
 }
