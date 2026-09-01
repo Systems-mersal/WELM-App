@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>حالة Epic التسجيل — WELM</title>
+  <style>
+    :root { --teal: #117066; --line: #e5e7eb; --bg: #f7f7f5; --ok: #166534; --okbg: #dcfce7; --mid: #854d0e; --midbg: #fef9c3; --no: #991b1b; --nobg: #fee2e2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: #111; }
+    header { background: #fff; border-bottom: 1px solid var(--line); padding: 20px 24px; }
+    h1 { margin: 0 0 6px; font-size: 22px; color: var(--teal); }
+    .sub { color: #6b7280; font-size: 13px; }
+    .stats { display: flex; gap: 12px; padding: 16px 24px; flex-wrap: wrap; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-width: 110px; }
+    .stat b { display: block; font-size: 22px; }
+    .note { margin: 12px 24px 0; padding: 10px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; font-size: 13px; }
+    .wrap { padding: 0 24px 40px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; min-width: 1280px; }
+    th { position: sticky; top: 0; background: var(--teal); color: #fff; text-align: right; padding: 10px 12px; font-weight: 600; font-size: 13px; }
+    td { padding: 9px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+    td.src { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #4b5563; }
+    tr:nth-child(even) td { background: #fafafa; }
+    .pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .done { background: var(--okbg); color: var(--ok); }
+    .partial { background: var(--midbg); color: var(--mid); }
+    .todo { background: var(--nobg); color: var(--no); }
+    .filters { padding: 0 24px 12px; display: flex; gap: 8px; }
+    .filters button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+    .filters button.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>حالة Epic التسجيل — WELM</h1>
+    <div class="sub">مراجعة الكود تاني — 31 أغسطس 2026 21:54 · WELM-App + Tajeer-plus · مش من GitHub Open/Closed</div>
+  </header>
+  <div class="note">اتراجع من الملفات فعليًا: الشاشات، i18n، api-client، apple/google/x-auth، OtpScreen، و8 routes تحت <code>/api/welm/auth/</code>. التغيير الوحيد عن الجدول السابق: <b>US-20</b> من «مش بادئ» لـ «جزئي» لأن 5 تابات موجودة.</div>
+  <div class="stats" id="stats"></div>
+  <div class="filters" id="filters"></div>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>الاسم</th><th>الحالة</th><th>اللي خلص</th><th>الناقص</th><th>موبايل</th><th>ويب / API</th><th>Database</th><th>اتأكد من</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <script>
+    const TASKS = [
+      ["US-1 #15","إنشاء حساب (أب)","partial","الشاشة متوصلة من Login","كوبي Figma؛ OTP فون → Home","Create Account","مش مطلوب","—","CreateAccountScreen.tsx"],
+      ["US-1.1 #22","Route من Login","done","ستاك + فوتر + رجوع","—","نعم","مش مطلوب","مش مطلوب","types.ts · RootNavigator · LoginScreen"],
+      ["US-1.2 #23","Layout Figma","partial","هيكل الشاشة كامل","نصوص وplaceholder مش Exact","نعم","مش مطلوب","مش مطلوب","CreateAccountScreen + ar/create-account.json"],
+      ["US-1.3 #24","بوابة الشروط","done","تشيك بوكس + خطأ أحمر","—","نعم","مش مطلوب","مش مطلوب","TermsCheckbox + CreateAccountScreen"],
+      ["US-1.4 #25","جوال → OTP","partial","+966 و9 أرقام","بعد OTP: dev-token → MainTabs","نعم","فون-أولاً من غير startWelmPhoneOtp","—","OtpScreen.tsx:88 · saudi-mobile.ts"],
+      ["US-1.5 #26","دوائر السوشيال","done","Apple Google X + حرف G","—","نعم","مش مطلوب","مش مطلوب","CreateAccountScreen h-14 · AppIcon"],
+      ["US-1.6 #27","i18n ar/en","partial","namespace مربوط","title/subtitle/social مش Figma","نعم","مش مطلوب","مش مطلوب","ar/create-account.json"],
+      ["US-2 #16","Social OAuth (أب)","partial","Apple + راوتر isNew","Google env؛ X stub","جزئي","8 routes /api/welm/auth/*","auth.users + profiles","features/auth + api/welm/auth"],
+      ["US-2.1 #28","apiClient → Tajeer","done","Bearer + persist + scheme welm","—","نعم","refresh عبر Tajeer","مش مطلوب","api-client.ts · package.json بدون supabase-js"],
+      ["US-2.2 #29","APIs Tajeer","partial","8 endpoints + Consumer role","تفعيل Google/X في Supabase؛ SMS","helpers جاهزة","api/welm/auth/*","profiles + Consumer","8 ملفات route.ts تحت welm/auth"],
+      ["US-2.3 #30","Sign in with Apple","done","native FULL_NAME+EMAIL + POST social","bundle com.welmm غلط","نعم","/social + JWKS","email على profiles","apple-auth.ts · app.json:12"],
+      ["US-2.4 #31","Google","partial","google-auth.ts موجود","UNAVAILABLE بدون EXPO_PUBLIC_GOOGLE_*","نعم كود","idToken أو oauth/start","profiles","google-auth.ts:33-40"],
+      ["US-2.5 #32","X عبر Tajeer","todo","API oauth/start موجود","signInWithX يرجع UNAVAILABLE","stub","oauth/start + callback جاهزين","profiles","x-auth.ts:19"],
+      ["US-2.6 #33","راوتر isNew","done","جديد → Link Mobile؛ موجود → Account Exists","—","نعم","isNew في الرد","مش عمود","route-after-auth.ts · destination.ts"],
+      ["US-3 #17","تأكيد الجوال","done","شاشة Link Mobile + start OTP","SMS حقيقي","نعم","POST phone/start","OTP في public_data","LinkMobileScreen · lib/welm/phone.ts"],
+      ["US-4 #18","OTP بعد سوشيال","partial","social: verifyWelmPhoneOtp → ProfileGate","كابشن المزود؛ فون → Home mock","نعم","phone/verify","phone + welm_phone_verified","OtpScreen.tsx:67-94"],
+      ["US-5 #19","الحساب موجود","done","شاشة Account Exists","—","نعم","isNew false","نفس صف profiles","AccountExistsScreen.tsx"],
+      ["US-6 #20","فشل السوشيال","todo","hook → Alert؛ إلغاء صامت","بانر أحمر على Create Account","hook فقط","مش مطلوب","مش مطلوب","welm-auth-failure.ts"],
+      ["US-7 #21","تهيئة البروفايل","todo","اسم/إيميل في الستور","مفيش CompleteProfile screen","مش بادئ","مفيش PATCH /api/welm/profile","ناقص حقول الهوية","مفيش شاشة في src/screens"],
+      ["US-8 #2","بوابة الهوم","partial","ProfileGate stub بعد السوشيال","فون OTP يعدّي MainTabs","stub","مفيش flags اكتمال","ناقص","ProfileGateScreen · OtpScreen:94"],
+      ["US-9 #3","Complete Profile","todo","—","شاشة الهوية","مش بادئ","customers staff فقط","customers CRM","مفيش route في types.ts"],
+      ["US-10 #4","فاليديشن Tajeer","todo","مرجع CustomerDetailsStep ويب موظفين","مفيش عقد WELM","مش بادئ","عقد WELM مطلوب","profiles ↔ customers","Tajeer CustomerDetailsStep.tsx"],
+      ["US-11 #5","مسح الهوية","partial","POST /api/customers/scan-id موظفين","موبايل صفر؛ مش /api/welm/","مش بادئ (مفيش expo-camera)","Google Vision staff","OCR مش على WELM","package.json · scan-id/route.ts"],
+      ["US-12 #6","هجري / رخصة / جنسية","todo","—","sheets","مش بادئ","customer-lookups لاحقاً","بعد US-9","مفيش شاشات"],
+      ["US-13 #7","تفعيل الموقع","todo","—","expo-location مش في package.json","مش بادئ","مفيش API","مفيش حفظ موقع","package.json"],
+      ["US-14 #8","خريطة + نطاق","todo","—","خريطة ١٠/٢٥/٥٠","مش بادئ","—","lat/lng/radius","مفيش شاشة"],
+      ["US-15 #9","مدينة يدوي","todo","—","بيكر + رفض GPS","مش بادئ","—","—","مفيش شاشة"],
+      ["US-16 #10","الهوم حسب النطاق","todo","Home mock FEATURED_VEHICLE","فلتر مسافة","مدينة بدون lat/lng","فروع CRM","إحداثيات عربيات","HomeScreen.tsx · HomeHeader.tsx"],
+      ["US-17 #11","استكشف قائمة/خريطة","todo","جريد","فلتر → alertComingSoon","مش بادئ","نفس US-16","نفس","ExploreScreen.tsx"],
+      ["US-18 #12","فاضي / خارج التغطية","todo","—","empty + nearest city","مش بادئ","—","—","مفيش UI"],
+      ["US-19 #13","تغيير الموقع من الهوم","todo","—","sheet النطاق","مش بادئ","—","—","HomeHeader من غير شريحة موقع"],
+      ["US-20 #14","قرارات تصميم","partial","5 تابات منها Favorites","تثبيت الرخصة والنطاق ≠ الاستلام","MainTabNavigator","—","—","MainTabNavigator.tsx"],
+    ];
+    const LABEL = { done: "خلص", partial: "جزئي", todo: "مش بادئ" };
+    let filter = "all";
+    function counts() {
+      return {
+        all: TASKS.length,
+        done: TASKS.filter(t => t[2] === "done").length,
+        partial: TASKS.filter(t => t[2] === "partial").length,
+        todo: TASKS.filter(t => t[2] === "todo").length,
+      };
+    }
+    function render() {
+      const c = counts();
+      document.getElementById("stats").innerHTML = `
+        <div class="stat"><b>${c.all}</b>كل التاسكات</div>
+        <div class="stat"><b style="color:#166534">${c.done}</b>خلص</div>
+        <div class="stat"><b style="color:#854d0e">${c.partial}</b>جزئي</div>
+        <div class="stat"><b style="color:#991b1b">${c.todo}</b>مش بادئ</div>`;
+      document.getElementById("filters").innerHTML = [
+        ["all","الكل "+c.all],["done","خلص "+c.done],["partial","جزئي "+c.partial],["todo","مش بادئ "+c.todo]
+      ].map(([id,label]) => `<button class="${filter===id?"on":""}" data-id="${id}">${label}</button>`).join("");
+      document.querySelectorAll("#filters button").forEach(b => b.onclick = () => { filter = b.dataset.id; render(); });
+      const rows = TASKS.filter(t => filter === "all" || t[2] === filter);
+      document.getElementById("tbody").innerHTML = rows.map(t => `
+        <tr>
+          <td>${t[0]}</td><td>${t[1]}</td>
+          <td><span class="pill ${t[2]}">${LABEL[t[2]]}</span></td>
+          <td>${t[3]}</td><td>${t[4]}</td><td>${t[5]}</td><td>${t[6]}</td><td>${t[7]}</td><td class="src">${t[8] || ""}</td>
+        </tr>`).join("");
+    }
+    render();
+  </script>
+</body>
+</html>
