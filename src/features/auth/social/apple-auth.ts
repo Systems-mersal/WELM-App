@@ -96,6 +96,7 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
       email: credential.email,
       identityToken: credential.identityToken,
       accessToken: null,
+      refreshToken: null,
       authorizationCode: credential.authorizationCode,
       nonce: null,
     };

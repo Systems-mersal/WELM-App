@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
+import { TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
-import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
@@ -14,27 +13,29 @@ import {
   discardWelmAuth,
   firstNameFromWelmUser,
   reportWelmAuthFailure,
-  startWelmPhoneOtp,
+  startWelmEmailOtp,
   welmAuthUserMessage,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../stores/auth-store";
+import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
-import {
-  isValidSaudiMobile,
-  normalizeSaudiMobile,
-} from "../../utils/saudi-mobile";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LinkMobile">;
+
+function isValidEmail(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.includes("@") && trimmed.includes(".");
+}
 
 export function LinkMobileScreen({ navigation, route }: Props) {
   const { t } = useTranslation(["link-mobile", "common"]);
   const provider = route.params.provider;
   const user = useAuthStore((state) => state.user);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [sending, setSending] = useState(false);
 
-  const canSubmit = isValidSaudiMobile(phone);
+  const canSubmit = isValidEmail(email);
   const displayName =
     user?.name?.trim() ||
     firstNameFromWelmUser({
@@ -42,10 +43,9 @@ export function LinkMobileScreen({ navigation, route }: Props) {
       firstName: user?.firstName,
     }) ||
     "User";
-  const email = user?.email ?? "";
   const handle = user?.handle?.replace(/^@/, "");
   const cardSubtitle =
-    provider === "x" && handle ? `@${handle}` : email;
+    provider === "x" && handle ? `@${handle}` : email.trim();
 
   const linkedLabel = useMemo(() => {
     if (provider === "google") {
@@ -63,18 +63,18 @@ export function LinkMobileScreen({ navigation, route }: Props) {
   }, [navigation]);
 
   const handleSend = useCallback(async () => {
-    const normalized = normalizeSaudiMobile(phone);
-    if (!isValidSaudiMobile(normalized) || sending) {
+    const normalized = email.trim();
+    if (!isValidEmail(normalized) || sending) {
       return;
     }
-    const e164 = `+966${normalized}`;
     setSending(true);
     try {
-      const started = await startWelmPhoneOtp(e164);
+      const started = await startWelmEmailOtp(normalized);
       navigation.navigate("Otp", {
-        phone: started.phone,
+        email: started.email,
         intent: "social",
         provider,
+        debugCode: started.debugCode,
       });
     } catch (error) {
       const message = welmAuthUserMessage(error, {
@@ -85,7 +85,7 @@ export function LinkMobileScreen({ navigation, route }: Props) {
     } finally {
       setSending(false);
     }
-  }, [navigation, phone, provider, sending, t]);
+  }, [email, navigation, provider, sending, t]);
 
   return (
     <Screen
@@ -134,11 +134,28 @@ export function LinkMobileScreen({ navigation, route }: Props) {
       </View>
 
       <View className="mt-8">
-        <SaudiPhoneField
-          value={phone}
-          onChangeText={setPhone}
-          placeholder={t("phone-placeholder")}
-        />
+        <AppText variant="label" className="mb-2">
+          {t("email")}
+        </AppText>
+        <View className="h-14 justify-center rounded-2xl border border-border bg-background px-4">
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder={t("email-placeholder")}
+            placeholderTextColor={colors.textMuted}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            className="text-text"
+            style={{
+              fontFamily: fontFamily.regular,
+              fontSize: fontSize.body,
+              textAlign: "left",
+              writingDirection: "ltr",
+            }}
+          />
+        </View>
       </View>
 
       <View className="mt-6">

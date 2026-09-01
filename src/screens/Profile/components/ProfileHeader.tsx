@@ -5,10 +5,14 @@ import avatarSource from "../../../assets/figma/profile/avatar.png";
 import { Avatar } from "../../../components/common/Avatar";
 import { Badge } from "../../../components/common/Badge";
 import { AppText } from "../../../components/typography/AppText";
+import { useAuthStore } from "../../../stores/auth-store";
 import { fontFamily } from "../../../theme/typography";
 
 export function ProfileHeader() {
   const { t } = useTranslation("profile");
+  const user = useAuthStore((state) => state.user);
+  const displayName = user?.name || t("user-name");
+  const displayEmail = user?.email || t("user-email");
 
   return (
     <View className="flex-row items-center gap-2">
@@ -20,10 +24,10 @@ export function ProfileHeader() {
             style={{ fontFamily: fontFamily.semibold }}
             numberOfLines={1}
           >
-            {t("user-name")}
+            {displayName}
           </AppText>
           <AppText variant="caption" className="text-white/70" numberOfLines={1}>
-            {t("user-email")}
+            {displayEmail}
           </AppText>
         </View>
         <Badge

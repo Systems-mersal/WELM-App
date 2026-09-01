@@ -12,7 +12,7 @@ import {
   commitPendingWelmSession,
   discardWelmAuth,
   firstNameFromWelmUser,
-  routePastAuthGate,
+  routeToHome,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../stores/auth-store";
@@ -45,7 +45,7 @@ export function AccountExistsScreen({ navigation }: Props) {
       navigation.replace("Login");
       return;
     }
-    routePastAuthGate(navigation);
+    routeToHome(navigation);
   }, [navigation]);
 
   return (

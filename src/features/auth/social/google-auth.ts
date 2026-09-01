@@ -105,6 +105,7 @@ export async function signInWithGoogle(): Promise<SocialAuthResult> {
       email: claims.email ?? null,
       identityToken,
       accessToken,
+      refreshToken: null,
       authorizationCode: result.params.code ?? null,
       nonce,
     };

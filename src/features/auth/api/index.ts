@@ -9,6 +9,8 @@ export {
   socialSuccessToRequest,
   startWelmPhoneOtp,
   verifyWelmPhoneOtp,
+  startWelmEmailOtp,
+  verifyWelmEmailOtp,
 } from "./welm-auth";
 export {
   WelmAuthApiError,
@@ -20,5 +22,7 @@ export {
   type WelmMeResponse,
   type WelmPhoneStartResponse,
   type WelmPhoneVerifyResponse,
+  type WelmEmailStartResponse,
+  type WelmEmailVerifyResponse,
   type WelmSocialAuthRequest,
 } from "./types";

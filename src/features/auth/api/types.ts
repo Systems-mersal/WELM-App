@@ -16,7 +16,7 @@ export type WelmAuthSession = {
   refreshToken: string;
   expiresIn: number;
   user: WelmAuthUser;
-  /** true when no verified +966 yet → US-3; false → existing consumer (US-5). */
+  /** true when email/phone OTP is not done yet → confirm contact; false → existing consumer. */
   isNew: boolean;
   provider?: WelmAuthProvider;
 };
@@ -25,6 +25,7 @@ export type WelmSocialAuthRequest = {
   provider: WelmAuthProvider;
   idToken?: string | null;
   accessToken?: string | null;
+  refreshToken?: string | null;
   authorizationCode?: string | null;
   fullName?: string | null;
   nonce?: string | null;
@@ -45,6 +46,19 @@ export type WelmPhoneStartResponse = {
 export type WelmPhoneVerifyResponse = {
   verified: boolean;
   phone: string;
+  isNew: boolean;
+};
+
+export type WelmEmailStartResponse = {
+  sent: boolean;
+  email: string;
+  /** Local/dev only — omitted in production. */
+  debugCode?: string;
+};
+
+export type WelmEmailVerifyResponse = {
+  verified: boolean;
+  email: string;
   isNew: boolean;
 };
 

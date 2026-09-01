@@ -17,8 +17,11 @@ export type RootStackParamList = {
   Otp:
     | {
         phone?: string;
+        email?: string;
         intent?: "signup" | "social";
         provider?: "apple" | "google" | "x";
+        /** Present only when Tajeer is not production and SMTP is not wired. */
+        debugCode?: string;
       }
     | undefined;
   CreateAccount: undefined;

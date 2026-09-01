@@ -25,6 +25,7 @@ export type SocialAuthSuccess = {
   /** Apple / OIDC identity token — never includes phone. */
   identityToken: string | null;
   accessToken: string | null;
+  refreshToken: string | null;
   authorizationCode: string | null;
   nonce: string | null;
   // Intentionally no `phone` field — phone must not be posted to social networks.

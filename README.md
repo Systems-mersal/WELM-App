@@ -15,7 +15,7 @@ Mobile callers authenticate with `Authorization: Bearer <accessToken>` (same pat
 
 Auth helpers live in `src/features/auth` (`completeSocialSignIn`, `exchangeSocialCredential`, `refreshWelmSession`, `logoutWelmSession`, `fetchWelmMe`). If `/api/welm/auth/*` is missing, the app surfaces a clear “API unavailable” error — it does **not** fall back to Supabase. Optional kill-switch: `EXPO_PUBLIC_WELM_AUTH_ENABLED=false`.
 
-Enable **Sign in with Apple** (Client ID `com.welm.tajeerplus`) on the Tajeer-plus and Tajeer-plus-live Supabase dashboards. Secrets stay there / in 1Password.
+Enable **Sign in with Apple** (Client ID `com.welmm.tajeerplus`) on the Tajeer-plus and Tajeer-plus-live Supabase dashboards. Secrets stay there / in 1Password.
 
 OAuth return scheme: `welm://auth/callback` (`scheme: "welm"` in `app.json`). Hosted X/Google start: `{EXPO_PUBLIC_API_URL}/api/welm/auth/oauth/start?provider=x`.
 

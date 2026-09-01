@@ -8,4 +8,6 @@ export {
   refreshWelmSession,
   startWelmPhoneOtp,
   verifyWelmPhoneOtp,
+  startWelmEmailOtp,
+  verifyWelmEmailOtp,
 } from "../features/auth";

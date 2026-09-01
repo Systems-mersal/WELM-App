@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { loginLogoMarkXml } from "../../assets/figma/login/logoMarkXml";
-import { xIconXml } from "../../assets/figma/login/xIconXml";
 import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
 import { AppIcon } from "../../components/icons/AppIcon";
@@ -60,15 +59,16 @@ export function LoginScreen({ navigation }: Props) {
             reportWelmAuthFailure(result, t("common:error"), t("common:error"));
             return;
           }
-          routeAfterWelmAuth(navigation, result.session, "apple");
+          routeAfterWelmAuth(navigation, result.session, "apple", "login");
           return;
         }
 
         const result = await signInWithSocial(provider);
-        if (
-          result.status === SocialAuthStatus.CANCELLED ||
-          result.status === SocialAuthStatus.UNAVAILABLE
-        ) {
+        if (result.status === SocialAuthStatus.CANCELLED) {
+          return;
+        }
+        if (result.status === SocialAuthStatus.UNAVAILABLE) {
+          reportWelmAuthFailure(result, t("common:error"), t("common:error"));
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
@@ -78,7 +78,7 @@ export function LoginScreen({ navigation }: Props) {
 
         try {
           const session = await exchangeSocialCredential(result);
-          routeAfterWelmAuth(navigation, session, provider);
+          routeAfterWelmAuth(navigation, session, provider, "login");
         } catch (error) {
           const message = welmAuthUserMessage(error, {
             unavailable: t("common:auth.api-unavailable"),
@@ -203,16 +203,6 @@ export function LoginScreen({ navigation }: Props) {
             className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
           >
             <AppIcon name="google" size={24} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("common:a11y.sign-in-x")}
-            onPress={() => {
-              void handleSocialPress(SocialProvider.X);
-            }}
-            className="h-14 w-14 items-center justify-center rounded-full border border-border active:opacity-70"
-          >
-            <LocalSvg xml={xIconXml} width={24} height={24} />
           </Pressable>
         </View>
       </View>

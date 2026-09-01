@@ -3,5 +3,6 @@
   "title": "Almost there",
   "subtitle": "Name and email are saved. Next you’ll add profile details and location (US-8 / US-9).",
   "name-label": "Name",
-  "email-label": "Email"
+  "email-label": "Email",
+  "done": "Done"
 }

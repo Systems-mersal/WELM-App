@@ -10,6 +10,8 @@ import {
   type WelmMeResponse,
   type WelmPhoneStartResponse,
   type WelmPhoneVerifyResponse,
+  type WelmEmailStartResponse,
+  type WelmEmailVerifyResponse,
   type WelmSocialAuthRequest,
 } from "./types";
 
@@ -98,6 +100,7 @@ export function socialSuccessToRequest(
     provider: credential.provider,
     idToken: credential.identityToken,
     accessToken: credential.accessToken,
+    refreshToken: credential.refreshToken,
     authorizationCode: credential.authorizationCode,
     fullName: credential.name,
     nonce: credential.nonce,
@@ -216,6 +219,48 @@ export async function verifyWelmPhoneOtp(
     );
     if (!data?.verified) {
       throw new WelmAuthApiError("unknown", "Invalid phone verify response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+const EMAIL_START_PATH = "/api/welm/auth/email/start";
+const EMAIL_VERIFY_PATH = "/api/welm/auth/email/verify";
+
+/** POST /api/welm/auth/email/start */
+export async function startWelmEmailOtp(
+  email: string,
+): Promise<WelmEmailStartResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmEmailStartResponse>(
+      EMAIL_START_PATH,
+      { email },
+    );
+    if (!data?.sent || !data.email) {
+      throw new WelmAuthApiError("unknown", "Invalid email start response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/email/verify */
+export async function verifyWelmEmailOtp(
+  email: string,
+  code: string,
+): Promise<WelmEmailVerifyResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmEmailVerifyResponse>(
+      EMAIL_VERIFY_PATH,
+      { email, code },
+    );
+    if (!data?.verified) {
+      throw new WelmAuthApiError("unknown", "Invalid email verify response");
     }
     return data;
   } catch (error) {

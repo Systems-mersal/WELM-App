@@ -5,5 +5,7 @@
   "resend-in": "Resend in {{time}}",
   "verify": "Verify",
   "didnt-receive": "Didn't receive the code?",
-  "resend": "Resend"
+  "resend": "Resend",
+  "invalid-code": "That code is incorrect. Try again.",
+  "dev-code": "Local testing code: {{code}}"
 }

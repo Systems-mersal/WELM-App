@@ -2,11 +2,17 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../../navigation/types";
 import type { WelmAuthProvider, WelmAuthSession } from "../api/types";
-import { completeSocialSignIn } from "../session/apply-welm-auth";
+import {
+  commitPendingWelmSession,
+  completeSocialSignIn,
+} from "../session/apply-welm-auth";
 import type { WelmPostAuthDestination } from "../session/destination";
+import { routeToHome } from "./route-past-auth-gate";
 
 export type { WelmPostAuthDestination };
 export { getWelmPostAuthDestination } from "../session/destination";
+
+export type WelmAuthEntry = "login" | "signup";
 
 type AuthStackNavigation = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,12 +31,16 @@ function resolveProvider(
 }
 
 /**
- * Persist or park the session, then route US-3 / US-5.
+ * Persist or park the session, then route:
+ * - new consumer → Link Mobile (signup)
+ * - existing + Create Account → Account Exists
+ * - existing + Login → Home (skip Complete profile)
  */
 export function routeAfterWelmAuth(
   navigation: AuthStackNavigation,
   session: WelmAuthSession,
   provider?: string,
+  entry: WelmAuthEntry = "signup",
 ): void {
   const destination = completeSocialSignIn(session);
 
@@ -38,6 +48,12 @@ export function routeAfterWelmAuth(
     navigation.replace("LinkMobile", {
       provider: resolveProvider(session, provider),
     });
+    return;
+  }
+
+  if (entry === "login") {
+    commitPendingWelmSession();
+    routeToHome(navigation);
     return;
   }
 

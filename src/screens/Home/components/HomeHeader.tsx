@@ -5,6 +5,7 @@ import avatarSource from "../../../assets/figma/home/avatar.png";
 import { Avatar } from "../../../components/common/Avatar";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { AppText } from "../../../components/typography/AppText";
+import { useAuthStore } from "../../../stores/auth-store";
 import { colors } from "../../../theme/colors";
 import { fontFamily } from "../../../theme/typography";
 
@@ -14,6 +15,8 @@ export interface HomeHeaderProps {
 
 export function HomeHeader({ onNotificationsPress }: HomeHeaderProps) {
   const { t } = useTranslation(["home", "common"]);
+  const user = useAuthStore((state) => state.user);
+  const displayName = user?.firstName || user?.name || t("user-name");
 
   return (
     <View className="flex-row items-center justify-between py-4">
@@ -30,7 +33,7 @@ export function HomeHeader({ onNotificationsPress }: HomeHeaderProps) {
             className="text-[18px] text-text"
             style={{ fontFamily: fontFamily.bold }}
           >
-            {t("user-name")}
+            {displayName}
           </AppText>
         </View>
       </View>

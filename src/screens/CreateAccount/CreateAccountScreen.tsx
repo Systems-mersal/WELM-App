@@ -39,7 +39,7 @@ export function CreateAccountScreen({ navigation }: Props) {
 
   const canSubmit = acceptedTerms && isValidSaudiMobile(phone);
 
-  // Apple stays on iOS even when Google / X are shown (App Store guideline).
+  // Apple stays on iOS even when Google is shown (App Store guideline).
   const socialButtons = useMemo(
     () => [
       ...(Platform.OS === "ios"
@@ -55,11 +55,6 @@ export function CreateAccountScreen({ navigation }: Props) {
         key: SocialProvider.GOOGLE,
         icon: "google" as const,
         label: t("common:a11y.sign-in-google"),
-      },
-      {
-        key: SocialProvider.X,
-        icon: "x" as const,
-        label: t("common:a11y.sign-in-x"),
       },
     ],
     [t],
@@ -153,22 +148,22 @@ export function CreateAccountScreen({ navigation }: Props) {
         return;
       }
 
-      // Google / X — US-2.4 / US-2.5 (out of scope for this ticket).
       setSocialBusy(true);
       try {
         const result = await signInWithSocial(provider);
-        if (
-          result.status === SocialAuthStatus.CANCELLED ||
-          result.status === SocialAuthStatus.UNAVAILABLE
-        ) {
+        if (result.status === SocialAuthStatus.CANCELLED) {
           return;
         }
-        if (result.status === SocialAuthStatus.FAILED) {
+        if (result.status === SocialAuthStatus.UNAVAILABLE) {
           reportWelmAuthFailure(
             result,
             t("common:error"),
             t("common:error"),
           );
+          return;
+        }
+        if (result.status === SocialAuthStatus.FAILED) {
+          reportWelmAuthFailure(result, t("common:error"), t("common:error"));
           return;
         }
 

@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.welm.tajeerplus"
+      "package": "com.welmm.tajeerplus"
     },
     "web": {
       "favicon": "./assets/favicon.png"

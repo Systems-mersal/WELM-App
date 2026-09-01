@@ -7,14 +7,13 @@ import {
   SocialProvider,
   type SocialAuthResult,
 } from "./types";
-import { signInWithX } from "./x-auth";
 
 /**
  * Social sign-in entry point.
  *
  * Privacy policy for this layer:
  * - Request only name + email (Apple also returns identity tokens).
- * - Never send the user's phone number to Apple / Google / X.
+ * - Never send the user's phone number to Apple / Google.
  * - Phone linking is a separate WELM/backend step after social success.
  */
 export async function signInWithSocial(
@@ -31,5 +30,5 @@ export async function signInWithSocial(
     return signInWithGoogle();
   }
 
-  return signInWithX();
+  return { status: SocialAuthStatus.UNAVAILABLE };
 }
