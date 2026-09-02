@@ -1,7 +1,11 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import type { WelmAuthSession } from "../features/auth/api/types";
-import { useAuthStore, type AuthUser } from "../stores/auth-store";
+import {
+  copyLocalProfileFields,
+  useAuthStore,
+  type AuthUser,
+} from "../stores/auth-store";
 import { getApiBaseUrl } from "./api-base-url";
 
 function isWelmAuthRoute(url: string | undefined): boolean {
@@ -13,13 +17,14 @@ function isRefreshRequest(url: string | undefined): boolean {
 }
 
 function toAuthUser(session: WelmAuthSession): AuthUser {
+  const current = useAuthStore.getState().user;
   return {
     id: session.user.id,
     name: session.user.name,
     firstName: session.user.firstName,
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
-    handle: session.user.handle ?? undefined,
+    ...copyLocalProfileFields(current, session.user.id),
   };
 }
 

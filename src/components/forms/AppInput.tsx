@@ -30,7 +30,9 @@ export function AppInput({
       ) : null}
       <TextInput
         placeholderTextColor={colors.textMuted}
-        className={`h-[52px] rounded-2xl border border-border bg-white px-4 text-text ${inputClassName}`}
+        className={`h-[52px] rounded-2xl border bg-white px-4 text-text ${
+          error ? "border-danger" : "border-border"
+        } ${inputClassName}`}
         style={{
           fontFamily: fontFamily.regular,
           fontSize: 16,

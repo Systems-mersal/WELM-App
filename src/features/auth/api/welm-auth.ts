@@ -2,7 +2,11 @@ import axios from "axios";
 
 import { getApiBaseUrl } from "../../../lib/api-base-url";
 import { apiClient } from "../../../lib/api-client";
-import type { AuthUser } from "../../../stores/auth-store";
+import {
+  copyLocalProfileFields,
+  useAuthStore,
+  type AuthUser,
+} from "../../../stores/auth-store";
 import type { SocialAuthSuccess } from "../social/types";
 import {
   WelmAuthApiError,
@@ -80,6 +84,7 @@ function mapAxiosError(error: unknown): WelmAuthApiError {
 }
 
 export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
+  const current = useAuthStore.getState().user;
   return {
     id: session.user.id,
     name: session.user.name,
@@ -89,7 +94,7 @@ export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
       "User",
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
-    handle: session.user.handle ?? undefined,
+    ...copyLocalProfileFields(current, session.user.id),
   };
 }
 
@@ -179,15 +184,15 @@ export async function fetchWelmMe(): Promise<WelmMeResponse> {
   }
 }
 
-/** Hosted OAuth start URL (X / optional Google) — never points at supabase.co. */
-export function getWelmOAuthStartUrl(provider: "x" | "google"): string {
+/** Hosted OAuth start URL (Google) — never points at supabase.co. */
+export function getWelmOAuthStartUrl(provider: "google"): string {
   return `${getApiBaseUrl()}/api/welm/auth/oauth/start?provider=${provider}`;
 }
 
 const PHONE_START_PATH = "/api/welm/auth/phone/start";
 const PHONE_VERIFY_PATH = "/api/welm/auth/phone/verify";
 
-/** POST /api/welm/auth/phone/start — never sent to Apple/Google/X. */
+/** POST /api/welm/auth/phone/start — never sent to Apple/Google. */
 export async function startWelmPhoneOtp(
   phone: string,
 ): Promise<WelmPhoneStartResponse> {

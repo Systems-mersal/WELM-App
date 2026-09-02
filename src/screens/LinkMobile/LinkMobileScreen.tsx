@@ -43,16 +43,11 @@ export function LinkMobileScreen({ navigation, route }: Props) {
       firstName: user?.firstName,
     }) ||
     "User";
-  const handle = user?.handle?.replace(/^@/, "");
-  const cardSubtitle =
-    provider === "x" && handle ? `@${handle}` : email.trim();
+  const cardSubtitle = email.trim();
 
   const linkedLabel = useMemo(() => {
     if (provider === "google") {
       return t("linked-google");
-    }
-    if (provider === "x") {
-      return t("linked-x");
     }
     return t("linked-apple");
   }, [provider, t]);

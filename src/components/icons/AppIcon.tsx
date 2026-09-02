@@ -20,13 +20,13 @@ const FEATHER_ICON_MAP = {
   shield: "shield",
   compass: "compass",
   plus: "plus",
+  list: "list",
+  map: "map",
 } as const;
 
 const IONICONS_LOGO_MAP = {
   apple: "logo-apple",
   google: "logo-google",
-  /** Official X (x.com) brand mark — not Feather's generic close "x". */
-  x: "logo-x",
 } as const;
 
 export type AppIconName =

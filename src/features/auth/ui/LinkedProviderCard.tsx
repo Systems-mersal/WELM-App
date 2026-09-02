@@ -24,7 +24,7 @@ function ProviderGlyph({ provider }: { provider: WelmAuthProvider }) {
   );
 }
 
-/** Mint card: linked Apple / Google / X + identity. Same layout, chip copy/icon changes. */
+/** Mint card: linked Apple / Google + identity. Same layout, chip copy/icon changes. */
 export function LinkedProviderCard({
   provider,
   linkedLabel,

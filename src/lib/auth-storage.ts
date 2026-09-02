@@ -8,9 +8,15 @@ export type StoredAuthSession = {
   user: {
     id: string;
     name: string;
+    firstName?: string;
     phone?: string;
     email?: string;
-    handle?: string;
+    nationalId?: string;
+    dateOfBirth?: string;
+    dateOfBirthHijri?: string;
+    licenseNumber?: string;
+    licenseType?: "private" | "public" | "motorcycle" | "heavy";
+    nationality?: string;
   };
 };
 

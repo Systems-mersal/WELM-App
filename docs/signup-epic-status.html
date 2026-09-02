@@ -33,9 +33,9 @@
 <body>
   <header>
     <h1>حالة Epic التسجيل — WELM</h1>
-    <div class="sub">مراجعة الكود — 2 سبتمبر 2026 00:15 · WELM-App + Tajeer-plus · مش من GitHub Open/Closed</div>
+    <div class="sub">مراجعة الكود — 2 سبتمبر 2026 18:25 · WELM-App + Tajeer-plus · مش من GitHub Open/Closed · متابعة: signup-epic-follow-up.md</div>
   </header>
-  <div class="note">اتراجع من الملفات بعد شغل التسجيل: تأكيد <b>إيميل</b> بدل الجوال بعد السوشيال، OTP 4 خانات + إعادة إرسال دقيقة، ProfileGate في الساين أب فقط (Done → Home)، X اتشال من Login/Create Account. اتضاف <code>email/start</code> و <code>email/verify</code> (10 routes). لسه من غير تغيير: US-6 بانر، US-9…US-19، فون OTP على Create Account لسه mock.</div>
+    <div class="note">خط الموقع <b>US-13…US-19</b> خلص (GPS/مدينة + نطاق + فلتر هوم/استكشف). لسه يحتاج باكند/قرار: <b>US-10</b> PATCH بروفايل، <b>US-11</b> كاميرا، فون OTP حقيقي، Google env، عربيات API بدل الموك. التفاصيل في <code>docs/signup-epic-follow-up.md</code>.</div>
   <div class="stats" id="stats"></div>
   <div class="filters" id="filters"></div>
   <div class="wrap">
@@ -62,25 +62,25 @@
       ["US-2.2 #29","APIs Tajeer","partial","10 endpoints + Consumer role + email OTP","SMTP/SMS حقيقي؛ Google في Supabase","helpers جاهزة","api/welm/auth/*","profiles + Consumer","social · me · email/start · email/verify · phone · oauth · refresh · logout"],
       ["US-2.3 #30","Sign in with Apple","done","native FULL_NAME+EMAIL + POST social؛ bundle com.welmm.tajeerplus مقصود","تفعيل Apple Client ID في Supabase","نعم","/social + JWKS","email على profiles","apple-auth.ts · app.json:12"],
       ["US-2.4 #31","Google","partial","google-auth.ts + زرار على Login/Create Account","UNAVAILABLE بدون EXPO_PUBLIC_GOOGLE_*","نعم كود","idToken أو oauth/start","profiles","google-auth.ts"],
-      ["US-2.5 #32","X عبر Tajeer","done","اتشال من Login و Create Account (قرار منتج)","—","اتشال","oauth/start لسه موجود مش مستخدم من الموبايل","—","LoginScreen · CreateAccountScreen · social-auth.ts"],
+      ["US-2.5 #32","X عبر Tajeer","done","اتشال بالكامل من الموبايل (قرار منتج)","—","اتشال","—","—","—"],
       ["US-2.6 #33","راوتر isNew","done","ساين أب جديد → تأكيد إيميل؛ ساين إن موجود → Home؛ Create Account موجود → Account Exists","—","نعم","isNew في الرد","مش عمود","route-after-auth.ts · routeToHome"],
       ["US-3 #17","تأكيد الإيميل","done","Link Mobile بقت إيميل + startWelmEmailOtp","SMTP حقيقي (dev: debugCode)","نعم","POST email/start","OTP في public_data","LinkMobileScreen · lib/welm/email.ts"],
       ["US-4 #18","OTP بعد سوشيال","done","4 خانات + Verify + Resend بعد دقيقة → ProfileGate","إيميل حقيقي مش debugCode","نعم","email/verify","welm_email_verified","OtpScreen.tsx"],
       ["US-5 #19","الحساب موجود","done","شاشة Account Exists؛ Continue → Home","—","نعم","isNew false","نفس صف profiles","AccountExistsScreen.tsx"],
-      ["US-6 #20","فشل السوشيال","todo","hook → Alert؛ إلغاء صامت","بانر أحمر على Create Account","hook فقط","مش مطلوب","مش مطلوب","welm-auth-failure.ts"],
-      ["US-7 #21","تهيئة البروفايل","partial","ProfileGate: اسم + إيميل + Done","مفيش فورم هوية كامل (US-9)","stub","مفيش PATCH /api/welm/profile","ناقص حقول الهوية","ProfileGateScreen.tsx"],
+      ["US-6 #20","فشل السوشيال","done","بانر أحمر على Create Account؛ إلغاء صامت؛ Login لسه Alert","—","نعم","مش مطلوب","مش مطلوب","InlineErrorBanner · CreateAccountScreen"],
+      ["US-7 #21","تهيئة البروفايل","partial","ProfileGate فورم هوية + شيت هجري/رخصة/جنسية + Done → Home","مفيش PATCH /api/welm/profile (US-10)","نعم","مفيش PATCH","محلي على الجهاز","ProfileGateScreen.tsx"],
       ["US-8 #2","بوابة الهوم","done","ProfileGate بعد ساين أب فقط؛ Done → Home باليوزر؛ ساين إن يعدّي Home","فون OTP mock يعدّي MainTabs","نعم","مفيش flags اكتمال","—","ProfileGateScreen · route-past-auth-gate.ts · HomeHeader"],
-      ["US-9 #3","Complete Profile","todo","—","شاشة الهوية","مش بادئ","customers staff فقط","customers CRM","مفيش route في types.ts"],
+      ["US-9 #3","Complete Profile","done","فورم: اسم + هوية + ميلاد + رخصة + جنسية؛ حفظ محلي","كاميرا (US-11)؛ عقد Tajeer (US-10)","نعم","مفيش PATCH","auth-storage","ProfileGateScreen · auth-store"],
       ["US-10 #4","فاليديشن Tajeer","todo","مرجع CustomerDetailsStep ويب موظفين","مفيش عقد WELM","مش بادئ","عقد WELM مطلوب","profiles ↔ customers","Tajeer CustomerDetailsStep.tsx"],
       ["US-11 #5","مسح الهوية","partial","POST /api/customers/scan-id موظفين","موبايل صفر؛ مش /api/welm/","مش بادئ (مفيش expo-camera)","Google Vision staff","OCR مش على WELM","package.json · scan-id/route.ts"],
-      ["US-12 #6","هجري / رخصة / جنسية","todo","—","sheets","مش بادئ","customer-lookups لاحقاً","بعد US-9","مفيش شاشات"],
-      ["US-13 #7","تفعيل الموقع","todo","—","expo-location مش في package.json","مش بادئ","مفيش API","مفيش حفظ موقع","package.json"],
-      ["US-14 #8","خريطة + نطاق","todo","—","خريطة ١٠/٢٥/٥٠","مش بادئ","—","lat/lng/radius","مفيش شاشة"],
-      ["US-15 #9","مدينة يدوي","todo","—","بيكر + رفض GPS","مش بادئ","—","—","مفيش شاشة"],
-      ["US-16 #10","الهوم حسب النطاق","todo","Home يعرض اسم اليوزر المسجّل","فلتر مسافة","اسم من الستور","فروع CRM","إحداثيات عربيات","HomeScreen.tsx · HomeHeader.tsx"],
-      ["US-17 #11","استكشف قائمة/خريطة","todo","جريد","فلتر → alertComingSoon","مش بادئ","نفس US-16","نفس","ExploreScreen.tsx"],
-      ["US-18 #12","فاضي / خارج التغطية","todo","—","empty + nearest city","مش بادئ","—","—","مفيش UI"],
-      ["US-19 #13","تغيير الموقع من الهوم","todo","—","sheet النطاق","مش بادئ","—","—","HomeHeader من غير شريحة موقع"],
+      ["US-12 #6","هجري / رخصة / جنسية","done","شيت هجري عبر @internationalized/date (Umm al-Qura) + نوع رخصة + جنسية SA","lookups من Tajeer لاحقاً","نعم","مفيش API","auth-storage","hijri.ts · HijriDateSheet · SelectSheet · ProfileGateScreen"],
+      ["US-13 #7","تفعيل الموقع","done","كارت على Home + When In Use + حفظ lat/lng محلي","خريطة/نطاق (US-14)؛ مدينة يدوي (US-15)","نعم","مفيش API","location-storage","EnableLocationCard · location-store · expo-location"],
+      ["US-14 #8","خريطة + نطاق","done","LocationRadius بعد GPS + MapView/Circle + ١٠/٢٥/٥٠ + حفظ radiusKm","فلتر عربيات (US-16)؛ مدينة يدوي (US-15)","نعم","مفيش API","location-storage","LocationRadiusScreen · react-native-maps"],
+      ["US-15 #9","مدينة يدوي","done","SelectSheet مدن + حفظ cityKey/lat/lng في welm.deviceLocation.v1","—","نعم","مفيش API","location-storage","search-cities.ts · CityPickerSheet · location-store"],
+      ["US-16 #10","الهوم حسب النطاق","done","Home يتفلتر Haversine عبر filterVehiclesInRadius","API عربيات لاحقاً","نعم","مفيش API","mock lat/lng","HomeScreen · useFilteredVehicles"],
+      ["US-17 #11","استكشف قائمة/خريطة","done","نفس الفلتر + تبديل list/map + ماركرز","فلتر rating/price لسه UI","نعم","مفيش API","نفس","ExploreScreen.tsx"],
+      ["US-18 #12","فاضي / خارج التغطية","done","empty + أقرب مدينة + CTA","فروع CRM لا","نعم","مفيش API","search-cities","CoverageEmptyState"],
+      ["US-19 #13","تغيير الموقع من الهوم","done","شريحة في HomeHeader: مدينة / GPS / نطاق","—","نعم","مفيش API","location-store","HomeHeader.tsx"],
       ["US-20 #14","قرارات تصميم","partial","5 تابات منها Favorites","تثبيت الرخصة والنطاق ≠ الاستلام","MainTabNavigator","—","—","MainTabNavigator.tsx"],
     ];
     const LABEL = { done: "خلص", partial: "جزئي", todo: "مش بادئ" };

@@ -9,5 +9,7 @@
     "location": "Location",
     "rating": "Rating"
   },
-  "instant-book": "Instant Book"
+  "instant-book": "Instant Book",
+  "view-list": "List",
+  "view-map": "Map"
 }

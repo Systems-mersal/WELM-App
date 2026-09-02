@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { loginLogoMarkXml } from "../../assets/figma/login/logoMarkXml";
 import { AppButton } from "../../components/buttons/AppButton";
+import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
 import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { TermsCheckbox } from "../../components/forms/TermsCheckbox";
@@ -14,7 +15,6 @@ import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
   exchangeSocialCredential,
-  reportWelmAuthFailure,
   routeAfterWelmAuth,
   signInWithAppleToWelm,
   signInWithSocial,
@@ -35,6 +35,7 @@ export function CreateAccountScreen({ navigation }: Props) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [termsError, setTermsError] = useState(false);
   const [socialBusy, setSocialBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const appleSheetOpen = useRef(false);
 
   const canSubmit = acceptedTerms && isValidSaudiMobile(phone);
@@ -81,6 +82,7 @@ export function CreateAccountScreen({ navigation }: Props) {
 
     // Phone stays on this screen for OTP only — never sent to Apple or Tajeer social.
     // Overlay starts only after the native sheet returns (not during the password prompt).
+    setAuthError(null);
     appleSheetOpen.current = true;
     try {
       const result = await signInWithAppleToWelm({
@@ -92,19 +94,11 @@ export function CreateAccountScreen({ navigation }: Props) {
         return;
       }
       if (result.status === SocialAuthStatus.UNAVAILABLE) {
-        reportWelmAuthFailure(
-          result,
-          t("common:auth.apple-unavailable"),
-          t("common:error"),
-        );
+        setAuthError(t("common:auth.apple-unavailable"));
         return;
       }
       if (result.status === SocialAuthStatus.FAILED) {
-        reportWelmAuthFailure(
-          result,
-          t("common:auth.apple-failed"),
-          t("common:error"),
-        );
+        setAuthError(t("common:auth.apple-failed"));
         return;
       }
 
@@ -126,7 +120,7 @@ export function CreateAccountScreen({ navigation }: Props) {
         unavailable: t("common:auth.api-unavailable"),
         fallback: t("common:error"),
       });
-      reportWelmAuthFailure(error, message, t("common:error"));
+      setAuthError(message);
     } finally {
       appleSheetOpen.current = false;
       setSocialBusy(false);
@@ -148,6 +142,7 @@ export function CreateAccountScreen({ navigation }: Props) {
         return;
       }
 
+      setAuthError(null);
       setSocialBusy(true);
       try {
         const result = await signInWithSocial(provider);
@@ -155,15 +150,11 @@ export function CreateAccountScreen({ navigation }: Props) {
           return;
         }
         if (result.status === SocialAuthStatus.UNAVAILABLE) {
-          reportWelmAuthFailure(
-            result,
-            t("common:error"),
-            t("common:error"),
-          );
+          setAuthError(t("common:error"));
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
-          reportWelmAuthFailure(result, t("common:error"), t("common:error"));
+          setAuthError(t("common:error"));
           return;
         }
 
@@ -175,7 +166,7 @@ export function CreateAccountScreen({ navigation }: Props) {
             unavailable: t("common:auth.api-unavailable"),
             fallback: t("common:error"),
           });
-          reportWelmAuthFailure(error, message, t("common:error"));
+          setAuthError(message);
         }
       } finally {
         setSocialBusy(false);
@@ -201,6 +192,7 @@ export function CreateAccountScreen({ navigation }: Props) {
       return;
     }
 
+    setAuthError(null);
     navigation.navigate("Otp", {
       phone: `+966${normalized}`,
       intent: "signup",
@@ -274,6 +266,14 @@ export function CreateAccountScreen({ navigation }: Props) {
         <AppText variant="caption" muted className="mt-4 text-center">
           {t("social-caption")}
         </AppText>
+
+        {authError ? (
+          <InlineErrorBanner
+            message={authError}
+            onDismiss={() => setAuthError(null)}
+            dismissAccessibilityLabel={t("social-error-dismiss")}
+          />
+        ) : null}
 
         <View className="mt-8 flex-row items-center gap-4">
           <View className="h-px flex-1 bg-border" />

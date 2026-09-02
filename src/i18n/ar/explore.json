@@ -9,5 +9,7 @@
     "location": "الموقع",
     "rating": "التقييم"
   },
-  "instant-book": "حجز فوري"
+  "instant-book": "حجز فوري",
+  "view-list": "قائمة",
+  "view-map": "خريطة"
 }

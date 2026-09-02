@@ -17,9 +17,9 @@ Auth helpers live in `src/features/auth` (`completeSocialSignIn`, `exchangeSocia
 
 Enable **Sign in with Apple** (Client ID `com.welmm.tajeerplus`) on the Tajeer-plus and Tajeer-plus-live Supabase dashboards. Secrets stay there / in 1Password.
 
-OAuth return scheme: `welm://auth/callback` (`scheme: "welm"` in `app.json`). Hosted X/Google start: `{EXPO_PUBLIC_API_URL}/api/welm/auth/oauth/start?provider=x`.
+OAuth return scheme: `welm://auth/callback` (`scheme: "welm"` in `app.json`). Hosted Google start: `{EXPO_PUBLIC_API_URL}/api/welm/auth/oauth/start?provider=google`.
 
-Social sign-in (Apple / Google / X) requires a **native rebuild** (`pnpm ios` / `pnpm android`). It will not run in Expo Go.
+Social sign-in (Apple / Google) requires a **native rebuild** (`pnpm ios` / `pnpm android`). It will not run in Expo Go.
 
 ## Run
 

@@ -1,6 +1,6 @@
 /** Typed contract for Tajeer Plus WELM auth HTTP APIs. */
 
-export type WelmAuthProvider = "apple" | "google" | "x";
+export type WelmAuthProvider = "apple" | "google";
 
 export type WelmAuthUser = {
   id: string;
@@ -8,7 +8,6 @@ export type WelmAuthUser = {
   firstName?: string;
   email: string | null;
   phone?: string | null;
-  handle?: string | null;
 };
 
 export type WelmAuthSession = {

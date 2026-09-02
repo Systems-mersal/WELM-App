@@ -54,6 +54,8 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>WELM reaches Tajeer Plus on your computer during local development.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Allow WELM to use your location while you are using the app.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

@@ -63,5 +63,43 @@ target 'mersalcar' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+    embed_prebuilt_react_framework(installer)
+  end
+end
+
+# CocoaPods skips embedding React.xcframework when the prebuilt slice has no
+# binary at `pod install` time (header-only extract). The app still links
+# `@rpath/React.framework/React`, so dyld aborts at launch unless we embed it.
+def embed_prebuilt_react_framework(installer)
+  install_line = 'install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework"'
+  script_path = File.join(
+    installer.sandbox.root,
+    'Target Support Files/Pods-mersalcar/Pods-mersalcar-frameworks.sh'
+  )
+  if File.exist?(script_path)
+    contents = File.read(script_path)
+    unless contents.include?('React-Core-prebuilt/React.framework')
+      contents.gsub!(
+        'install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework"',
+        "#{install_line}\n  install_framework \"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework\""
+      )
+      File.write(script_path, contents)
+    end
+  end
+
+  input = '${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React'
+  output = '${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework'
+  installer.aggregate_targets.each do |aggregate_target|
+    user_project = aggregate_target.user_project
+    next unless user_project
+
+    user_project.native_targets.each do |native_target|
+      phase = native_target.shell_script_build_phases.find { |p| p.name == '[CP] Embed Pods Frameworks' }
+      next unless phase
+
+      phase.input_paths << input unless phase.input_paths.include?(input)
+      phase.output_paths << output unless phase.output_paths.include?(output)
+    end
+    user_project.save
   end
 end

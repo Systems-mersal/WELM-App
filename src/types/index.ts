@@ -19,6 +19,8 @@ export interface Vehicle {
   image: string;
   imageSource: ImageSourcePropType;
   locationKey?: string;
+  latitude?: number;
+  longitude?: number;
   seats: number;
   transmission: "automatic" | "manual";
   fuelType: string;

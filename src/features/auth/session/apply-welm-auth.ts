@@ -31,7 +31,7 @@ export function applyWelmAuthSession(
 }
 
 /**
- * US-2.6 — one helper for Apple / Google / X.
+ * US-2.6 — one helper for Apple / Google.
  * Consumes `{ accessToken, refreshToken, user, isNew }`.
  */
 export function completeSocialSignIn(

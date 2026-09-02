@@ -18,5 +18,31 @@
     "sport": "رياضية",
     "sedan": "سيدان",
     "suv": "SUV"
-  }
+  },
+  "location-title": "تفعيل الموقع",
+  "location-subtitle": "عرض السيارات القريبة منك. يمكنك تغيير ذلك لاحقاً.",
+  "location-enable": "تفعيل الموقع",
+  "location-later": "لاحقاً",
+  "radius-title": "نطاق البحث",
+  "radius-label": "النطاق",
+  "radius-confirm": "تأكيد",
+  "radius-km": {
+    "10": "١٠ كم",
+    "25": "٢٥ كم",
+    "50": "٥٠ كم"
+  },
+  "error-denied": "تم رفض إذن الموقع.",
+  "error-unavailable": "فعّل خدمات الموقع للمتابعة.",
+  "error-failed": "تعذر تحديد موقعك. حاول مرة أخرى.",
+  "select-city": "اختر مدينة",
+  "select-city-subtitle": "اختر مدينة لعرض السيارات القريبة.",
+  "current-location": "موقعك الحالي",
+  "change-location": "تغيير الموقع",
+  "change-radius": "تغيير النطاق",
+  "use-current-location": "استخدام الموقع الحالي",
+  "empty-title": "لا توجد سيارات في هذه المنطقة",
+  "empty-subtitle": "جرّب نطاقاً أكبر أو ابحث في مدينة قريبة.",
+  "nearest-city": "أقرب مدينة: {{city}}",
+  "search-nearest-city": "البحث في هذه المدينة",
+  "sheet-close": "إغلاق"
 }

@@ -11,9 +11,9 @@ export type WelmAuthFailurePayload = {
 type WelmAuthFailureHandler = (payload: WelmAuthFailurePayload) => void;
 
 /**
- * Default until US-6 banner exists. US-6 should call
- * `setWelmAuthFailureHandler`. Do not invoke on native cancel
- * (API was never called).
+ * Default Alert for Login / OTP / Link Mobile.
+ * Create Account shows an inline banner via local state instead.
+ * Do not invoke on native cancel (API was never called).
  */
 const defaultHandler: WelmAuthFailureHandler = ({ title, message }) => {
   if (title) {
@@ -44,7 +44,7 @@ export function welmAuthUserMessage(
   return copy.fallback;
 }
 
-/** US-6 hook — API failures only. Do not call on ERR_REQUEST_CANCELED. */
+/** Login / OTP / Link Mobile — API failures only. Do not call on ERR_REQUEST_CANCELED. */
 export function reportWelmAuthFailure(
   error: unknown,
   message: string,

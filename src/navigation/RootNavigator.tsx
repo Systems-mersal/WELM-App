@@ -9,6 +9,7 @@ import { AccountExistsScreen } from "../screens/AccountExists/AccountExistsScree
 import { DocumentsScreen } from "../screens/Documents/DocumentsScreen";
 import { LegalScreen } from "../screens/Legal/LegalScreen";
 import { LinkMobileScreen } from "../screens/LinkMobile/LinkMobileScreen";
+import { LocationRadiusScreen } from "../screens/LocationRadius/LocationRadiusScreen";
 import { LoginScreen } from "../screens/Login/LoginScreen";
 import { NotificationsScreen } from "../screens/Notifications/NotificationsScreen";
 import { OnboardingScreen } from "../screens/Onboarding/OnboardingScreen";
@@ -44,6 +45,7 @@ export function RootNavigator() {
       <Stack.Screen name="BookingConfirmed" component={BookingConfirmedScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Documents" component={DocumentsScreen} />
+      <Stack.Screen name="LocationRadius" component={LocationRadiusScreen} />
     </Stack.Navigator>
   );
 }

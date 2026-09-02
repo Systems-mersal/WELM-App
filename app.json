@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.welmm.tajeerplus",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development."
+        "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development.",
+        "NSLocationWhenInUseUsageDescription": "Allow WELM to use your location while you are using the app."
       }
     },
     "android": {
@@ -32,6 +33,13 @@
       "expo-asset",
       "expo-web-browser",
       "expo-apple-authentication",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow WELM to use your location while you are using the app."
+        }
+      ],
+      "react-native-maps",
       [
         "@stripe/stripe-react-native",
         {

@@ -26,9 +26,5 @@ export async function signInWithSocial(
     return signInWithApple();
   }
 
-  if (provider === SocialProvider.GOOGLE) {
-    return signInWithGoogle();
-  }
-
-  return { status: SocialAuthStatus.UNAVAILABLE };
+  return signInWithGoogle();
 }

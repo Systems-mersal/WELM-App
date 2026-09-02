@@ -24,7 +24,7 @@ function resolveProvider(
   fallback?: string,
 ): WelmAuthProvider {
   const value = session.provider ?? fallback;
-  if (value === "google" || value === "x" || value === "apple") {
+  if (value === "google" || value === "apple") {
     return value;
   }
   return "apple";

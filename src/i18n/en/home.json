@@ -18,5 +18,31 @@
     "sport": "Sport",
     "sedan": "Sedan",
     "suv": "SUV"
-  }
+  },
+  "location-title": "Enable location",
+  "location-subtitle": "See cars near you. You can change this later.",
+  "location-enable": "Enable location",
+  "location-later": "Later",
+  "radius-title": "Search radius",
+  "radius-label": "Radius",
+  "radius-confirm": "Confirm",
+  "radius-km": {
+    "10": "10 km",
+    "25": "25 km",
+    "50": "50 km"
+  },
+  "error-denied": "Location permission was denied.",
+  "error-unavailable": "Turn on Location Services to continue.",
+  "error-failed": "Couldn't get your location. Try again.",
+  "select-city": "Select city",
+  "select-city-subtitle": "Choose a city to see cars nearby.",
+  "current-location": "Current location",
+  "change-location": "Change location",
+  "change-radius": "Change radius",
+  "use-current-location": "Use current location",
+  "empty-title": "No cars in this area",
+  "empty-subtitle": "Try a larger radius or search in a nearby city.",
+  "nearest-city": "Nearest city: {{city}}",
+  "search-nearest-city": "Search this city",
+  "sheet-close": "Close"
 }

@@ -49,6 +49,8 @@ PODS:
     - ExpoModulesCore
   - ExpoLocalization (57.0.1):
     - ExpoModulesCore
+  - ExpoLocation (57.0.15):
+    - ExpoModulesCore
   - ExpoLogBox (57.0.2):
     - React-Core
   - ExpoModulesCore (57.0.9):
@@ -81,6 +83,11 @@ PODS:
   - ExpoModulesWorklets (57.0.9):
     - ExpoModulesCore
     - ExpoModulesJSI
+  - ExpoModulesWorkletsAdapter (57.0.9):
+    - ExpoModulesCore
+    - ExpoModulesJSI
+    - ExpoModulesWorklets
+    - RNWorklets
   - ExpoWebBrowser (57.0.2):
     - ExpoModulesCore
   - FBLazyVector (0.86.2)
@@ -1510,6 +1517,53 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-maps (1.27.2):
+    - react-native-maps/Maps (= 1.27.2)
+  - react-native-maps/Generated (1.27.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-maps/Maps (1.27.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-maps/Generated
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-safe-area-context (5.7.0):
     - hermes-engine
     - RCTRequired
@@ -2399,16 +2453,18 @@ DEPENDENCIES:
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - "ExpoDomWebView (from `../node_modules/expo/node_modules/@expo/dom-webview/ios`)"
-  - ExpoFileSystem (from `../node_modules/expo/node_modules/expo-file-system/ios`)
-  - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoFileSystem (from `../node_modules/expo/node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)
+  - ExpoFont (from `../node_modules/expo-font/ios/ExpoFont.podspec`)
   - ExpoKeepAwake (from `../node_modules/expo/node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoLocalization (from `../node_modules/expo-localization/ios`)
+  - ExpoLocation (from `../node_modules/expo-location/ios/ExpoLocation.podspec`)
   - "ExpoLogBox (from `../node_modules/expo/node_modules/@expo/log-box`)"
-  - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoModulesCore (from `../node_modules/expo-modules-core/ExpoModulesCore.podspec`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
-  - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
+  - ExpoModulesWorklets (from `../node_modules/expo-modules-core/ExpoModulesWorklets.podspec`)
+  - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2450,6 +2506,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - React-mutationobservernativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver`)
+  - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../node_modules/react-native/ReactCommon/react/networking`)
@@ -2523,9 +2580,9 @@ EXTERNAL SOURCES:
   ExpoDomWebView:
     :path: "../node_modules/expo/node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
-    :path: "../node_modules/expo/node_modules/expo-file-system/ios"
+    :podspec: "../node_modules/expo/node_modules/expo-file-system/ios/ExpoFileSystem.podspec"
   ExpoFont:
-    :path: "../node_modules/expo-font/ios"
+    :podspec: "../node_modules/expo-font/ios/ExpoFont.podspec"
   ExpoKeepAwake:
     :path: "../node_modules/expo/node_modules/expo-keep-awake/ios"
   ExpoLinearGradient:
@@ -2534,13 +2591,17 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-linking/ios"
   ExpoLocalization:
     :path: "../node_modules/expo-localization/ios"
+  ExpoLocation:
+    :podspec: "../node_modules/expo-location/ios/ExpoLocation.podspec"
   ExpoLogBox:
     :path: "../node_modules/expo/node_modules/@expo/log-box"
   ExpoModulesCore:
-    :path: "../node_modules/expo-modules-core"
+    :podspec: "../node_modules/expo-modules-core/ExpoModulesCore.podspec"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
+    :podspec: "../node_modules/expo-modules-core/ExpoModulesWorklets.podspec"
+  ExpoModulesWorkletsAdapter:
     :path: "../node_modules/expo-modules-core"
   ExpoWebBrowser:
     :path: "../node_modules/expo-web-browser/ios"
@@ -2623,6 +2684,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   React-mutationobservernativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver"
+  react-native-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -2726,13 +2789,15 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: 93e951fa19ee7b4bb1a8e2c97227bcfc4bacfa9a
   ExpoLinking: 4297efe06dbf2142277b2522aa35b30db10de838
   ExpoLocalization: 17c950d2a25996f2f8e07acdfed5e3c1e258c17e
+  ExpoLocation: 994b43f34be51682e4b623aede40c1c8fccef450
   ExpoLogBox: 40f17ecef6fcb296b5f5ee4d6ec85cc82ce6ba0f
-  ExpoModulesCore: e8bc7c713377f8a0f26b18f48a30a06768d2d02f
+  ExpoModulesCore: 7c8be7e7bcf2de4dce8671f6a64e9ae466a76a1b
   ExpoModulesJSI: 6cb6d299ace493e7dd20ba94c99e8c4799b07afd
   ExpoModulesWorklets: 9ea512d97f44f89ef40f647f1f332b4643cca62b
+  ExpoModulesWorkletsAdapter: a3dd4bfe1d18206a7493f508d79dd7687ae44e53
   ExpoWebBrowser: f93f4989f6c2a34cfaba5461ea3572c191947e0f
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
-  hermes-engine: 36401edf6e3bd53ad33f433ac154d63cdf58b591
+  hermes-engine: d15f80850664bc11e5a5b670bcd4f7864989577b
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
@@ -2770,6 +2835,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: bfc59384f088a74c1cbe31902b5ba3d89c5947ce
   React-microtasksnativemodule: 4e4a0a4e42861c767989099d02cd871dbe11736f
   React-mutationobservernativemodule: 6aaa67618b68a616b1293967c20a1dfcc26632a5
+  react-native-maps: 1a556e36c3a579fec607f41a800e3d18b2a8f0ed
   react-native-safe-area-context: a2325922b8594ddd27f98fb13437aec126be2502
   React-NativeModulesApple: f313ed47b56405d621e12ecda106a72020959ff3
   React-networking: a0686d5a80eddbcd7bb702421fca503a76aacb1a
@@ -2822,8 +2888,8 @@ SPEC CHECKSUMS:
   StripePaymentSheet: 46ca981c6106b559d323d41b5ee9af0485252a63
   StripePaymentsUI: e942824c2a21c67f41b3bf6c09e87ebe882dd5c5
   StripeUICore: 9ee3c730f282fd34605f7ba00f2b77d80729d882
-  Yoga: 8cf9dd9fc7761e176a3361b4821d26d11cfbeab1
+  Yoga: 9891cfb1c680f64de9c41b09e7453dea33454d2b
 
-PODFILE CHECKSUM: 43c00c4ddf256a5128807a7607df8839ad026a29
+PODFILE CHECKSUM: bda458410674b604200e4344173d3e595ed9f2f3
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.14.2

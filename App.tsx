@@ -24,6 +24,7 @@ import { PaymentProvider } from "./src/payments";
 import { queryClient } from "./src/lib/query-client";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { useAuthStore } from "./src/stores/auth-store";
+import { useLocationStore } from "./src/stores/location-store";
 import { colors } from "./src/theme/colors";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -53,6 +54,7 @@ export default function App() {
       }
 
       await useAuthStore.getState().hydrate();
+      await useLocationStore.getState().hydrate();
 
       if (!cancelled) {
         setLocaleReady(true);
