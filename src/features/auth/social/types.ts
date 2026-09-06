@@ -13,6 +13,8 @@ export type SocialAuthUnavailable = {
 
 export type SocialAuthFailed = {
   status: SocialAuthStatus.FAILED;
+  /** Optional developer / user-facing hint (OAuth error_description). */
+  message?: string;
 };
 
 export type SocialAuthSuccess = {

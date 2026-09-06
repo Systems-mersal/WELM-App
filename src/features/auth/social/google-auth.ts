@@ -28,12 +28,10 @@ function parseCallbackParams(url: string): Record<string, string> {
 /**
  * Hosted Google OAuth via Tajeer Plus — never opens supabase.co.
  *
- * Flow (same as X):
+ * Flow:
  * 1. openAuthSession → GET /api/welm/auth/oauth/start?provider=google
  * 2. Tajeer + Google, then redirect welm://auth/callback?access_token=&refresh_token=
  * 3. Caller POSTs tokens to /api/welm/auth/social
- *
- * Does not use native Google client IDs or response_type=id_token.
  */
 export async function signInWithGoogle(): Promise<SocialAuthResult> {
   const startUrl = getWelmOAuthStartUrl("google");
@@ -53,13 +51,19 @@ export async function signInWithGoogle(): Promise<SocialAuthResult> {
 
     const params = parseCallbackParams(result.url);
     if (params.error) {
-      return { status: SocialAuthStatus.FAILED };
+      const detail =
+        params.error_description?.replace(/\+/g, " ").trim() ||
+        params.error;
+      return { status: SocialAuthStatus.FAILED, message: detail };
     }
 
     const accessToken = params.access_token?.trim() || null;
     const refreshToken = params.refresh_token?.trim() || null;
     if (!accessToken || !refreshToken) {
-      return { status: SocialAuthStatus.FAILED };
+      return {
+        status: SocialAuthStatus.FAILED,
+        message: "Google sign-in did not return a session",
+      };
     }
 
     return {

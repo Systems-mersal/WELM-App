@@ -72,7 +72,11 @@ export function LoginScreen({ navigation }: Props) {
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
-          reportWelmAuthFailure(result, t("common:error"), t("common:error"));
+          reportWelmAuthFailure(
+            result,
+            result.message?.trim() || t("common:error"),
+            t("common:error"),
+          );
           return;
         }
 

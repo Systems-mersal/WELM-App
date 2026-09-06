@@ -15,11 +15,14 @@ import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
   exchangeSocialCredential,
+  mapWelmSessionToAuthUser,
   routeAfterWelmAuth,
+  routeToHome,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
+  useAuthStore,
   welmAuthUserMessage,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
@@ -154,12 +157,23 @@ export function CreateAccountScreen({ navigation }: Props) {
           return;
         }
         if (result.status === SocialAuthStatus.FAILED) {
-          setAuthError(t("common:error"));
+          setAuthError(result.message?.trim() || t("common:error"));
           return;
         }
 
         try {
           const session = await exchangeSocialCredential(result);
+          if (provider === SocialProvider.GOOGLE) {
+            useAuthStore
+              .getState()
+              .setSession(
+                session.accessToken,
+                mapWelmSessionToAuthUser(session),
+                session.refreshToken,
+              );
+            routeToHome(navigation);
+            return;
+          }
           routeAfterWelmAuth(navigation, session, provider);
         } catch (error) {
           const message = welmAuthUserMessage(error, {
