@@ -28,6 +28,20 @@ export {
 } from "./errors/welm-auth-failure";
 export { SignupProgress } from "./ui/SignupProgress";
 export { LinkedProviderCard } from "./ui/LinkedProviderCard";
+export { IdScanCard } from "./ui/IdScanCard";
+export { IdScanCameraSheet } from "./ui/IdScanCameraSheet";
+export {
+  scanCustomerIdImage,
+  mockExtractIdScan,
+  autofilledKeysFromFields,
+  SCAN_TRACKED_KEYS,
+} from "./profile/scan-id";
+export type {
+  ScanIdFields,
+  ScanIdResult,
+  ScanIdSuccess,
+  ScanTrackedKey,
+} from "./profile/scan-id";
 export {
   WelmAuthApiError,
   exchangeSocialAuth,

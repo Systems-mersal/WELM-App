@@ -7,6 +7,17 @@ export const LICENSE_TYPES = [
 
 export type LicenseType = (typeof LICENSE_TYPES)[number];
 
+export const ID_DOCUMENT_TYPES = ["national", "resident"] as const;
+
+export type IdDocumentType = (typeof ID_DOCUMENT_TYPES)[number];
+
+export function isIdDocumentType(value: unknown): value is IdDocumentType {
+  return (
+    typeof value === "string" &&
+    (ID_DOCUMENT_TYPES as readonly string[]).includes(value)
+  );
+}
+
 export const NATIONALITY_CODES = [
   "SA",
   "AE",

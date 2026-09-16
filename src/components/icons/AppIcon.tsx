@@ -22,6 +22,9 @@ const FEATHER_ICON_MAP = {
   plus: "plus",
   list: "list",
   map: "map",
+  camera: "camera",
+  image: "image",
+  "upload-cloud": "upload-cloud",
 } as const;
 
 const IONICONS_LOGO_MAP = {

@@ -10,6 +10,9 @@ export interface AppInputProps extends TextInputProps {
   error?: string;
   containerClassName?: string;
   inputClassName?: string;
+  /** Mint autofill chrome from ID scan. */
+  autoFilled?: boolean;
+  autoFilledLabel?: string;
 }
 
 export function AppInput({
@@ -17,22 +20,40 @@ export function AppInput({
   error,
   containerClassName = "",
   inputClassName = "",
+  autoFilled = false,
+  autoFilledLabel,
   ...props
 }: AppInputProps) {
   const { textAlign, writingDirection } = useRtl();
 
   return (
-    <View className={`w-full ${containerClassName}`}>
-      {label ? (
-        <AppText variant="label" className="mb-2">
-          {label}
-        </AppText>
+    <View
+      className={`w-full ${autoFilled ? "rounded-2xl border border-primarySoft bg-primaryMuted p-3" : ""} ${containerClassName}`}
+    >
+      {label || (autoFilled && autoFilledLabel) ? (
+        <View className="mb-2 flex-row flex-wrap items-center gap-2">
+          {label ? (
+            <AppText variant="label" className="text-start">
+              {label}
+            </AppText>
+          ) : null}
+          {autoFilled && autoFilledLabel ? (
+            <View className="rounded-pill bg-white px-2.5 py-0.5">
+              <AppText
+                className="text-primary"
+                style={{ fontFamily: fontFamily.semibold, fontSize: 11 }}
+              >
+                {autoFilledLabel}
+              </AppText>
+            </View>
+          ) : null}
+        </View>
       ) : null}
       <TextInput
         placeholderTextColor={colors.textMuted}
-        className={`h-[52px] rounded-2xl border bg-white px-4 text-text ${
-          error ? "border-danger" : "border-border"
-        } ${inputClassName}`}
+        className={`h-[52px] rounded-2xl border px-4 text-text ${
+          autoFilled ? "border-primarySoft bg-white" : "bg-white"
+        } ${error ? "border-danger" : autoFilled ? "" : "border-border"} ${inputClassName}`}
         style={{
           fontFamily: fontFamily.regular,
           fontSize: 16,

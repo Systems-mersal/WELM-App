@@ -12,10 +12,13 @@ export type StoredAuthSession = {
     phone?: string;
     email?: string;
     nationalId?: string;
+    idDocumentType?: "national" | "resident";
     dateOfBirth?: string;
     dateOfBirthHijri?: string;
     licenseNumber?: string;
     licenseType?: "private" | "public" | "motorcycle" | "heavy";
+    licenseExpiry?: string;
+    placeOfIssue?: string;
     nationality?: string;
   };
 };
