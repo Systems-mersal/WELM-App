@@ -31,9 +31,12 @@ function toAuthUser(session: WelmAuthSession): AuthUser {
 /**
  * HTTP client for Tajeer Plus (`EXPO_PUBLIC_API_URL`).
  * Auth is Bearer from the WELM session store — not Supabase.
+ *
+ * Resolve `baseURL` on every request so `__DEV__` localhost→Metro-host
+ * rewriting works on physical devices (module-load timing otherwise sticks
+ * on `http://localhost:3000` → ERR_NETWORK on a real iPhone).
  */
 export const apiClient = axios.create({
-  baseURL: getApiBaseUrl(),
   timeout: 15000,
   headers: {
     Accept: "application/json",
@@ -42,14 +45,14 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl();
   const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   if (__DEV__) {
-    const base = config.baseURL ?? getApiBaseUrl();
     console.log(
-      `[welm/http] → ${(config.method ?? "get").toUpperCase()} ${base}${config.url ?? ""}`,
+      `[welm/http] → ${(config.method ?? "get").toUpperCase()} ${config.baseURL}${config.url ?? ""}`,
     );
   }
   return config;

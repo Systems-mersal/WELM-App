@@ -18,6 +18,9 @@ ENV['RCT_USE_PREBUILT_RNCORE'] ||= podfile_properties['ios.buildReactNativeFromS
 ENV['RCT_HERMES_V1_ENABLED'] ||= '0' if podfile_properties['expo.useHermesV1'] == 'false'
 # An explicit `ios.usePrecompiledModules: false` must win even when the env var is already set
 # (e.g. EXPO_USE_PRECOMPILED_MODULES exported by EAS Build), so force-disable here before the default.
+# Precompiled ExpoModulesCore.xcframework crashes on launch with RN 0.86.2
+# (SIGSEGV in facebook::react::Props / expo::ExpoViewProps). Build Expo
+# modules from source until that ABI mismatch is gone.
 ENV['EXPO_USE_PRECOMPILED_MODULES'] = '0' if podfile_properties['EXPO_USE_PRECOMPILED_MODULES'] == 'false'
 ENV['EXPO_USE_PRECOMPILED_MODULES'] ||= '1'
 platform :ios, podfile_properties['ios.deploymentTarget'] || '16.4'
@@ -63,8 +66,22 @@ target 'mersalcar' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+    ensure_rncore_build_configuration_marker
     embed_prebuilt_react_framework(installer)
   end
+end
+
+# RN's replace-rncore-version.js assumes "no marker + Debug = already Debug"
+# and skips the swap. CocoaPods cache can leave a Release xcframework with no
+# marker, which then fails Debug linking (undefined facebook::react::Sealable).
+# Treat a missing marker as Release so the first Debug build always swaps.
+def ensure_rncore_build_configuration_marker
+  prebuilt = File.join(__dir__, 'Pods/React-Core-prebuilt')
+  marker = File.join(prebuilt, '.last_build_configuration')
+  return unless File.directory?(prebuilt)
+  return if File.exist?(marker)
+
+  File.write(marker, 'Release')
 end
 
 # CocoaPods skips embedding React.xcframework when the prebuilt slice has no

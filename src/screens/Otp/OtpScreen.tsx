@@ -84,7 +84,7 @@ export function OtpScreen({ navigation, route }: Props) {
         return;
       }
 
-      if (isSocial) {
+      if (isSocial || (isEmailOtp && intent === "signup")) {
         verifyingRef.current = true;
         setBusy(true);
         setVerifyError(null);
@@ -98,6 +98,13 @@ export function OtpScreen({ navigation, route }: Props) {
                 { ...user, email: verified.email },
                 refreshToken,
               );
+            } else if (intent === "signup") {
+              const localName = email.split("@")[0] || "User";
+              setSession("email-signup-token", {
+                id: `email:${verified.email}`,
+                name: localName,
+                email: verified.email,
+              });
             }
           } else {
             const verified = await verifyWelmPhoneOtp(phone, nextCode);
@@ -138,6 +145,7 @@ export function OtpScreen({ navigation, route }: Props) {
       busy,
       code,
       email,
+      intent,
       isEmailOtp,
       isSocial,
       navigation,
@@ -166,7 +174,7 @@ export function OtpScreen({ navigation, route }: Props) {
     setBusy(true);
     setVerifyError(null);
     try {
-      if (isSocial) {
+      if (isSocial || (isEmailOtp && intent === "signup")) {
         if (isEmailOtp) {
           const started = await startWelmEmailOtp(email);
           if (started.debugCode) {
@@ -188,7 +196,7 @@ export function OtpScreen({ navigation, route }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [canResend, email, isEmailOtp, isSocial, phone, t]);
+  }, [canResend, email, intent, isEmailOtp, isSocial, phone, t]);
 
   return (
     <Screen

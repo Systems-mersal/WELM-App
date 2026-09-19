@@ -3,11 +3,10 @@ import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { loginLogoMarkXml } from "../../assets/figma/login/logoMarkXml";
+import { WelmLogo } from "../../components/brand/WelmLogo";
 import { AppButton } from "../../components/buttons/AppButton";
 import { Screen } from "../../components/common/Screen";
 import { AppIcon } from "../../components/icons/AppIcon";
-import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
 import {
   exchangeSocialCredential,
@@ -113,14 +112,8 @@ export function LoginScreen({ navigation }: Props) {
       contentClassName="justify-between"
     >
       <View>
-        <View className="mt-4 flex-row items-center justify-center gap-2">
-          <AppText
-            className="tracking-[2px] text-primary"
-            style={{ fontFamily: fontFamily.bold, fontSize: fontSize.body }}
-          >
-            WELM
-          </AppText>
-          <LocalSvg xml={loginLogoMarkXml} width={36} height={36} />
+        <View className="mt-4 items-center">
+          <WelmLogo width={180} />
         </View>
 
         <View className="mt-10 items-center gap-3">

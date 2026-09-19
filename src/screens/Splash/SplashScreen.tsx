@@ -5,9 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { CommonActions } from "@react-navigation/native";
 
-import { splashLogoMarkXml } from "../../assets/figma/splash/logoMarkXml";
-import { splashWordmarkXml } from "../../assets/figma/splash/wordmarkXml";
-import { LocalSvg } from "../../components/icons/LocalSvg";
+import { WelmLogo } from "../../components/brand/WelmLogo";
 import { AppText } from "../../components/typography/AppText";
 import {
   clearHasSeenOnboarding,
@@ -64,14 +62,11 @@ export function SplashScreen({ navigation }: Props) {
   return (
     <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-primaryDark">
       <View className="flex-1 items-center justify-center px-6">
-        <View className="items-center gap-8">
-          <View
-            className="h-[170px] w-[158px] items-center justify-center rounded-full"
-            style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
-          >
-            <LocalSvg xml={splashLogoMarkXml} width={140} height={154} />
-          </View>
-          <LocalSvg xml={splashWordmarkXml} width={154} height={122} />
+        <View
+          className="items-center justify-center rounded-[28px] px-8 py-10"
+          style={{ backgroundColor: "rgba(255,255,255,0.96)" }}
+        >
+          <WelmLogo width={260} />
         </View>
       </View>
 

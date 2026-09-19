@@ -9,19 +9,22 @@ import { colors } from "../../theme/colors";
 import { spacing } from "../../theme/spacing";
 
 export interface StackScreenHeaderProps {
-  title: string;
+  title?: string;
   onBack?: () => void;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  /** Replaces the centered title when provided (e.g. brand logo). */
+  center?: React.ReactNode;
   /** `card` = white bar with bottom border; `plain` = minimal (OTP). */
   variant?: "card" | "plain";
 }
 
 export function StackScreenHeader({
-  title,
+  title = "",
   onBack,
   leading,
   trailing,
+  center,
   variant = "card",
 }: StackScreenHeaderProps) {
   const insets = useSafeAreaInsets();
@@ -49,9 +52,13 @@ export function StackScreenHeader({
         style={{ paddingTop: insets.top + spacing.sm }}
       >
         {leading ?? (onBack ? backButton : null)}
-        <AppText variant="subtitle" className="flex-1 text-text">
-          {title}
-        </AppText>
+        {center ? (
+          <View className="flex-1 items-center">{center}</View>
+        ) : (
+          <AppText variant="subtitle" className="flex-1 text-text">
+            {title}
+          </AppText>
+        )}
         {trailing}
       </View>
     );
@@ -68,9 +75,13 @@ export function StackScreenHeader({
       <View className="min-w-[44px] items-start">
         {leading ?? (showBackAtStart ? backButton : spacer)}
       </View>
-      <AppText variant="title" className="flex-1 text-center">
-        {title}
-      </AppText>
+      <View className="flex-1 items-center justify-center px-2">
+        {center ?? (
+          <AppText variant="title" className="text-center">
+            {title}
+          </AppText>
+        )}
+      </View>
       <View className="min-w-[44px] items-end">
         {trailing ?? (showBackAtEnd ? backButton : spacer)}
       </View>

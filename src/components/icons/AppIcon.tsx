@@ -22,6 +22,8 @@ const FEATHER_ICON_MAP = {
   plus: "plus",
   list: "list",
   map: "map",
+  eye: "eye",
+  "eye-off": "eye-off",
 } as const;
 
 const IONICONS_LOGO_MAP = {

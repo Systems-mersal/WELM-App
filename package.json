@@ -63,5 +63,12 @@
     "server:dev": "npm run dev --prefix server",
     "server:install": "npm install --prefix server"
   },
+  "expo": {
+    "autolinking": {
+      "ios": {
+        "buildFromSource": [".*"]
+      }
+    }
+  },
   "private": true
 }
