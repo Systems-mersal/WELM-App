@@ -22,20 +22,26 @@ export type AuthUser = {
   email?: string;
   /** Local-only until PATCH /api/welm/profile exists (US-10). */
   nationalId?: string;
+  idDocumentType?: "national" | "resident";
   dateOfBirth?: string;
   dateOfBirthHijri?: string;
   licenseNumber?: string;
   licenseType?: LicenseType;
+  licenseExpiry?: string;
+  placeOfIssue?: string;
   nationality?: NationalityCode;
 };
 
 export type LocalProfileFields = Pick<
   AuthUser,
   | "nationalId"
+  | "idDocumentType"
   | "dateOfBirth"
   | "dateOfBirthHijri"
   | "licenseNumber"
   | "licenseType"
+  | "licenseExpiry"
+  | "placeOfIssue"
   | "nationality"
 >;
 
@@ -48,10 +54,13 @@ export function copyLocalProfileFields(
   }
   return {
     nationalId: current.nationalId,
+    idDocumentType: current.idDocumentType,
     dateOfBirth: current.dateOfBirth,
     dateOfBirthHijri: current.dateOfBirthHijri,
     licenseNumber: current.licenseNumber,
     licenseType: current.licenseType,
+    licenseExpiry: current.licenseExpiry,
+    placeOfIssue: current.placeOfIssue,
     nationality: current.nationality,
   };
 }
@@ -63,10 +72,13 @@ function userFromStored(user: {
   phone?: string;
   email?: string;
   nationalId?: string;
+  idDocumentType?: string;
   dateOfBirth?: string;
   dateOfBirthHijri?: string;
   licenseNumber?: string;
   licenseType?: string;
+  licenseExpiry?: string;
+  placeOfIssue?: string;
   nationality?: string;
 }): AuthUser {
   return {
@@ -76,10 +88,16 @@ function userFromStored(user: {
     phone: user.phone,
     email: user.email,
     nationalId: user.nationalId,
+    idDocumentType:
+      user.idDocumentType === "national" || user.idDocumentType === "resident"
+        ? user.idDocumentType
+        : undefined,
     dateOfBirth: user.dateOfBirth,
     dateOfBirthHijri: user.dateOfBirthHijri,
     licenseNumber: user.licenseNumber,
     licenseType: isLicenseType(user.licenseType) ? user.licenseType : undefined,
+    licenseExpiry: user.licenseExpiry,
+    placeOfIssue: user.placeOfIssue,
     nationality: isNationalityCode(user.nationality)
       ? user.nationality
       : undefined,

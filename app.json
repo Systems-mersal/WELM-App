@@ -13,7 +13,9 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development.",
-        "NSLocationWhenInUseUsageDescription": "Allow WELM to use your location while you are using the app."
+        "NSLocationWhenInUseUsageDescription": "Allow WELM to use your location while you are using the app.",
+        "NSCameraUsageDescription": "WELM uses the camera to scan your national ID or Iqama.",
+        "NSPhotoLibraryUsageDescription": "WELM uses your photos to upload an ID or Iqama image for scanning."
       }
     },
     "android": {
@@ -22,7 +24,11 @@
         "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.welmm.tajeerplus"
+      "package": "com.welmm.tajeerplus",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,6 +43,13 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow WELM to use your location while you are using the app."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "WELM uses your photos to upload an ID or Iqama image for scanning.",
+          "cameraPermission": "WELM uses the camera to scan your national ID or Iqama."
         }
       ],
       "react-native-maps",

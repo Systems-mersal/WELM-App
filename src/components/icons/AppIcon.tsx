@@ -24,6 +24,9 @@ const FEATHER_ICON_MAP = {
   map: "map",
   eye: "eye",
   "eye-off": "eye-off",
+  camera: "camera",
+  image: "image",
+  "upload-cloud": "upload-cloud",
 } as const;
 
 const IONICONS_LOGO_MAP = {
