@@ -22,6 +22,10 @@ export type RootStackParamList = {
         provider?: "apple" | "google";
         /** Present only when Tajeer is not production and SMTP is not wired. */
         debugCode?: string;
+        /** Seconds before Resend is allowed (server cooldown). */
+        resendIn?: number;
+        /** The first send failed — show the error and allow Resend now. */
+        sendFailed?: boolean;
       }
     | undefined;
   CreateAccount: undefined;
@@ -34,7 +38,7 @@ export type RootStackParamList = {
   BookingDates: { vehicleId: string };
   BookingExtras: { vehicleId: string };
   BookingReview: { vehicleId: string };
-  BookingConfirmed: { vehicleId?: string };
+  BookingConfirmed: { vehicleId?: string; bookingId?: string };
   Notifications: undefined;
   Documents: undefined;
   LocationRadius: undefined;

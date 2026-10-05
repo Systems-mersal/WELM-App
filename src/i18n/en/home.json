@@ -3,6 +3,7 @@
   "greeting": "Welcome",
   "user-name": "Ahmed Mohammed",
   "featured": "Featured Car",
+  "available-cars": "Available cars",
   "view-all": "View All",
   "book-now": "Book Now",
   "per-day": "/day",
@@ -44,5 +45,7 @@
   "empty-subtitle": "Try a larger radius or search in a nearby city.",
   "nearest-city": "Nearest city: {{city}}",
   "search-nearest-city": "Search this city",
-  "sheet-close": "Close"
+  "sheet-close": "Close",
+  "categories-all": "All",
+  "fleet-empty": "No cars available from this company right now."
 }

@@ -1,21 +1,36 @@
 {
   "title": "My Bookings",
   "tabs": {
-    "current": "Current",
-    "upcoming": "Upcoming",
+    "current": "Active",
+    "upcoming": "Requests",
     "past": "Past"
   },
-  "active-booking": "Active Booking",
-  "past-bookings": "Past Bookings",
-  "active-now": "Active Now",
+  "active-booking": "Active booking",
+  "past-bookings": "Past bookings",
+  "requests-title": "Booking requests",
+  "active-now": "Active now",
   "rebook": "Rebook",
   "date-range": "{{start}} — {{end}}",
-  "dates": {
-    "active-start": "Aug 1",
-    "active-end": "Aug 5",
-    "past1-start": "Jul 10",
-    "past1-end": "Jul 14"
+  "empty-upcoming": "No booking requests yet",
+  "empty-past": "No past bookings",
+  "empty-current": "No active rentals",
+  "status": {
+    "pending": "Awaiting approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
   },
-  "empty-upcoming": "No upcoming bookings",
-  "empty-past": "No past bookings"
+  "timeline": {
+    "pending_approval": "Awaiting approval",
+    "approved": "Approved",
+    "contract_creation": "Contract creation",
+    "vehicle_delivered": "Vehicle delivery",
+    "awaiting_payment": "Awaiting payment"
+  },
+  "days-total": "{{days}} days · {{total}} {{currency}}",
+  "retry": "Retry",
+  "pay-awaiting-hint": "Pay the full amount to activate your booking",
+  "pay-rental-label": "Vehicle rental",
+  "pay-success-title": "Payment received",
+  "pay-success-message": "Paid {{total}} {{currency}}. Your booking is moving to delivery."
 }

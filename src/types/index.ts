@@ -9,7 +9,9 @@ export type VehicleCategory =
 
 export interface Vehicle {
   id: string;
-  nameKey: string;
+  /** i18n key for mock cars; API cars use displayName instead. */
+  nameKey?: string;
+  displayName?: string;
   brand: string;
   model: string;
   year?: number;
@@ -19,6 +21,8 @@ export interface Vehicle {
   image: string;
   imageSource: ImageSourcePropType;
   locationKey?: string;
+  /** Branch / city label from Tajeer Plus (API cars). */
+  locationLabel?: string;
   latitude?: number;
   longitude?: number;
   seats: number;

@@ -11,6 +11,10 @@ export {
   verifyWelmPhoneOtp,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
+  registerWelmAccount,
+  loginWelmAccount,
+  fetchWelmCompanies,
+  saveWelmProfile,
 } from "./welm-auth";
 export {
   WelmAuthApiError,
@@ -24,5 +28,8 @@ export {
   type WelmPhoneVerifyResponse,
   type WelmEmailStartResponse,
   type WelmEmailVerifyResponse,
+  type WelmProfileRequest,
+  type WelmProfileResponse,
+  type WelmCompanyOption,
   type WelmSocialAuthRequest,
 } from "./types";

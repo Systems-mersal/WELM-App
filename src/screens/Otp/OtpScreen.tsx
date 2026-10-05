@@ -13,12 +13,14 @@ import { Screen } from "../../components/common/Screen";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
+  discardWelmAuth,
   reportWelmAuthFailure,
   routePastAuthGate,
   startWelmPhoneOtp,
   startWelmEmailOtp,
   verifyWelmPhoneOtp,
   verifyWelmEmailOtp,
+  WelmAuthApiError,
   welmAuthUserMessage,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
@@ -40,6 +42,31 @@ function digitsOnly(value: string, max = OTP_LENGTH): string {
   return value.replace(/\D/g, "").slice(0, max);
 }
 
+function emailOtpErrorKey(error: unknown): string | null {
+  if (!(error instanceof WelmAuthApiError)) {
+    return null;
+  }
+  switch (error.serverCode) {
+    case "invalid_code":
+      return typeof error.attemptsLeft === "number"
+        ? "invalid-code-left"
+        : "invalid-code";
+    case "expired":
+    case "no_pending":
+      return "code-expired";
+    case "too_many_attempts":
+      return "too-many-attempts";
+    case "resend_cooldown":
+      return "resend-cooldown";
+    case "rate_limited":
+      return "rate-limited";
+    case "email_send_failed":
+      return "email-send-failed";
+    default:
+      return null;
+  }
+}
+
 export function OtpScreen({ navigation, route }: Props) {
   const { t } = useTranslation(["otp", "common"]);
   const phone = route.params?.phone ?? "";
@@ -48,14 +75,20 @@ export function OtpScreen({ navigation, route }: Props) {
   const intent = route.params?.intent;
   const isSocial = intent === "social";
   const isEmailOtp = Boolean(email);
+  const isEmailSignup = isEmailOtp && intent === "signup";
 
   const [code, setCode] = useState("");
-  const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(
+    route.params?.resendIn ?? RESEND_SECONDS,
+  );
   const [busy, setBusy] = useState(false);
-  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(
+    route.params?.sendFailed ? t("email-send-failed") : null,
+  );
   const [debugCode, setDebugCode] = useState(route.params?.debugCode ?? "");
   const inputRef = useRef<TextInput>(null);
   const verifyingRef = useRef(false);
+  const verifiedRef = useRef(false);
   const setSession = useAuthStore((state) => state.setSession);
 
   const canVerify = code.length === OTP_LENGTH;
@@ -84,7 +117,7 @@ export function OtpScreen({ navigation, route }: Props) {
         return;
       }
 
-      if (isSocial || (isEmailOtp && intent === "signup")) {
+      if (isSocial || isEmailSignup) {
         verifyingRef.current = true;
         setBusy(true);
         setVerifyError(null);
@@ -95,16 +128,11 @@ export function OtpScreen({ navigation, route }: Props) {
             if (accessToken && user) {
               setSession(
                 accessToken,
-                { ...user, email: verified.email },
+                { ...user, email: verified.email, emailVerified: true },
                 refreshToken,
               );
-            } else if (intent === "signup") {
-              const localName = email.split("@")[0] || "User";
-              setSession("email-signup-token", {
-                id: `email:${verified.email}`,
-                name: localName,
-                email: verified.email,
-              });
+            } else {
+              throw new Error("missing-session");
             }
           } else {
             const verified = await verifyWelmPhoneOtp(phone, nextCode);
@@ -117,14 +145,31 @@ export function OtpScreen({ navigation, route }: Props) {
               );
             }
           }
+          verifiedRef.current = true;
           routePastAuthGate(navigation);
         } catch (error) {
-          const message = welmAuthUserMessage(error, {
-            unavailable: t("common:auth.api-unavailable"),
-            fallback: t("invalid-code"),
-          });
-          setVerifyError(message);
-          reportWelmAuthFailure(error, message, t("common:error"));
+          const key = emailOtpErrorKey(error);
+          if (key) {
+            setVerifyError(
+              t(key, {
+                count:
+                  error instanceof WelmAuthApiError ? error.attemptsLeft : 0,
+              }),
+            );
+          } else {
+            const message = welmAuthUserMessage(error, {
+              unavailable: t("common:auth.api-unavailable"),
+              fallback: t("invalid-code"),
+            });
+            setVerifyError(message);
+            reportWelmAuthFailure(error, message, t("common:error"));
+          }
+          if (
+            error instanceof WelmAuthApiError &&
+            error.serverCode === "too_many_attempts"
+          ) {
+            setSecondsLeft(0);
+          }
           setCode("");
           inputRef.current?.focus();
         } finally {
@@ -145,8 +190,8 @@ export function OtpScreen({ navigation, route }: Props) {
       busy,
       code,
       email,
-      intent,
       isEmailOtp,
+      isEmailSignup,
       isSocial,
       navigation,
       phone,
@@ -174,29 +219,51 @@ export function OtpScreen({ navigation, route }: Props) {
     setBusy(true);
     setVerifyError(null);
     try {
-      if (isSocial || (isEmailOtp && intent === "signup")) {
+      let nextSeconds = RESEND_SECONDS;
+      if (isSocial || isEmailSignup) {
         if (isEmailOtp) {
           const started = await startWelmEmailOtp(email);
           if (started.debugCode) {
             setDebugCode(started.debugCode);
           }
+          nextSeconds = started.resendInSeconds ?? RESEND_SECONDS;
         } else {
           await startWelmPhoneOtp(phone);
         }
       }
-      setSecondsLeft(RESEND_SECONDS);
+      setSecondsLeft(nextSeconds);
       setCode("");
       inputRef.current?.focus();
     } catch (error) {
-      const message = welmAuthUserMessage(error, {
-        unavailable: t("common:auth.api-unavailable"),
-        fallback: t("common:error"),
-      });
-      reportWelmAuthFailure(error, message, t("common:error"));
+      const key = emailOtpErrorKey(error);
+      if (key) {
+        setVerifyError(t(key));
+        if (error instanceof WelmAuthApiError && error.retryAfterSeconds) {
+          setSecondsLeft(error.retryAfterSeconds);
+        }
+      } else {
+        const message = welmAuthUserMessage(error, {
+          unavailable: t("common:auth.api-unavailable"),
+          fallback: t("common:error"),
+        });
+        reportWelmAuthFailure(error, message, t("common:error"));
+      }
     } finally {
       setBusy(false);
     }
-  }, [canResend, email, intent, isEmailOtp, isSocial, phone, t]);
+  }, [canResend, email, isEmailOtp, isEmailSignup, isSocial, phone, t]);
+
+  useEffect(() => {
+    if (!isEmailSignup) {
+      return;
+    }
+    // Unverified email session must not linger after leaving the OTP step.
+    return navigation.addListener("beforeRemove", () => {
+      if (!verifiedRef.current) {
+        void discardWelmAuth({ revoke: true });
+      }
+    });
+  }, [isEmailSignup, navigation]);
 
   return (
     <Screen
@@ -240,6 +307,11 @@ export function OtpScreen({ navigation, route }: Props) {
           >
             {destination}
           </AppText>
+          {isEmailOtp ? (
+            <AppText variant="caption" muted className="text-center">
+              {t("check-spam")}
+            </AppText>
+          ) : null}
           {__DEV__ && debugCode ? (
             <AppText variant="caption" className="text-center text-primary">
               {t("dev-code", { code: debugCode })}
@@ -342,7 +414,7 @@ export function OtpScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   hiddenInput: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     color: "transparent",
     opacity: 0.02,
     fontSize: 24,

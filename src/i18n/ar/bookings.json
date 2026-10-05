@@ -1,21 +1,36 @@
 {
   "title": "حجوزاتي",
   "tabs": {
-    "current": "الحالية",
-    "upcoming": "القادمة",
+    "current": "النشطة",
+    "upcoming": "الطلبات",
     "past": "السابقة"
   },
   "active-booking": "الحجز النشط",
   "past-bookings": "الحجوزات السابقة",
+  "requests-title": "طلبات الحجز",
   "active-now": "نشط الآن",
   "rebook": "أعد الحجز",
   "date-range": "{{start}} — {{end}}",
-  "dates": {
-    "active-start": "١ أغسطس",
-    "active-end": "٥ أغسطس",
-    "past1-start": "١٠ يوليو",
-    "past1-end": "١٤ يوليو"
+  "empty-upcoming": "لا توجد طلبات حجز بعد",
+  "empty-past": "لا توجد حجوزات سابقة",
+  "empty-current": "لا توجد إيجارات نشطة",
+  "status": {
+    "pending": "بانتظار الموافقة",
+    "approved": "تمت الموافقة",
+    "rejected": "مرفوض",
+    "cancelled": "ملغي"
   },
-  "empty-upcoming": "لا توجد حجوزات قادمة",
-  "empty-past": "لا توجد حجوزات سابقة"
+  "timeline": {
+    "pending_approval": "بانتظار الموافقة",
+    "approved": "تمت الموافقة",
+    "contract_creation": "إنشاء العقد",
+    "vehicle_delivered": "تسليم السيارة",
+    "awaiting_payment": "بانتظار الدفع"
+  },
+  "days-total": "{{days}} أيام · {{total}} {{currency}}",
+  "retry": "إعادة المحاولة",
+  "pay-awaiting-hint": "ادفع المبلغ كاملًا لتفعيل الحجز",
+  "pay-rental-label": "تأجير السيارة",
+  "pay-success-title": "تم استلام الدفع",
+  "pay-success-message": "تم دفع {{total}} {{currency}}. الحجز ينتقل لمرحلة التسليم."
 }

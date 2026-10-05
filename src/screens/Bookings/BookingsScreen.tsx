@@ -1,26 +1,23 @@
 import React, { useMemo, useState } from "react";
-import { View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { AppText } from "../../components/typography/AppText";
-import { MOCK_BOOKINGS } from "../../constants/bookings";
-import type { MainTabNavigationProp } from "../../navigation/types";
 import { Screen } from "../../components/common/Screen";
-import {
-  ActiveBookingCard,
-} from "./components/ActiveBookingCard";
+import { useWelmBookings } from "../../features/bookings";
+import { colors } from "../../theme/colors";
 import {
   BookingSegmentedControl,
   type BookingTab,
 } from "./components/BookingSegmentedControl";
-import { PastBookingRow } from "./components/PastBookingRow";
+import { BookingRequestCard } from "./components/BookingRequestCard";
 
 export function BookingsScreen() {
-  const { t } = useTranslation("bookings");
+  const { t } = useTranslation(["bookings", "common"]);
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<MainTabNavigationProp<"Bookings">>();
-  const [selectedTab, setSelectedTab] = useState<BookingTab>("current");
+  const [selectedTab, setSelectedTab] = useState<BookingTab>("upcoming");
+  const { bookings, isLoading, isError, isEmpty, refetch } = useWelmBookings();
 
   const tabLabels = useMemo(
     () => ({
@@ -31,12 +28,46 @@ export function BookingsScreen() {
     [t],
   );
 
-  const activeBooking = MOCK_BOOKINGS.find((b) => b.status === "active");
-  const pastBookings = MOCK_BOOKINGS.filter((b) => b.status === "past");
+  const requestBookings = useMemo(
+    () =>
+      bookings.filter(
+        (b) => b.status === "pending" || b.status === "approved",
+      ),
+    [bookings],
+  );
+  const pastBookings = useMemo(
+    () =>
+      bookings.filter(
+        (b) => b.status === "rejected" || b.status === "cancelled",
+      ),
+    [bookings],
+  );
+  const activeBookings = useMemo(
+    () =>
+      bookings.filter(
+        (b) =>
+          b.status === "approved" &&
+          b.timeline.some(
+            (step) =>
+              step.key === "vehicle_delivered" && step.status !== "upcoming",
+          ),
+      ),
+    [bookings],
+  );
 
-  const openVehicle = (vehicleId: string) => {
-    navigation.navigate("VehicleDetails", { vehicleId });
-  };
+  const list =
+    selectedTab === "current"
+      ? activeBookings
+      : selectedTab === "past"
+        ? pastBookings
+        : requestBookings;
+
+  const emptyLabel =
+    selectedTab === "current"
+      ? t("empty-current")
+      : selectedTab === "past"
+        ? t("empty-past")
+        : t("empty-upcoming");
 
   return (
     <View className="flex-1 bg-background">
@@ -61,37 +92,48 @@ export function BookingsScreen() {
         contentClassName="px-6"
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
-        {selectedTab === "current" && activeBooking ? (
-          <>
-            <AppText variant="label" className="mt-2">
-              {t("active-booking")}
-            </AppText>
-            <ActiveBookingCard booking={activeBooking} />
-          </>
-        ) : null}
+        <AppText variant="label" className="mb-3 mt-2">
+          {selectedTab === "upcoming"
+            ? t("requests-title")
+            : selectedTab === "past"
+              ? t("past-bookings")
+              : t("active-booking")}
+        </AppText>
 
-        {selectedTab === "past" ? (
-          <>
-            <AppText variant="label" className="mb-3 mt-2">
-              {t("past-bookings")}
+        {isLoading ? (
+          <View className="items-center py-16">
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : isError ? (
+          <View className="items-center gap-3 rounded-2xl border border-border bg-white px-4 py-8">
+            <AppText variant="body" muted className="text-center">
+              {t("common:error")}
             </AppText>
-            <View className="gap-3">
-              {pastBookings.map((booking) => (
-                <PastBookingRow
-                  key={booking.id}
-                  booking={booking}
-                  onRebook={openVehicle}
-                />
-              ))}
-            </View>
-          </>
-        ) : null}
-
-        {selectedTab === "upcoming" ? (
-          <AppText variant="body" muted className="mt-6 text-center">
-            {t("empty-upcoming")}
-          </AppText>
-        ) : null}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                void refetch();
+              }}
+              className="rounded-pill bg-primary px-5 py-2"
+            >
+              <AppText variant="caption" className="text-white">
+                {t("retry")}
+              </AppText>
+            </Pressable>
+          </View>
+        ) : isEmpty || list.length === 0 ? (
+          <View className="items-center rounded-2xl border border-border bg-white px-4 py-10">
+            <AppText variant="body" muted className="text-center">
+              {emptyLabel}
+            </AppText>
+          </View>
+        ) : (
+          <View className="gap-3">
+            {list.map((booking) => (
+              <BookingRequestCard key={booking.id} booking={booking} />
+            ))}
+          </View>
+        )}
       </Screen>
     </View>
   );

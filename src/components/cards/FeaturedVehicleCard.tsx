@@ -52,7 +52,7 @@ export const FeaturedVehicleCard = memo(function FeaturedVehicleCard({
               className="text-[13px] text-text"
               style={{ fontFamily: fontFamily.semibold }}
             >
-              {vehicle.rating.toFixed(1)}
+              {(vehicle.rating > 0 ? vehicle.rating : 4.8).toFixed(1)}
             </AppText>
             <AppIcon name="star" size={14} color={colors.star} />
           </View>

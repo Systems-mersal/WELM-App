@@ -12,7 +12,11 @@
   "subtotal": "المجموع الفرعي",
   "tax": "الضريبة",
   "total": "الإجمالي النهائي",
-  "confirm-booking": "ادفع الآن",
+  "confirm-booking": "إرسال الطلب",
+  "submit-request": "إرسال طلب الحجز",
+  "submitting": "جاري الإرسال…",
+  "submit-error": "تعذر إرسال طلب الحجز. حاول مرة أخرى.",
+  "profile-required": "أكمل ملفك الشخصي قبل الحجز.",
   "terms-agree": "بالتأكيد، أنت توافق على الشروط والأحكام",
   "promo-placeholder": "كود الخصم",
   "apply": "تطبيق",
@@ -21,6 +25,7 @@
   "payment-card": "بطاقة ائتمان",
   "payment-apple": "Apple Pay",
   "card-mask": "**** ٤٢٤٢",
-  "date-range": "١٣ - ١٧ مايو ٢٠٢٥",
-  "location-value": "مطار الملك خالد"
+  "date-range": "{{start}} — {{end}}",
+  "location-value": "موقع الاستلام",
+  "no-payment-note": "لا يوجد دفع الآن — يُرسل طلبك لشركة التأجير بانتظار الموافقة."
 }

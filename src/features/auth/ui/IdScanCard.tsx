@@ -12,6 +12,7 @@ type Props = {
   cameraLabel: string;
   uploadLabel: string;
   scanning?: boolean;
+  disabled?: boolean;
   onCamera: () => void;
   onUpload: () => void;
 };
@@ -23,9 +24,12 @@ export function IdScanCard({
   cameraLabel,
   uploadLabel,
   scanning = false,
+  disabled = false,
   onCamera,
   onUpload,
 }: Props) {
+  const inactive = scanning || disabled;
+
   return (
     <View className="rounded-2xl border border-border bg-primaryMuted px-4 py-4">
       <AppText
@@ -45,9 +49,12 @@ export function IdScanCard({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={cameraLabel}
-          disabled={scanning}
+          accessibilityState={{ disabled: inactive }}
+          disabled={inactive}
           onPress={onCamera}
-          className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-pill bg-primary active:opacity-90"
+          className={`h-12 flex-1 flex-row items-center justify-center gap-2 rounded-pill ${
+            inactive ? "bg-primary/40" : "bg-primary active:opacity-90"
+          }`}
         >
           {scanning ? (
             <ActivityIndicator color={colors.white} />
@@ -66,9 +73,12 @@ export function IdScanCard({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={uploadLabel}
-          disabled={scanning}
+          accessibilityState={{ disabled: inactive }}
+          disabled={inactive}
           onPress={onUpload}
-          className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-pill border border-border bg-white active:opacity-70"
+          className={`h-12 flex-1 flex-row items-center justify-center gap-2 rounded-pill border border-border bg-white ${
+            inactive ? "opacity-40" : "active:opacity-70"
+          }`}
         >
           <AppIcon name="image" size={18} color={colors.text} />
           <AppText

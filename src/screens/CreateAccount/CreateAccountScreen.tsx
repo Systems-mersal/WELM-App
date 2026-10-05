@@ -18,14 +18,16 @@ import { AppText } from "../../components/typography/AppText";
 import {
   exchangeSocialCredential,
   mapWelmSessionToAuthUser,
+  registerWelmAccount,
   routeAfterWelmAuth,
-  routeToHome,
+  routePastAuthGate,
+  routeToEmailOtp,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
-  startWelmEmailOtp,
   useAuthStore,
+  WelmAuthApiError,
   welmAuthUserMessage,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
@@ -149,14 +151,7 @@ export function CreateAccountScreen({ navigation }: Props) {
 
       try {
         const session = await exchangeSocialCredential(result);
-        useAuthStore
-          .getState()
-          .setSession(
-            session.accessToken,
-            mapWelmSessionToAuthUser(session),
-            session.refreshToken,
-          );
-        routeToHome(navigation);
+        routeAfterWelmAuth(navigation, session, "google");
       } catch (error) {
         const message = welmAuthUserMessage(error, {
           unavailable: t("common:auth.api-unavailable"),
@@ -210,22 +205,32 @@ export function CreateAccountScreen({ navigation }: Props) {
     setAuthError(null);
     setEmailBusy(true);
     try {
-      const started = await startWelmEmailOtp(normalizedEmail);
-      navigation.navigate("Otp", {
-        email: started.email,
-        intent: "signup",
-        debugCode: started.debugCode,
-      });
+      const session = await registerWelmAccount(normalizedEmail, password);
+      useAuthStore
+        .getState()
+        .setSession(
+          session.accessToken,
+          mapWelmSessionToAuthUser(session),
+          session.refreshToken,
+        );
+      if (session.user.emailVerified === false) {
+        await routeToEmailOtp(navigation, session.user.email ?? normalizedEmail);
+      } else {
+        routePastAuthGate(navigation);
+      }
     } catch (error) {
-      const message = welmAuthUserMessage(error, {
-        unavailable: t("common:auth.api-unavailable"),
-        fallback: t("common:error"),
-      });
+      const message =
+        error instanceof WelmAuthApiError && error.status === 409
+          ? t("email-taken")
+          : welmAuthUserMessage(error, {
+              unavailable: t("common:auth.api-unavailable"),
+              fallback: t("common:error"),
+            });
       setAuthError(message);
     } finally {
       setEmailBusy(false);
     }
-  }, [emailBusy, navigation, t, validateEmailForm]);
+  }, [emailBusy, navigation, password, t, validateEmailForm]);
 
   const socialDimmed = !acceptedTerms;
 
@@ -254,7 +259,7 @@ export function CreateAccountScreen({ navigation }: Props) {
               style={{
                 fontFamily: fontFamily.bold,
                 fontSize: fontSize.xxl,
-                lineHeight: 34,
+                lineHeight: 32,
               }}
             >
               {t("title")}

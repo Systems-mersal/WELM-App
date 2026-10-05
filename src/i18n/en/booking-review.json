@@ -12,7 +12,11 @@
   "subtotal": "Subtotal",
   "tax": "Tax",
   "total": "Grand Total",
-  "confirm-booking": "Pay Now",
+  "confirm-booking": "Submit request",
+  "submit-request": "Submit booking request",
+  "submitting": "Submitting…",
+  "submit-error": "Could not submit your booking request. Try again.",
+  "profile-required": "Complete your profile before booking.",
   "terms-agree": "By confirming, you agree to the terms and conditions",
   "promo-placeholder": "Promo code",
   "apply": "Apply",
@@ -21,6 +25,7 @@
   "payment-card": "Credit Card",
   "payment-apple": "Apple Pay",
   "card-mask": "**** 4242",
-  "date-range": "May 13 - 17, 2025",
-  "location-value": "King Khalid Airport"
+  "date-range": "{{start}} — {{end}}",
+  "location-value": "Pickup location",
+  "no-payment-note": "No payment now — your request goes to the rental company for approval."
 }

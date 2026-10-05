@@ -20,7 +20,10 @@ export type AuthUser = {
   firstName?: string;
   phone?: string;
   email?: string;
-  /** Local-only until PATCH /api/welm/profile exists (US-10). */
+  /** false until the email OTP step succeeds (email + password signup). */
+  emailVerified?: boolean;
+  /** Tajeer Plus `customers.id` after PATCH /api/welm/profile. */
+  customerId?: string;
   nationalId?: string;
   idDocumentType?: "national" | "resident";
   dateOfBirth?: string;
@@ -34,6 +37,7 @@ export type AuthUser = {
 
 export type LocalProfileFields = Pick<
   AuthUser,
+  | "customerId"
   | "nationalId"
   | "idDocumentType"
   | "dateOfBirth"
@@ -53,6 +57,7 @@ export function copyLocalProfileFields(
     return {};
   }
   return {
+    customerId: current.customerId,
     nationalId: current.nationalId,
     idDocumentType: current.idDocumentType,
     dateOfBirth: current.dateOfBirth,
@@ -71,6 +76,8 @@ function userFromStored(user: {
   firstName?: string;
   phone?: string;
   email?: string;
+  emailVerified?: boolean;
+  customerId?: string;
   nationalId?: string;
   idDocumentType?: string;
   dateOfBirth?: string;
@@ -87,6 +94,8 @@ function userFromStored(user: {
     firstName: user.firstName,
     phone: user.phone,
     email: user.email,
+    emailVerified: user.emailVerified,
+    customerId: user.customerId,
     nationalId: user.nationalId,
     idDocumentType:
       user.idDocumentType === "national" || user.idDocumentType === "resident"

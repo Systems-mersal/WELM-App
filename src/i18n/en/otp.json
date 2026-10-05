@@ -7,5 +7,12 @@
   "didnt-receive": "Didn't receive the code?",
   "resend": "Resend",
   "invalid-code": "That code is incorrect. Try again.",
+  "invalid-code-left": "That code is incorrect. {{count}} attempts left.",
+  "code-expired": "This code has expired. Tap Resend for a new one.",
+  "too-many-attempts": "Too many wrong attempts. Tap Resend for a new code.",
+  "resend-cooldown": "Please wait before requesting a new code.",
+  "rate-limited": "You've requested too many codes. Try again later.",
+  "email-send-failed": "We couldn't send the email. Tap Resend to try again.",
+  "check-spam": "Check your spam folder if you don't see the email.",
   "dev-code": "Local testing code: {{code}}"
 }

@@ -13,6 +13,8 @@
   "return-time-value": "٤:٠٠ م",
   "continue": "استمرار",
   "days": "{{count}} أيام",
+  "select-dates": "اختر تاريخ البداية والنهاية",
+  "select-range-hint": "اضغط تاريخ البداية ثم النهاية. التواريخ الماضية معطّلة.",
   "days-short": "٥ أيام",
   "weekdays": {
     "0": "أحد",

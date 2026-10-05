@@ -1,25 +1,26 @@
-import { useMemo } from "react";
-
-import { MOCK_VEHICLES } from "../constants/vehicles";
-import { filterVehiclesInRadius } from "../lib/vehicle-radius";
-import { useLocationStore } from "../stores/location-store";
+import { useCompanyVehicles } from "../features/vehicles";
 import type { Vehicle } from "../types";
 
-/** Same filtered collection for Home and Explore. */
-export function useFilteredVehicles(): Vehicle[] {
-  const latitude = useLocationStore((state) => state.latitude);
-  const longitude = useLocationStore((state) => state.longitude);
-  const radiusKm = useLocationStore((state) => state.radiusKm);
+/**
+ * Company fleet for Home / Explore.
+ * Geo radius filter is deferred until vehicle/branch coordinates exist in Tajeer Plus.
+ */
+export function useFilteredVehicles(): {
+  vehicles: Vehicle[];
+  isLoading: boolean;
+  isError: boolean;
+  isEmpty: boolean;
+  refetch: () => void;
+} {
+  const { vehicles, isLoading, isError, isEmpty, refetch } = useCompanyVehicles();
 
-  return useMemo(() => {
-    if (latitude == null || longitude == null) {
-      return [];
-    }
-    return filterVehiclesInRadius(
-      MOCK_VEHICLES,
-      latitude,
-      longitude,
-      radiusKm,
-    );
-  }, [latitude, longitude, radiusKm]);
+  return {
+    vehicles,
+    isLoading,
+    isError,
+    isEmpty,
+    refetch: () => {
+      void refetch();
+    },
+  };
 }

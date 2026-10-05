@@ -16,6 +16,9 @@ import {
   type WelmPhoneVerifyResponse,
   type WelmEmailStartResponse,
   type WelmEmailVerifyResponse,
+  type WelmProfileRequest,
+  type WelmProfileResponse,
+  type WelmCompanyOption,
   type WelmSocialAuthRequest,
 } from "./types";
 
@@ -52,10 +55,24 @@ function mapAxiosError(error: unknown): WelmAuthApiError {
   }
 
   const status = error.response?.status;
+  const body = error.response?.data as Record<string, unknown> | undefined;
   const message =
-    (typeof error.response?.data?.error === "string" &&
-      error.response.data.error) ||
-    error.message;
+    (typeof body?.error === "string" && body.error) || error.message;
+  const details = {
+    serverCode: typeof body?.code === "string" ? body.code : undefined,
+    retryAfterSeconds:
+      typeof body?.retryAfterSeconds === "number"
+        ? body.retryAfterSeconds
+        : undefined,
+    attemptsLeft:
+      typeof body?.attemptsLeft === "number" ? body.attemptsLeft : undefined,
+  };
+
+  if (details.serverCode) {
+    const code =
+      status === 401 ? "unauthorized" : status && status < 500 ? "invalid" : "unknown";
+    return new WelmAuthApiError(code, message, status, details);
+  }
 
   if (
     status === 404 ||
@@ -94,6 +111,7 @@ export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
       "User",
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    emailVerified: session.user.emailVerified,
     ...copyLocalProfileFields(current, session.user.id),
   };
 }
@@ -231,8 +249,50 @@ export async function verifyWelmPhoneOtp(
   }
 }
 
+const REGISTER_PATH = "/api/welm/auth/register";
+const LOGIN_PATH = "/api/welm/auth/login";
 const EMAIL_START_PATH = "/api/welm/auth/email/start";
 const EMAIL_VERIFY_PATH = "/api/welm/auth/email/verify";
+
+/** POST /api/welm/auth/register — email + password against live Tajeer Plus. */
+export async function registerWelmAccount(
+  email: string,
+  password: string,
+): Promise<WelmAuthSession> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmAuthSession>(REGISTER_PATH, {
+      email,
+      password,
+    });
+    if (!data?.accessToken || !data?.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid register response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/login — email + password against live Tajeer Plus. */
+export async function loginWelmAccount(
+  email: string,
+  password: string,
+): Promise<WelmAuthSession> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmAuthSession>(LOGIN_PATH, {
+      email,
+      password,
+    });
+    if (!data?.accessToken || !data?.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid login response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
 
 /** POST /api/welm/auth/email/start */
 export async function startWelmEmailOtp(
@@ -266,6 +326,41 @@ export async function verifyWelmEmailOtp(
     );
     if (!data?.verified) {
       throw new WelmAuthApiError("unknown", "Invalid email verify response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+const PROFILE_PATH = "/api/welm/profile";
+const COMPANIES_PATH = "/api/welm/companies";
+
+/** GET /api/welm/companies — rental operators the consumer can attach to. */
+export async function fetchWelmCompanies(): Promise<WelmCompanyOption[]> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.get<{ companies?: WelmCompanyOption[] }>(
+      COMPANIES_PATH,
+    );
+    return Array.isArray(data?.companies) ? data.companies : [];
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** PATCH /api/welm/profile — writes the Tajeer Plus customer row. */
+export async function saveWelmProfile(
+  body: WelmProfileRequest,
+): Promise<WelmProfileResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.patch<WelmProfileResponse>(
+      PROFILE_PATH,
+      body,
+    );
+    if (!data?.customerId || !data.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid profile response");
     }
     return data;
   } catch (error) {

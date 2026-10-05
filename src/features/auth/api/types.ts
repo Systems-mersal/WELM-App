@@ -8,6 +8,8 @@ export type WelmAuthUser = {
   firstName?: string;
   email: string | null;
   phone?: string | null;
+  /** false → email signup that still needs the email OTP step. */
+  emailVerified?: boolean;
 };
 
 export type WelmAuthSession = {
@@ -51,6 +53,7 @@ export type WelmPhoneVerifyResponse = {
 export type WelmEmailStartResponse = {
   sent: boolean;
   email: string;
+  resendInSeconds?: number;
   /** Local/dev only — omitted in production. */
   debugCode?: string;
 };
@@ -61,6 +64,35 @@ export type WelmEmailVerifyResponse = {
   isNew: boolean;
 };
 
+export type WelmCompanyOption = {
+  id: string;
+  name: string;
+};
+
+export type WelmProfileRequest = {
+  companyId: string;
+  name: string;
+  idDocumentType?: "national" | "resident";
+  nationalId: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  licenseType?: string;
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  placeOfIssue?: string;
+};
+
+export type WelmProfileResponse = {
+  customerId: string;
+  user: {
+    id: string;
+    name: string;
+    firstName: string;
+    nationalId: string;
+    idDocumentType: "national" | "resident";
+  };
+};
+
 export type WelmAuthErrorCode =
   | "undeployed"
   | "disabled"
@@ -69,15 +101,44 @@ export type WelmAuthErrorCode =
   | "network"
   | "unknown";
 
+/** Machine-readable `code` from Tajeer Plus email OTP endpoints. */
+export type WelmEmailOtpErrorCode =
+  | "invalid_email"
+  | "already_verified"
+  | "resend_cooldown"
+  | "rate_limited"
+  | "email_send_failed"
+  | "no_pending"
+  | "invalid_code"
+  | "expired"
+  | "too_many_attempts";
+
+export type WelmAuthErrorDetails = {
+  serverCode?: string;
+  retryAfterSeconds?: number;
+  attemptsLeft?: number;
+};
+
 export class WelmAuthApiError extends Error {
   readonly code: WelmAuthErrorCode;
   readonly status?: number;
+  readonly serverCode?: string;
+  readonly retryAfterSeconds?: number;
+  readonly attemptsLeft?: number;
 
-  constructor(code: WelmAuthErrorCode, message: string, status?: number) {
+  constructor(
+    code: WelmAuthErrorCode,
+    message: string,
+    status?: number,
+    details?: WelmAuthErrorDetails,
+  ) {
     super(message);
     this.name = "WelmAuthApiError";
     this.code = code;
     this.status = status;
+    this.serverCode = details?.serverCode;
+    this.retryAfterSeconds = details?.retryAfterSeconds;
+    this.attemptsLeft = details?.attemptsLeft;
   }
 }
 

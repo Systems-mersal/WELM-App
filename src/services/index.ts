@@ -10,4 +10,7 @@ export {
   verifyWelmPhoneOtp,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
+  registerWelmAccount,
+  loginWelmAccount,
+  saveWelmProfile,
 } from "../features/auth";

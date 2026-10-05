@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "../../components/buttons/AppButton";
 import { AppText } from "../../components/typography/AppText";
+import { computeLocalQuote } from "../../features/bookings";
 import type { RootStackParamList } from "../../navigation/types";
 import { useBookingDraftStore } from "../../stores/booking-draft-store";
 import { BookingStepHeader } from "../shared/BookingStepHeader";
@@ -37,6 +38,9 @@ export function BookingExtrasScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState(DEFAULT_SELECTED);
   const setExtras = useBookingDraftStore((state) => state.setExtras);
+  const setQuote = useBookingDraftStore((state) => state.setQuote);
+  const quotedDays = useBookingDraftStore((state) => state.quotedDays);
+  const quotedDailyRate = useBookingDraftStore((state) => state.quotedDailyRate);
 
   const totalExtras = useMemo(
     () =>
@@ -107,8 +111,18 @@ export function BookingExtrasScreen({ navigation, route }: Props) {
           <AppButton
             label={t("continue")}
             onPress={() => {
-              setExtras(EXTRA_KEYS.filter((key) => selected[key]));
-              navigation.navigate("BookingReview", { vehicleId: route.params.vehicleId });
+              const keys = EXTRA_KEYS.filter((key) => selected[key]);
+              setExtras(keys);
+              setQuote(
+                computeLocalQuote(
+                  quotedDailyRate,
+                  Math.max(1, quotedDays),
+                  totalExtras,
+                ),
+              );
+              navigation.navigate("BookingReview", {
+                vehicleId: route.params.vehicleId,
+              });
             }}
             className="h-[58px] min-w-[161px] rounded-[29px]"
           />

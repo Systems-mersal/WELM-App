@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -13,7 +12,13 @@ import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { HijriDateSheet } from "../../components/sheets/HijriDateSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
-import { SignupProgress } from "../../features/auth";
+import {
+  SignupProgress,
+  fetchWelmCompanies,
+  saveWelmProfile,
+  welmAuthUserMessage,
+  type WelmCompanyOption,
+} from "../../features/auth";
 import {
   ID_DOCUMENT_TYPES,
   DEFAULT_NATIONALITY,
@@ -23,6 +28,10 @@ import {
   type LicenseType,
   type NationalityCode,
 } from "../../features/auth/profile/lookups";
+import {
+  pickIdImageFromCamera,
+  pickIdImageFromLibrary,
+} from "../../features/auth/profile/pick-id-image";
 import {
   autofilledKeysFromFields,
   scanCustomerIdImage,
@@ -44,7 +53,7 @@ import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProfileGate">;
-type OpenSheet = "dob" | "licenseType" | "nationality" | "idType" | null;
+type OpenSheet = "dob" | "licenseType" | "nationality" | "idType" | "company" | null;
 type ScanBanner =
   | { kind: "success" | "partial"; filled: number; total: number }
   | { kind: "error"; message: string }
@@ -73,10 +82,15 @@ export function ProfileGateScreen({ navigation }: Props) {
   const [licenseNumber, setLicenseNumber] = useState(user?.licenseNumber ?? "");
   const [licenseExpiry, setLicenseExpiry] = useState(user?.licenseExpiry ?? "");
   const [placeOfIssue, setPlaceOfIssue] = useState(user?.placeOfIssue ?? "");
+  const [companyId, setCompanyId] = useState<string | undefined>();
+  const [companies, setCompanies] = useState<WelmCompanyOption[]>([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [autofilled, setAutofilled] = useState<Set<ScanTrackedKey>>(
     () => new Set(),
   );
@@ -84,9 +98,57 @@ export function ProfileGateScreen({ navigation }: Props) {
 
   const nameError = submitted && name.trim().length === 0;
   const idError = submitted && nationalId.trim().length === 0;
-  const canSubmit = name.trim().length > 0 && nationalId.trim().length > 0;
+  const companyError = submitted && !companyId;
+  const canSubmit =
+    name.trim().length > 0 && nationalId.trim().length > 0 && Boolean(companyId);
   const autoLabel = t("scan-auto-filled");
+  const selectedCompanyName = companies.find((company) => company.id === companyId)?.name;
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadCompanies = async () => {
+      setCompaniesLoading(true);
+      try {
+        const rows = await fetchWelmCompanies();
+        if (cancelled) {
+          return;
+        }
+        setCompanies(rows);
+        setCompanyId((current) => {
+          if (current && rows.some((row) => row.id === current)) {
+            return current;
+          }
+          return rows.length === 1 ? rows[0]?.id : undefined;
+        });
+      } catch (error) {
+        if (!cancelled) {
+          setSaveError(
+            welmAuthUserMessage(error, {
+              unavailable: t("companies-error"),
+              fallback: t("companies-error"),
+            }),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setCompaniesLoading(false);
+        }
+      }
+    };
+    void loadCompanies();
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  const companyOptions = useMemo(
+    () =>
+      companies.map((company) => ({
+        value: company.id,
+        label: company.name,
+      })),
+    [companies],
+  );
   const nationalityOptions = useMemo(
     () =>
       NATIONALITY_CODES.map((code) => ({
@@ -189,48 +251,50 @@ export function ProfileGateScreen({ navigation }: Props) {
   );
 
   const pickFromGallery = useCallback(async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      setScanBanner({ kind: "error", message: t("scan-gallery-denied") });
+    const picked = await pickIdImageFromLibrary();
+    if (!picked.ok) {
+      if (picked.reason === "denied") {
+        setScanBanner({ kind: "error", message: t("scan-gallery-denied") });
+      }
+      if (picked.reason === "unavailable") {
+        setScanBanner({ kind: "error", message: t("scan-picker-unavailable") });
+      }
       return;
     }
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.85,
-    });
-    if (picked.canceled || !picked.assets[0]?.uri) {
-      return;
-    }
-    await applyScanResult(picked.assets[0].uri);
+    await applyScanResult(picked.uri);
   }, [applyScanResult, t]);
 
   const pickFromNativeCamera = useCallback(async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      setScanBanner({ kind: "error", message: t("scan-permission-denied") });
-      void pickFromGallery();
+    const shot = await pickIdImageFromCamera();
+    if (!shot.ok) {
+      if (shot.reason === "denied") {
+        setScanBanner({ kind: "error", message: t("scan-permission-denied") });
+        void pickFromGallery();
+      }
+      if (shot.reason === "unavailable") {
+        setScanBanner({ kind: "error", message: t("scan-picker-unavailable") });
+      }
       return;
     }
-    const shot = await ImagePicker.launchCameraAsync({ quality: 0.85 });
-    if (shot.canceled || !shot.assets[0]?.uri) {
-      return;
-    }
-    await applyScanResult(shot.assets[0].uri);
+    await applyScanResult(shot.uri);
   }, [applyScanResult, pickFromGallery, t]);
 
-  const handleDone = useCallback(() => {
+  const handleDone = useCallback(async () => {
     setSubmitted(true);
-    if (!canSubmit) {
+    if (!canSubmit || saving) {
+      return;
+    }
+    if (!companyId) {
       return;
     }
 
     const trimmedName = name.trim();
-
-    updateUser({
+    const trimmedId = nationalId.trim();
+    const profilePatch = {
       name: trimmedName,
       firstName: trimmedName.split(/\s+/)[0] || trimmedName,
       idDocumentType: idType,
-      nationalId: nationalId.trim(),
+      nationalId: trimmedId,
       nationality,
       dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
       dateOfBirthHijri: hijriDob ? formatHijriIso(hijriDob) : undefined,
@@ -238,14 +302,48 @@ export function ProfileGateScreen({ navigation }: Props) {
       licenseNumber: licenseNumber.trim() || undefined,
       licenseExpiry: licenseExpiry.trim() || undefined,
       placeOfIssue: placeOfIssue.trim() || undefined,
-    });
+    };
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "MainTabs" }],
-    });
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const saved = await saveWelmProfile({
+        companyId,
+        name: trimmedName,
+        idDocumentType: idType,
+        nationalId: trimmedId,
+        nationality,
+        dateOfBirth: profilePatch.dateOfBirth,
+        licenseType,
+        licenseNumber: profilePatch.licenseNumber,
+        licenseExpiry: profilePatch.licenseExpiry,
+        placeOfIssue: profilePatch.placeOfIssue,
+      });
+      updateUser({
+        ...profilePatch,
+        customerId: saved.customerId,
+        name: saved.user.name,
+        firstName: saved.user.firstName,
+        nationalId: saved.user.nationalId,
+        idDocumentType: saved.user.idDocumentType,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainTabs" }],
+      });
+    } catch (error) {
+      setSaveError(
+        welmAuthUserMessage(error, {
+          unavailable: t("save-error"),
+          fallback: t("save-error"),
+        }),
+      );
+    } finally {
+      setSaving(false);
+    }
   }, [
     canSubmit,
+    companyId,
     hijriDob,
     idType,
     licenseExpiry,
@@ -256,6 +354,8 @@ export function ProfileGateScreen({ navigation }: Props) {
     nationality,
     navigation,
     placeOfIssue,
+    saving,
+    t,
     updateUser,
   ]);
 
@@ -302,12 +402,21 @@ export function ProfileGateScreen({ navigation }: Props) {
           cameraLabel={t("scan-camera")}
           uploadLabel={t("scan-upload")}
           scanning={scanning}
+          disabled
           onCamera={() => setCameraOpen(true)}
           onUpload={() => {
             void pickFromGallery();
           }}
         />
       </View>
+
+      {saveError ? (
+        <InlineErrorBanner
+          message={saveError}
+          onDismiss={() => setSaveError(null)}
+          dismissAccessibilityLabel={t("sheet-close")}
+        />
+      ) : null}
 
       {bannerMessage ? (
         <View className="mt-4">
@@ -337,6 +446,25 @@ export function ProfileGateScreen({ navigation }: Props) {
       ) : null}
 
       <View className="mt-8 gap-4">
+        <SelectField
+          label={t("company-label")}
+          value={selectedCompanyName}
+          placeholder={
+            companiesLoading ? t("companies-loading") : t("select-company")
+          }
+          onPress={() => {
+            if (!companiesLoading && companies.length > 0) {
+              setOpenSheet("company");
+            }
+          }}
+          error={
+            companyError
+              ? t("company-error")
+              : !companiesLoading && companies.length === 0
+                ? t("companies-empty")
+                : undefined
+          }
+        />
         <SelectField
           label={t("id-type-label")}
           value={idType ? t(`id-type-${idType}`) : undefined}
@@ -442,7 +570,9 @@ export function ProfileGateScreen({ navigation }: Props) {
           }}
           placeholder={t("place-of-issue-placeholder")}
           returnKeyType="done"
-          onSubmitEditing={handleDone}
+          onSubmitEditing={() => {
+            void handleDone();
+          }}
           autoFilled={autofilled.has("placeOfIssue")}
           autoFilledLabel={autoLabel}
         />
@@ -452,12 +582,15 @@ export function ProfileGateScreen({ navigation }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("done")}
-          onPress={handleDone}
+          disabled={saving}
+          onPress={() => {
+            void handleDone();
+          }}
           className={`h-14 flex-row items-center justify-center gap-2 rounded-pill ${
-            canSubmit ? "bg-primary active:opacity-90" : "bg-border"
+            canSubmit && !saving ? "bg-primary active:opacity-90" : "bg-border"
           }`}
           style={
-            canSubmit
+            canSubmit && !saving
               ? {
                   shadowColor: colors.primaryDark,
                   shadowOffset: { width: 0, height: 10 },
@@ -470,15 +603,15 @@ export function ProfileGateScreen({ navigation }: Props) {
         >
           <AppText
             variant="button"
-            className={`text-center ${canSubmit ? "text-white" : "text-textMuted"}`}
+            className={`text-center ${canSubmit && !saving ? "text-white" : "text-textMuted"}`}
             style={{ includeFontPadding: false, lineHeight: 22 }}
           >
-            {t("done")}
+            {saving ? t("saving") : t("done")}
           </AppText>
           <AppIcon
             name={chevronEnd}
             size={20}
-            color={canSubmit ? colors.white : colors.textMuted}
+            color={canSubmit && !saving ? colors.white : colors.textMuted}
           />
         </Pressable>
       </View>
@@ -510,6 +643,15 @@ export function ProfileGateScreen({ navigation }: Props) {
           setHijriDob(value);
         }}
         onClose={() => setOpenSheet(null)}
+      />
+      <SelectSheet
+        visible={openSheet === "company"}
+        title={t("select-company")}
+        options={companyOptions}
+        selected={companyId}
+        onSelect={(value) => setCompanyId(value)}
+        onClose={() => setOpenSheet(null)}
+        closeLabel={t("sheet-close")}
       />
       <SelectSheet
         visible={openSheet === "idType"}

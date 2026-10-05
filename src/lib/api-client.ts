@@ -9,7 +9,7 @@ import {
 import { getApiBaseUrl } from "./api-base-url";
 
 function isWelmAuthRoute(url: string | undefined): boolean {
-  return typeof url === "string" && url.includes("/api/welm/auth");
+  return typeof url === "string" && url.includes("/api/welm/");
 }
 
 function isRefreshRequest(url: string | undefined): boolean {

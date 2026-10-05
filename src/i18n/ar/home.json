@@ -3,6 +3,7 @@
   "greeting": "مرحباً بك",
   "user-name": "أحمد محمد",
   "featured": "سيارة متميزة",
+  "available-cars": "السيارات المتاحة",
   "view-all": "عرض الكل",
   "book-now": "احجز الآن",
   "per-day": "/يوم",
@@ -44,5 +45,7 @@
   "empty-subtitle": "جرّب نطاقاً أكبر أو ابحث في مدينة قريبة.",
   "nearest-city": "أقرب مدينة: {{city}}",
   "search-nearest-city": "البحث في هذه المدينة",
-  "sheet-close": "إغلاق"
+  "sheet-close": "إغلاق",
+  "categories-all": "الكل",
+  "fleet-empty": "لا توجد سيارات متاحة من هذه الشركة حالياً."
 }

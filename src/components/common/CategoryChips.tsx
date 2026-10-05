@@ -101,10 +101,14 @@ export const HorizontalCategoryChips = memo(function HorizontalCategoryChips({
 
 export function useVehicleLabel(vehicle: Vehicle) {
   const { t } = useTranslation("vehicles");
-  const name = t(vehicle.nameKey);
-  const location = vehicle.locationKey
-    ? t(`locations.${vehicle.locationKey}`)
-    : undefined;
+  const name =
+    vehicle.displayName?.trim() ||
+    (vehicle.nameKey ? t(vehicle.nameKey) : null) ||
+    [vehicle.brand, vehicle.model].filter(Boolean).join(" ") ||
+    vehicle.id;
+  const location =
+    vehicle.locationLabel?.trim() ||
+    (vehicle.locationKey ? t(`locations.${vehicle.locationKey}`) : undefined);
   return { name, location };
 }
 

@@ -1,5 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,9 +13,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapPlaceholder from "../../assets/figma/cars/map-placeholder.png";
 import mercedesDetail from "../../assets/figma/cars/mercedes-detail.png";
 import { AppButton } from "../../components/buttons/AppButton";
+import { useVehicleLabel } from "../../components/common/CategoryChips";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { AppText } from "../../components/typography/AppText";
 import { getVehicleById } from "../../constants/vehicles";
+import { useWelmVehicle } from "../../features/vehicles";
 import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { useBookingDraftStore } from "../../stores/booking-draft-store";
@@ -25,18 +33,64 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { chevronStart } = useRtl();
   const [isFavorite, setIsFavorite] = useState(false);
+  const vehicleId = route.params.vehicleId;
+  const mockVehicle = getVehicleById(vehicleId);
+  const {
+    data: apiVehicle,
+    isLoading,
+    isError,
+    refetch,
+  } = useWelmVehicle(mockVehicle ? undefined : vehicleId);
 
-  const vehicle = getVehicleById(route.params.vehicleId);
+  const vehicle = mockVehicle ?? apiVehicle;
+  const { name } = useVehicleLabel(
+    vehicle ?? {
+      id: vehicleId,
+      brand: "",
+      model: "",
+      pricePerDay: 0,
+      rating: 0,
+      category: "luxury",
+      image: "",
+      imageSource: mercedesDetail,
+      seats: 5,
+      transmission: "automatic",
+      fuelType: "petrol",
+    },
+  );
 
   const galleryImage = useMemo(() => {
     if (!vehicle) return mercedesDetail;
     return vehicle.id === "mercedes-e350" ? mercedesDetail : vehicle.imageSource;
   }, [vehicle]);
 
-  if (!vehicle) {
+  const setVehicleId = useBookingDraftStore((state) => state.setVehicleId);
+
+  if (!mockVehicle && isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <AppText>{t("common:error")}</AppText>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (!vehicle || (!mockVehicle && isError)) {
+    return (
+      <View className="flex-1 items-center justify-center gap-3 bg-background px-6">
+        <AppText className="text-center">{t("common:error")}</AppText>
+        {!mockVehicle ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void refetch();
+            }}
+            className="rounded-pill bg-primary px-5 py-2 active:opacity-80"
+          >
+            <AppText variant="caption" className="text-white">
+              {t("common:retry")}
+            </AppText>
+          </Pressable>
+        ) : null}
       </View>
     );
   }
@@ -50,8 +104,6 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
     vehicle.fuelType === "electric"
       ? t("vehicle-details:electric")
       : t("vehicle-details:petrol");
-
-  const setVehicleId = useBookingDraftStore((state) => state.setVehicleId);
 
   const handleBook = () => {
     setVehicleId(vehicle.id);
@@ -105,24 +157,34 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
         <View className="-mt-6 rounded-tl-[24px] rounded-tr-[24px] bg-white px-6 pt-6">
           <AppText variant="title" className="text-start">
-            {t(`vehicles:${vehicle.nameKey}`)}
+            {name}
             {vehicle.year ? ` ${vehicle.year}` : ""}
           </AppText>
+
+          {vehicle.locationLabel ? (
+            <AppText variant="caption" muted className="mt-1 text-start">
+              {vehicle.locationLabel}
+            </AppText>
+          ) : null}
 
           <View className="mt-2 flex-row flex-wrap items-center justify-start gap-2">
             <AppText variant="caption" muted>
               {t(`vehicle-details:categories.${vehicle.category}`)}
             </AppText>
-            <AppText variant="caption" muted>
-              •
-            </AppText>
-            <AppIcon name="star" size={14} color={colors.primary} />
-            <AppText variant="caption" className="text-text">
-              {vehicle.rating}
-            </AppText>
-            <AppText variant="caption" muted>
-              {t("vehicle-details:review-count", { count: 128 })}
-            </AppText>
+            {vehicle.rating > 0 ? (
+              <>
+                <AppText variant="caption" muted>
+                  •
+                </AppText>
+                <AppIcon name="star" size={14} color={colors.primary} />
+                <AppText variant="caption" className="text-text">
+                  {vehicle.rating}
+                </AppText>
+                <AppText variant="caption" muted>
+                  {t("vehicle-details:review-count", { count: 128 })}
+                </AppText>
+              </>
+            ) : null}
           </View>
 
           <View className="mt-6 flex-row justify-between gap-2">
@@ -134,7 +196,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
                 label: t("vehicle-details:capacity"),
               },
               {
-                value: String(vehicle.year ?? 2025),
+                value: String(vehicle.year ?? "—"),
                 label: t("vehicle-details:model-year"),
               },
             ].map((spec) => (
