@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.welmm.tajeerplus",
+      "bundleIdentifier": "com.welm.tajeerplus",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development.",
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.welmm.tajeerplus",
+      "package": "com.welm.tajeerplus",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES"
