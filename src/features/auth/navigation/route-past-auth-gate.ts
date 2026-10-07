@@ -24,3 +24,19 @@ export function routePastAuthGate(
     routes: [{ name: "ProfileGate" }],
   });
 }
+
+/**
+ * US-5 «متابعة كـ» — resume the parked session, then US-8.
+ * Incomplete identity goes to Complete Profile. A finished profile lands on
+ * Home, which still asks for location until a pin or city is saved.
+ */
+export function routeAfterAccountContinue(
+  navigation: NavigationProp<RootStackParamList>,
+  profileComplete: boolean,
+): void {
+  if (!profileComplete) {
+    routePastAuthGate(navigation);
+    return;
+  }
+  routeToHome(navigation);
+}

@@ -1,10 +1,14 @@
 import React, { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { appleIconXml } from "../../assets/figma/login/appleIconXml";
-import { xIconXml } from "../../assets/figma/login/xIconXml";
 import { WelmLogo } from "../../components/brand/WelmLogo";
 import { AppButton } from "../../components/buttons/AppButton";
 import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
@@ -12,7 +16,6 @@ import { Screen } from "../../components/common/Screen";
 import { AppInput } from "../../components/forms/AppInput";
 import { TermsCheckbox } from "../../components/forms/TermsCheckbox";
 import { AppIcon } from "../../components/icons/AppIcon";
-import { LocalSvg } from "../../components/icons/LocalSvg";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
@@ -124,7 +127,6 @@ export function CreateAccountScreen({ navigation }: Props) {
     }
   }, [navigation, requireTerms, socialBusy, t]);
 
-  /** Design uses X mark; auth still goes through Google OAuth. */
   const handleGooglePress = useCallback(async () => {
     if (!requireTerms()) {
       return;
@@ -214,7 +216,10 @@ export function CreateAccountScreen({ navigation }: Props) {
           session.refreshToken,
         );
       if (session.user.emailVerified === false) {
-        await routeToEmailOtp(navigation, session.user.email ?? normalizedEmail);
+        await routeToEmailOtp(
+          navigation,
+          session.user.email ?? normalizedEmail,
+        );
       } else {
         routePastAuthGate(navigation);
       }
@@ -232,15 +237,13 @@ export function CreateAccountScreen({ navigation }: Props) {
     }
   }, [emailBusy, navigation, password, t, validateEmailForm]);
 
-  const socialDimmed = !acceptedTerms;
-
   return (
     <View className="flex-1">
       <Screen
-        keyboard
+        scrollable={false}
         edges={["bottom"]}
         className="bg-white"
-        contentClassName="justify-between"
+        contentClassName="flex-1"
         header={
           <StackScreenHeader
             title={t("header")}
@@ -248,206 +251,220 @@ export function CreateAccountScreen({ navigation }: Props) {
           />
         }
       >
-        <View>
-          <View className="mt-6 items-center">
-            <WelmLogo width={180} />
-          </View>
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
+          showsVerticalScrollIndicator={false}
+          contentContainerClassName="pb-4"
+        >
+          <View>
+            <View className="mt-6 items-center">
+              <WelmLogo width={180} />
+            </View>
 
-          <View className="mt-6 items-center gap-3 px-2">
-            <AppText
-              className="text-center text-text"
-              style={{
-                fontFamily: fontFamily.bold,
-                fontSize: fontSize.xxl,
-                lineHeight: 32,
-              }}
-            >
-              {t("title")}
-            </AppText>
-            <AppText
-              className="text-center text-textMuted"
-              style={{
-                fontFamily: fontFamily.regular,
-                fontSize: fontSize.label,
-                lineHeight: 22,
-              }}
-            >
-              {t("subtitle")}
-            </AppText>
-          </View>
+            <View className="mt-4 items-center gap-3 px-2">
+              <AppText
+                className="text-center text-text"
+                style={{
+                  fontFamily: fontFamily.bold,
+                  fontSize: fontSize.xxl,
+                  lineHeight: 32,
+                }}
+              >
+                {t("title")}
+              </AppText>
+              <AppText
+                className="text-center text-textMuted"
+                style={{
+                  fontFamily: fontFamily.regular,
+                  fontSize: fontSize.label,
+                  lineHeight: 22,
+                }}
+              >
+                {t("subtitle")}
+              </AppText>
+            </View>
 
-          <View className="mt-8 gap-4">
-            <AppInput
-              label={t("email")}
-              value={email}
-              onChangeText={(value) => {
-                setEmail(value);
-                if (emailError) {
-                  setEmailError(null);
+            <View className="mt-8 gap-4">
+              <AppInput
+                label={t("email")}
+                value={email}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  if (emailError) {
+                    setEmailError(null);
+                  }
+                }}
+                placeholder={t("email-placeholder")}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+                textContentType="emailAddress"
+                error={emailError ?? undefined}
+              />
+
+              <AppInput
+                label={t("password")}
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  if (passwordError) {
+                    setPasswordError(null);
+                  }
+                }}
+                placeholder={t("password-placeholder")}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                textContentType="newPassword"
+                error={passwordError ?? undefined}
+                rightElement={
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword ? t("hide-password") : t("show-password")
+                    }
+                    onPress={() => setShowPassword((current) => !current)}
+                    hitSlop={8}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <AppIcon
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={20}
+                      color={colors.textMuted}
+                    />
+                  </Pressable>
                 }
-              }}
-              placeholder={t("email-placeholder")}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              textContentType="emailAddress"
-              error={emailError ?? undefined}
-            />
+              />
 
-            <AppInput
-              label={t("password")}
-              value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-                if (passwordError) {
-                  setPasswordError(null);
+              <AppInput
+                label={t("confirm-password")}
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  if (confirmError) {
+                    setConfirmError(null);
+                  }
+                }}
+                placeholder={t("confirm-password-placeholder")}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                textContentType="newPassword"
+                error={confirmError ?? undefined}
+                rightElement={
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showConfirmPassword
+                        ? t("hide-password")
+                        : t("show-password")
+                    }
+                    onPress={() =>
+                      setShowConfirmPassword((current) => !current)
+                    }
+                    hitSlop={8}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <AppIcon
+                      name={showConfirmPassword ? "eye-off" : "eye"}
+                      size={20}
+                      color={colors.textMuted}
+                    />
+                  </Pressable>
                 }
-              }}
-              placeholder={t("password-placeholder")}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="new-password"
-              textContentType="newPassword"
-              error={passwordError ?? undefined}
-              rightElement={
+              />
+            </View>
+
+            <View className="mt-8 flex-row items-center gap-4">
+              <View className="h-px flex-1 bg-border" />
+              <AppText variant="caption" muted>
+                {t("or")}
+              </AppText>
+              <View className="h-px flex-1 bg-border" />
+            </View>
+
+            <View className="mt-6 flex-row items-center justify-center gap-4">
+              {Platform.OS === "ios" ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={
-                    showPassword ? t("hide-password") : t("show-password")
-                  }
-                  onPress={() => setShowPassword((current) => !current)}
-                  hitSlop={8}
-                  className="h-8 w-8 items-center justify-center"
+                  accessibilityLabel={t("a11y-apple")}
+                  onPress={() => {
+                    void handleApplePress();
+                  }}
+                  className="h-14 w-14 items-center justify-center rounded-full border border-border bg-white active:opacity-70"
                 >
-                  <AppIcon
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color={colors.textMuted}
-                  />
+                  <AppIcon name="apple" size={22} color={colors.text} />
                 </Pressable>
-              }
-            />
-
-            <AppInput
-              label={t("confirm-password")}
-              value={confirmPassword}
-              onChangeText={(value) => {
-                setConfirmPassword(value);
-                if (confirmError) {
-                  setConfirmError(null);
-                }
-              }}
-              placeholder={t("confirm-password-placeholder")}
-              secureTextEntry={!showConfirmPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="new-password"
-              textContentType="newPassword"
-              error={confirmError ?? undefined}
-              rightElement={
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    showConfirmPassword ? t("hide-password") : t("show-password")
-                  }
-                  onPress={() =>
-                    setShowConfirmPassword((current) => !current)
-                  }
-                  hitSlop={8}
-                  className="h-8 w-8 items-center justify-center"
-                >
-                  <AppIcon
-                    name={showConfirmPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color={colors.textMuted}
-                  />
-                </Pressable>
-              }
-            />
-          </View>
-
-          <View className="mt-8 flex-row items-center gap-4">
-            <View className="h-px flex-1 bg-border" />
-            <AppText variant="caption" muted>
-              {t("or")}
-            </AppText>
-            <View className="h-px flex-1 bg-border" />
-          </View>
-
-          <View className="mt-6 flex-row items-center justify-center gap-4">
-            {Platform.OS === "ios" ? (
+              ) : null}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t("a11y-apple")}
+                accessibilityLabel={t("a11y-google")}
                 onPress={() => {
-                  void handleApplePress();
+                  void handleGooglePress();
                 }}
-                className={`h-14 w-14 items-center justify-center rounded-full border border-border bg-white ${
-                  socialDimmed ? "opacity-40" : "active:opacity-70"
-                }`}
+                className="h-14 w-14 items-center justify-center rounded-full border border-border bg-white active:opacity-70"
               >
-                <LocalSvg xml={appleIconXml} width={22} height={22} />
+                <AppIcon name="google" size={22} color={colors.text} />
               </Pressable>
+            </View>
+
+            {authError ? (
+              <InlineErrorBanner
+                message={authError}
+                onDismiss={() => setAuthError(null)}
+                dismissAccessibilityLabel={t("social-error-dismiss")}
+              />
             ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("a11y-x")}
-              onPress={() => {
-                void handleGooglePress();
-              }}
-              className={`h-14 w-14 items-center justify-center rounded-full border border-border bg-white ${
-                socialDimmed ? "opacity-40" : "active:opacity-70"
-              }`}
-            >
-              <LocalSvg xml={xIconXml} width={18} height={18} />
-            </Pressable>
-          </View>
 
-          {authError ? (
-            <InlineErrorBanner
-              message={authError}
-              onDismiss={() => setAuthError(null)}
-              dismissAccessibilityLabel={t("social-error-dismiss")}
-            />
-          ) : null}
-
-          <View className="mt-8">
-            <TermsCheckbox
-              checked={acceptedTerms}
-              error={termsError}
-              onToggle={handleToggleTerms}
-              accessibilityLabel={t("a11y-terms")}
-              errorMessage={t("terms-error")}
-            >
-              <AppText variant="caption" className="text-start text-text">
-                {t("terms-agree")}
+            <View className="mt-8">
+              <TermsCheckbox
+                checked={acceptedTerms}
+                error={termsError}
+                onToggle={handleToggleTerms}
+                accessibilityLabel={t("a11y-terms")}
+                errorMessage={t("terms-error")}
+              >
                 <AppText
                   variant="caption"
-                  className="text-primary"
-                  onPress={() => navigation.navigate("Legal", { kind: "terms" })}
-                  suppressHighlighting
+                  className="text-start text-primary"
+                  style={{ textDecorationLine: "underline" }}
                 >
-                  {t("terms-link")}
+                  {t("terms-agree")}
+                  <AppText
+                    variant="caption"
+                    className="text-primary"
+                    style={{ textDecorationLine: "underline" }}
+                    onPress={() =>
+                      navigation.navigate("Legal", { kind: "terms" })
+                    }
+                    suppressHighlighting
+                  >
+                    {t("terms-link")}
+                  </AppText>
+                  {t("terms-and")}
+                  <AppText
+                    variant="caption"
+                    className="text-primary"
+                    style={{ textDecorationLine: "underline" }}
+                    onPress={() =>
+                      navigation.navigate("Legal", { kind: "privacy" })
+                    }
+                    suppressHighlighting
+                  >
+                    {t("privacy-link")}
+                  </AppText>
                 </AppText>
-                {t("terms-and")}
-                <AppText
-                  variant="caption"
-                  className="text-primary"
-                  onPress={() =>
-                    navigation.navigate("Legal", { kind: "privacy" })
-                  }
-                  suppressHighlighting
-                >
-                  {t("privacy-link")}
-                </AppText>
-              </AppText>
-            </TermsCheckbox>
+              </TermsCheckbox>
+            </View>
           </View>
-        </View>
+        </ScrollView>
 
-        <View className="mt-8 pb-2">
+        <View className="pb-2 pt-3">
           <AppButton
             label={t("create-account")}
             onPress={() => {

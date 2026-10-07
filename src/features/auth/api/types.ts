@@ -19,6 +19,11 @@ export type WelmAuthSession = {
   user: WelmAuthUser;
   /** true when email/phone OTP is not done yet → confirm contact; false → existing consumer. */
   isNew: boolean;
+  /**
+   * Identity form already saved on Tajeer. False → Complete Profile (US-8)
+   * after «متابعة كـ».
+   */
+  profileComplete?: boolean;
   provider?: WelmAuthProvider;
 };
 

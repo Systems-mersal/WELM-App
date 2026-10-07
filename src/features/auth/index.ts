@@ -13,7 +13,7 @@ export {
   getWelmPostAuthDestination,
   routeAfterWelmAuth,
 } from "./navigation/route-after-auth";
-export { routePastAuthGate, routeToHome } from "./navigation/route-past-auth-gate";
+export { routePastAuthGate, routeToHome, routeAfterAccountContinue } from "./navigation/route-past-auth-gate";
 export { routeToEmailOtp } from "./navigation/route-to-email-otp";
 export type { WelmPostAuthDestination } from "./navigation/route-after-auth";
 export {

@@ -28,10 +28,10 @@ export function TermsCheckbox({
         accessibilityState={{ checked }}
         accessibilityLabel={accessibilityLabel}
         onPress={onToggle}
-        className="flex-row items-start gap-3"
+        className="flex-row items-center justify-start gap-2"
       >
         <View
-          className={`mt-0.5 h-5 w-5 items-center justify-center rounded border ${
+          className={`h-5 w-5 items-center justify-center rounded border ${
             checked
               ? "border-primary bg-primary"
               : error
@@ -43,7 +43,7 @@ export function TermsCheckbox({
             <AppIcon name="check" size={12} color={colors.white} />
           ) : null}
         </View>
-        <View className="flex-1">{children}</View>
+        <View className="shrink">{children}</View>
       </Pressable>
       {error && errorMessage ? (
         <AppText variant="caption" className="mt-2 text-danger">
