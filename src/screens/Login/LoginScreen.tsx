@@ -3,20 +3,28 @@ import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { loginLogoMarkXml } from "../../assets/figma/login/logoMarkXml";
+import { WelmLogo } from "../../components/brand/WelmLogo";
 import { AppButton } from "../../components/buttons/AppButton";
+import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
+import { AppInput } from "../../components/forms/AppInput";
 import { AppIcon } from "../../components/icons/AppIcon";
-import { LocalSvg } from "../../components/icons/LocalSvg";
 import { AppText } from "../../components/typography/AppText";
 import {
   exchangeSocialCredential,
+  loginWelmAccount,
+  mapWelmSessionToAuthUser,
   reportWelmAuthFailure,
   routeAfterWelmAuth,
+  routePastAuthGate,
+  routeToEmailOtp,
+  routeToHome,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
   SocialProvider,
+  useAuthStore,
+  WelmAuthApiError,
   welmAuthUserMessage,
 } from "../../features/auth";
 import { useRtl } from "../../hooks/useRtl";
@@ -26,23 +34,95 @@ import { fontFamily, fontSize } from "../../theme/typography";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
+function isValidEmail(value: string): boolean {
+  const trimmed = value.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
 export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation(["login", "common"]);
   const { textAlign } = useRtl();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [emailBusy, setEmailBusy] = useState(false);
   const [phone, setPhone] = useState("");
   const [socialBusy, setSocialBusy] = useState(false);
 
   const handleContinue = useCallback(() => {
-    navigation.navigate("Otp", { phone: phone.trim() || undefined });
+    navigation.navigate("Otp", {
+      phone: phone.trim() || undefined,
+      intent: "signup",
+    });
   }, [navigation, phone]);
 
   const handleCreateAccount = useCallback(() => {
     navigation.navigate("CreateAccount");
   }, [navigation]);
 
+  const handleEmailSignIn = useCallback(async () => {
+    const normalizedEmail = email.trim();
+    let valid = true;
+
+    if (!isValidEmail(normalizedEmail)) {
+      setEmailError(t("email-invalid"));
+      valid = false;
+    } else {
+      setEmailError(null);
+    }
+
+    if (!password) {
+      setPasswordError(t("password-required"));
+      valid = false;
+    } else {
+      setPasswordError(null);
+    }
+
+    if (!valid || emailBusy) {
+      return;
+    }
+
+    setAuthError(null);
+    setEmailBusy(true);
+    try {
+      const session = await loginWelmAccount(normalizedEmail, password);
+      useAuthStore
+        .getState()
+        .setSession(
+          session.accessToken,
+          mapWelmSessionToAuthUser(session),
+          session.refreshToken,
+        );
+      if (session.user.emailVerified === false) {
+        await routeToEmailOtp(navigation, session.user.email ?? normalizedEmail);
+      } else if (session.isNew) {
+        routePastAuthGate(navigation);
+      } else {
+        routeToHome(navigation);
+      }
+    } catch (error) {
+      const message =
+        error instanceof WelmAuthApiError && error.status === 403
+          ? t("not-consumer")
+          : error instanceof WelmAuthApiError && error.status === 401
+            ? t("invalid-credentials")
+            : welmAuthUserMessage(error, {
+                unavailable: t("common:auth.api-unavailable"),
+                fallback: t("invalid-credentials"),
+              });
+      setAuthError(message);
+      reportWelmAuthFailure(error, message, t("common:error"));
+    } finally {
+      setEmailBusy(false);
+    }
+  }, [email, emailBusy, navigation, password, t]);
+
   const handleSocialPress = useCallback(
     async (provider: SocialProvider) => {
-      if (socialBusy) {
+      if (socialBusy || emailBusy) {
         return;
       }
       setSocialBusy(true);
@@ -102,7 +182,7 @@ export function LoginScreen({ navigation }: Props) {
         setSocialBusy(false);
       }
     },
-    [navigation, socialBusy, t],
+    [emailBusy, navigation, socialBusy, t],
   );
 
   return (
@@ -113,14 +193,8 @@ export function LoginScreen({ navigation }: Props) {
       contentClassName="justify-between"
     >
       <View>
-        <View className="mt-4 flex-row items-center justify-center gap-2">
-          <AppText
-            className="tracking-[2px] text-primary"
-            style={{ fontFamily: fontFamily.bold, fontSize: fontSize.body }}
-          >
-            WELM
-          </AppText>
-          <LocalSvg xml={loginLogoMarkXml} width={36} height={36} />
+        <View className="mt-4 items-center">
+          <WelmLogo width={180} />
         </View>
 
         <View className="mt-10 items-center gap-3">
@@ -138,7 +212,88 @@ export function LoginScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        <View className="mt-10">
+        <View className="mt-10 gap-4">
+          <AppInput
+            label={t("email")}
+            value={email}
+            onChangeText={(value) => {
+              setEmail(value);
+              if (emailError) {
+                setEmailError(null);
+              }
+            }}
+            placeholder={t("email-placeholder")}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            error={emailError ?? undefined}
+          />
+
+          <AppInput
+            label={t("password")}
+            value={password}
+            onChangeText={(value) => {
+              setPassword(value);
+              if (passwordError) {
+                setPasswordError(null);
+              }
+            }}
+            placeholder={t("password-placeholder")}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="password"
+            textContentType="password"
+            error={passwordError ?? undefined}
+            rightElement={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showPassword ? t("hide-password") : t("show-password")
+                }
+                onPress={() => setShowPassword((current) => !current)}
+                hitSlop={8}
+                className="h-8 w-8 items-center justify-center"
+              >
+                <AppIcon
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color={colors.textMuted}
+                />
+              </Pressable>
+            }
+          />
+        </View>
+
+        {authError ? (
+          <InlineErrorBanner
+            message={authError}
+            onDismiss={() => setAuthError(null)}
+            dismissAccessibilityLabel={t("auth-error-dismiss")}
+          />
+        ) : null}
+
+        <View className="mt-6">
+          <AppButton
+            label={t("sign-in")}
+            onPress={() => {
+              void handleEmailSignIn();
+            }}
+            loading={emailBusy}
+          />
+        </View>
+
+        <View className="mt-8 flex-row items-center gap-4">
+          <View className="h-px flex-1 bg-border" />
+          <AppText variant="caption" muted>
+            {t("or")}
+          </AppText>
+          <View className="h-px flex-1 bg-border" />
+        </View>
+
+        <View className="mt-8">
           <AppText variant="label" className="mb-2">
             {t("phone")}
           </AppText>

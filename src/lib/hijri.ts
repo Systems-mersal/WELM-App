@@ -84,6 +84,15 @@ export function defaultHijriDraft(): HijriYmd {
   return constrainHijri({ year: current.year - 25, month: 1, day: 1 });
 }
 
+export function defaultHijriFutureDraft(): HijriYmd {
+  const current = todayHijri();
+  return constrainHijri({
+    year: current.year + 1,
+    month: current.month,
+    day: current.day,
+  });
+}
+
 export function formatHijriIso(value: HijriYmd): string {
   const date = constrainHijri(value);
   return `${date.year}-${pad2(date.month)}-${pad2(date.day)}`;
@@ -141,10 +150,13 @@ export function hijriFromStored(
   return toYmd(toCalendar(gregorian, createHijriCalendar()));
 }
 
-export function hijriYearRange(includeYear?: number): number[] {
+export function hijriYearRange(
+  includeYear?: number,
+  span?: { fromYear?: number; toYear?: number },
+): number[] {
   const current = todayHijri().year;
-  const max = current - 15;
-  const min = current - 90;
+  const max = span?.toYear ?? current;
+  const min = span?.fromYear ?? current - 90;
   const top = includeYear != null ? Math.max(max, includeYear) : max;
   const bottom = includeYear != null ? Math.min(min, includeYear) : min;
   const years: number[] = [];
@@ -152,4 +164,40 @@ export function hijriYearRange(includeYear?: number): number[] {
     years.push(year);
   }
   return years;
+}
+
+const EASTERN_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+export function toEasternDigits(value: string | number): string {
+  return String(value).replace(/\d/g, (digit) => EASTERN_DIGITS[Number(digit)] ?? digit);
+}
+
+export function isHijriFuture(value: HijriYmd): boolean {
+  return hijriToGregorianIso(value) > today(localTimeZone()).toString();
+}
+
+export function isHijriPast(value: HijriYmd): boolean {
+  return hijriToGregorianIso(value) < today(localTimeZone()).toString();
+}
+
+export function clampHijriToToday(value: HijriYmd): HijriYmd {
+  const next = constrainHijri(value);
+  return isHijriFuture(next) ? todayHijri() : next;
+}
+
+export function clampHijriNotPast(value: HijriYmd): HijriYmd {
+  const next = constrainHijri(value);
+  return isHijriPast(next) ? todayHijri() : next;
+}
+
+export function formatHijriSummary(
+  value: HijriYmd,
+  monthName: string,
+  options?: { eastern?: boolean; suffix?: string },
+): string {
+  const date = constrainHijri(value);
+  const day = options?.eastern ? toEasternDigits(date.day) : String(date.day);
+  const year = options?.eastern ? toEasternDigits(date.year) : String(date.year);
+  const suffix = options?.suffix ? ` ${options.suffix}` : "";
+  return `${day} ${monthName} ${year}${suffix}`;
 }

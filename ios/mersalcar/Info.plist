@@ -38,6 +38,12 @@
 				<string>com.welm.tajeerplus</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.107422081244-p0svshl4fnf0e5erkopgbdbct1kcgbs4</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
@@ -55,7 +61,7 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>WELM reaches Tajeer Plus on your computer during local development.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Allow WELM to use your location while you are using the app.</string>
+	<string>ويلم يريد الوصول إلى موقعك. لعرض السيارات المتاحة في نطاقك</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

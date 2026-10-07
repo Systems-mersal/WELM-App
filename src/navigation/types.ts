@@ -22,12 +22,15 @@ export type RootStackParamList = {
         provider?: "apple" | "google";
         /** Present only when Tajeer is not production and SMTP is not wired. */
         debugCode?: string;
+        resendIn?: number;
+        sendFailed?: boolean;
       }
     | undefined;
   CreateAccount: undefined;
   LinkMobile: { provider: "apple" | "google" };
   AccountExists: undefined;
   ProfileGate: undefined;
+  CompleteIdentity: { phone?: string } | undefined;
   Legal: { kind: "terms" | "privacy" };
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   VehicleDetails: { vehicleId: string };
@@ -37,6 +40,7 @@ export type RootStackParamList = {
   BookingConfirmed: { vehicleId?: string };
   Notifications: undefined;
   Documents: undefined;
+  LocationRationale: undefined;
   LocationRadius: undefined;
 };
 

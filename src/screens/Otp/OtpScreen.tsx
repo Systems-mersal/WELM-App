@@ -132,6 +132,10 @@ export function OtpScreen({ navigation, route }: Props) {
         name: "User",
         phone,
       });
+      if (phone) {
+        navigation.replace("CompleteIdentity", { phone });
+        return;
+      }
       navigation.replace("MainTabs");
     },
     [

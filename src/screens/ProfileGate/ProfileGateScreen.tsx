@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { AppInput } from "../../components/forms/AppInput";
+import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { SelectField } from "../../components/forms/SelectField";
 import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
@@ -13,9 +14,15 @@ import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { HijriDateSheet } from "../../components/sheets/HijriDateSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
-import { SignupProgress } from "../../features/auth";
 import {
-  ID_DOCUMENT_TYPES,
+  SignupProgress,
+  fetchWelmCompanies,
+  patchWelmProfile,
+  routeAfterIdentity,
+  welmAuthUserMessage,
+} from "../../features/auth";
+import {
+  PROFILE_GATE_ID_TYPES,
   DEFAULT_NATIONALITY,
   LICENSE_TYPES,
   NATIONALITY_CODES,
@@ -42,6 +49,7 @@ import type { RootStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
+import { normalizeSaudiMobile } from "../../utils/saudi-mobile";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProfileGate">;
 type OpenSheet = "dob" | "licenseType" | "nationality" | "idType" | null;
@@ -50,11 +58,22 @@ type ScanBanner =
   | { kind: "error"; message: string }
   | null;
 
+function isValidEmail(value: string): boolean {
+  const trimmed = value.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
 export function ProfileGateScreen({ navigation }: Props) {
-  const { t } = useTranslation("profile-gate");
+  const { t } = useTranslation(["profile-gate", "common"]);
   const { chevronEnd } = useRtl();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
+  const [providerName] = useState(user?.name?.trim() ?? "");
+  const [providerEmail] = useState(user?.email?.trim() ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   const [name, setName] = useState(user?.name ?? "");
   const [idType, setIdType] = useState<IdDocumentType | undefined>(
@@ -83,9 +102,52 @@ export function ProfileGateScreen({ navigation }: Props) {
   const [scanBanner, setScanBanner] = useState<ScanBanner>(null);
 
   const nameError = submitted && name.trim().length === 0;
+  const emailError =
+    submitted && email.trim().length > 0 && !isValidEmail(email);
   const idError = submitted && nationalId.trim().length === 0;
-  const canSubmit = name.trim().length > 0 && nationalId.trim().length > 0;
+  const canSubmit =
+    name.trim().length > 0 &&
+    nationalId.trim().length > 0 &&
+    (email.trim().length === 0 || isValidEmail(email));
   const autoLabel = t("scan-auto-filled");
+  const lockedPhone = user?.phone?.trim()
+    ? normalizeSaudiMobile(user.phone)
+    : "";
+
+  const providerPill = useMemo(() => {
+    if (user?.provider === "google") {
+      return t("from-provider", { provider: t("provider-google") });
+    }
+    if (user?.provider === "apple") {
+      return t("from-provider", { provider: t("provider-apple") });
+    }
+    return undefined;
+  }, [t, user?.provider]);
+
+  const nameFromProvider = Boolean(
+    providerPill && providerName && name.trim() === providerName,
+  );
+  const emailFromProvider = Boolean(
+    providerPill && providerEmail && email.trim() === providerEmail,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchWelmCompanies()
+      .then((companies) => {
+        if (!cancelled) {
+          setCompanyId(companies[0]?.id ?? null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCompanyId(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const nationalityOptions = useMemo(
     () =>
@@ -105,7 +167,7 @@ export function ProfileGateScreen({ navigation }: Props) {
   );
   const idTypeOptions = useMemo(
     () =>
-      ID_DOCUMENT_TYPES.map((type) => ({
+      PROFILE_GATE_ID_TYPES.map((type) => ({
         value: type,
         label: t(`id-type-${type}`),
       })),
@@ -218,34 +280,76 @@ export function ProfileGateScreen({ navigation }: Props) {
     await applyScanResult(shot.assets[0].uri);
   }, [applyScanResult, pickFromGallery, t]);
 
-  const handleDone = useCallback(() => {
+  const handleDone = useCallback(async () => {
     setSubmitted(true);
-    if (!canSubmit) {
+    setSaveError(null);
+    if (!canSubmit || saveBusy) {
       return;
     }
 
     const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedId = nationalId.trim();
 
-    updateUser({
-      name: trimmedName,
-      firstName: trimmedName.split(/\s+/)[0] || trimmedName,
-      idDocumentType: idType,
-      nationalId: nationalId.trim(),
-      nationality,
-      dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
-      dateOfBirthHijri: hijriDob ? formatHijriIso(hijriDob) : undefined,
-      licenseType,
-      licenseNumber: licenseNumber.trim() || undefined,
-      licenseExpiry: licenseExpiry.trim() || undefined,
-      placeOfIssue: placeOfIssue.trim() || undefined,
-    });
+    setSaveBusy(true);
+    try {
+      let ownerId = companyId;
+      if (!ownerId) {
+        const companies = await fetchWelmCompanies();
+        ownerId = companies[0]?.id ?? null;
+        setCompanyId(ownerId);
+      }
+      if (!ownerId) {
+        setSaveError(t("company-required"));
+        return;
+      }
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "MainTabs" }],
-    });
+      const saved = await patchWelmProfile({
+        companyId: ownerId,
+        name: trimmedName,
+        idDocumentType: idType,
+        nationalId: trimmedId,
+        nationality,
+        dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
+        licenseType,
+        licenseNumber: licenseNumber.trim() || undefined,
+        licenseExpiry: licenseExpiry.trim() || undefined,
+        placeOfIssue: placeOfIssue.trim() || undefined,
+      });
+
+      updateUser({
+        name: saved.user.name || trimmedName,
+        firstName:
+          saved.user.firstName ||
+          trimmedName.split(/\s+/)[0] ||
+          trimmedName,
+        email: trimmedEmail || undefined,
+        idDocumentType: saved.user.idDocumentType ?? idType,
+        nationalId: saved.user.nationalId ?? trimmedId,
+        nationality,
+        dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
+        dateOfBirthHijri: hijriDob ? formatHijriIso(hijriDob) : undefined,
+        licenseType,
+        licenseNumber: licenseNumber.trim() || undefined,
+        licenseExpiry: licenseExpiry.trim() || undefined,
+        placeOfIssue: placeOfIssue.trim() || undefined,
+      });
+
+      routeAfterIdentity(navigation);
+    } catch (error) {
+      setSaveError(
+        welmAuthUserMessage(error, {
+          unavailable: t("common:auth.api-unavailable"),
+          fallback: t("save-error"),
+        }),
+      );
+    } finally {
+      setSaveBusy(false);
+    }
   }, [
     canSubmit,
+    companyId,
+    email,
     hijriDob,
     idType,
     licenseExpiry,
@@ -256,6 +360,8 @@ export function ProfileGateScreen({ navigation }: Props) {
     nationality,
     navigation,
     placeOfIssue,
+    saveBusy,
+    t,
     updateUser,
   ]);
 
@@ -309,6 +415,16 @@ export function ProfileGateScreen({ navigation }: Props) {
         />
       </View>
 
+      {saveError ? (
+        <View className="mt-4">
+          <InlineErrorBanner
+            message={saveError}
+            onDismiss={() => setSaveError(null)}
+            dismissAccessibilityLabel={t("sheet-close")}
+          />
+        </View>
+      ) : null}
+
       {bannerMessage ? (
         <View className="mt-4">
           {scanBanner?.kind === "error" ? (
@@ -356,20 +472,33 @@ export function ProfileGateScreen({ navigation }: Props) {
           autoCapitalize="words"
           returnKeyType="next"
           error={nameError ? t("name-error") : undefined}
-          autoFilled={autofilled.has("name")}
-          autoFilledLabel={autoLabel}
+          autoFilled={autofilled.has("name") || nameFromProvider}
+          autoFilledLabel={
+            autofilled.has("name") ? autoLabel : providerPill
+          }
         />
-        {user?.email ? (
-          <View>
-            <AppText variant="label" className="mb-2">
-              {t("email-label")}
-            </AppText>
-            <View className="h-[52px] justify-center rounded-2xl border border-border bg-background px-4">
-              <AppText variant="body" className="text-textMuted">
-                {user.email}
-              </AppText>
-            </View>
-          </View>
+        <AppInput
+          label={t("email-label")}
+          value={email}
+          onChangeText={setEmail}
+          placeholder={t("email-placeholder")}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          error={emailError ? t("email-invalid") : undefined}
+          autoFilled={emailFromProvider}
+          autoFilledLabel={providerPill}
+        />
+        {lockedPhone ? (
+          <SaudiPhoneField
+            label={t("phone-label")}
+            value={lockedPhone}
+            onChangeText={() => undefined}
+            editable={false}
+          />
         ) : null}
         <AppInput
           label={t("id-label")}
@@ -442,7 +571,9 @@ export function ProfileGateScreen({ navigation }: Props) {
           }}
           placeholder={t("place-of-issue-placeholder")}
           returnKeyType="done"
-          onSubmitEditing={handleDone}
+          onSubmitEditing={() => {
+            void handleDone();
+          }}
           autoFilled={autofilled.has("placeOfIssue")}
           autoFilledLabel={autoLabel}
         />
@@ -452,12 +583,15 @@ export function ProfileGateScreen({ navigation }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("done")}
-          onPress={handleDone}
+          onPress={() => {
+            void handleDone();
+          }}
+          disabled={saveBusy}
           className={`h-14 flex-row items-center justify-center gap-2 rounded-pill ${
-            canSubmit ? "bg-primary active:opacity-90" : "bg-border"
+            canSubmit && !saveBusy ? "bg-primary active:opacity-90" : "bg-border"
           }`}
           style={
-            canSubmit
+            canSubmit && !saveBusy
               ? {
                   shadowColor: colors.primaryDark,
                   shadowOffset: { width: 0, height: 10 },
@@ -470,7 +604,9 @@ export function ProfileGateScreen({ navigation }: Props) {
         >
           <AppText
             variant="button"
-            className={`text-center ${canSubmit ? "text-white" : "text-textMuted"}`}
+            className={`text-center ${
+              canSubmit && !saveBusy ? "text-white" : "text-textMuted"
+            }`}
             style={{ includeFontPadding: false, lineHeight: 22 }}
           >
             {t("done")}
@@ -478,7 +614,7 @@ export function ProfileGateScreen({ navigation }: Props) {
           <AppIcon
             name={chevronEnd}
             size={20}
-            color={canSubmit ? colors.white : colors.textMuted}
+            color={canSubmit && !saveBusy ? colors.white : colors.textMuted}
           />
         </Pressable>
       </View>

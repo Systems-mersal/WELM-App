@@ -13,7 +13,14 @@ export {
   getWelmPostAuthDestination,
   routeAfterWelmAuth,
 } from "./navigation/route-after-auth";
-export { routePastAuthGate, routeToHome } from "./navigation/route-past-auth-gate";
+export {
+  routePastAuthGate,
+  routeToHome,
+  routeAfterContinueAs,
+  routeAfterIdentity,
+  resetToLocationRadius,
+} from "./navigation/route-past-auth-gate";
+export { routeToEmailOtp } from "./navigation/route-to-email-otp";
 export type { WelmPostAuthDestination } from "./navigation/route-after-auth";
 export {
   applyWelmAuthSession,
@@ -56,6 +63,10 @@ export {
   verifyWelmPhoneOtp,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
+  registerWelmAccount,
+  loginWelmAccount,
+  fetchWelmCompanies,
+  patchWelmProfile,
 } from "./api";
 export type {
   WelmAuthErrorCode,
@@ -64,4 +75,5 @@ export type {
   WelmAuthUser,
   WelmMeResponse,
   WelmSocialAuthRequest,
+  WelmCompanyOption,
 } from "./api";

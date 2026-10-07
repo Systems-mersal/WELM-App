@@ -11,8 +11,10 @@ export type StoredAuthSession = {
     firstName?: string;
     phone?: string;
     email?: string;
+    provider?: "apple" | "google";
+    emailVerified?: boolean;
     nationalId?: string;
-    idDocumentType?: "national" | "resident";
+    idDocumentType?: "national" | "resident" | "gcc" | "visitor";
     dateOfBirth?: string;
     dateOfBirthHijri?: string;
     licenseNumber?: string;

@@ -22,9 +22,12 @@ const FEATHER_ICON_MAP = {
   plus: "plus",
   list: "list",
   map: "map",
+  eye: "eye",
+  "eye-off": "eye-off",
   camera: "camera",
   image: "image",
   "upload-cloud": "upload-cloud",
+  lock: "lock",
 } as const;
 
 const IONICONS_LOGO_MAP = {

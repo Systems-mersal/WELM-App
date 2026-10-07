@@ -17,7 +17,7 @@ Auth helpers live in `src/features/auth` (`completeSocialSignIn`, `exchangeSocia
 
 Enable **Sign in with Apple** (Client ID `com.welm.tajeerplus`) on the Tajeer-plus and Tajeer-plus-live Supabase dashboards. Secrets stay there / in 1Password.
 
-OAuth return scheme: `welm://auth/callback` (`scheme: "welm"` in `app.json`). Hosted Google start: `{EXPO_PUBLIC_API_URL}/api/welm/auth/oauth/start?provider=google`.
+OAuth return scheme: `welm://auth/callback` (`scheme: "welm"` in `app.json`). iOS Google uses `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` and the reversed-client-id URL scheme, then `POST /api/welm/auth/social` with the Google `id_token` (same pattern as Apple). Hosted Google (`/api/welm/auth/oauth/start?provider=google`) is the fallback when no iOS client ID is set.
 
 Social sign-in (Apple / Google) requires a **native rebuild** (`pnpm ios` / `pnpm android`). It will not run in Expo Go.
 

@@ -24,6 +24,12 @@ function toAuthUser(session: WelmAuthSession): AuthUser {
     firstName: session.user.firstName,
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    provider:
+      session.provider === "apple" || session.provider === "google"
+        ? session.provider
+        : current?.id === session.user.id
+          ? current.provider
+          : undefined,
     ...copyLocalProfileFields(current, session.user.id),
   };
 }
@@ -130,6 +136,7 @@ apiClient.interceptors.response.use(
       status === 401 &&
       isWelmAuthRoute(requestUrl) &&
       !isRefreshRequest(requestUrl) &&
+      !requestUrl.includes("/api/welm/auth/social") &&
       config &&
       !config._welmRetry
     ) {

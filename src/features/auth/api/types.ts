@@ -8,6 +8,8 @@ export type WelmAuthUser = {
   firstName?: string;
   email: string | null;
   phone?: string | null;
+  /** false → email signup that still needs the email OTP step. */
+  emailVerified?: boolean;
 };
 
 export type WelmAuthSession = {
@@ -51,6 +53,7 @@ export type WelmPhoneVerifyResponse = {
 export type WelmEmailStartResponse = {
   sent: boolean;
   email: string;
+  resendInSeconds?: number;
   /** Local/dev only — omitted in production. */
   debugCode?: string;
 };
@@ -61,6 +64,39 @@ export type WelmEmailVerifyResponse = {
   isNew: boolean;
 };
 
+export type WelmCompanyOption = {
+  id: string;
+  name: string;
+};
+
+export type WelmProfilePatchRequest = {
+  companyId: string;
+  name: string;
+  idDocumentType?: "national" | "resident" | "gcc" | "visitor";
+  nationalId: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  address?: string;
+  email?: string;
+  licenseType?: "private" | "public" | "motorcycle" | "heavy";
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  placeOfIssue?: string;
+  passportNumber?: string;
+  idCopyNumber?: string;
+};
+
+export type WelmProfilePatchResponse = {
+  customerId: string;
+  user: {
+    id: string;
+    name: string;
+    firstName?: string;
+    nationalId?: string;
+    idDocumentType?: "national" | "resident" | "gcc" | "visitor";
+  };
+};
+
 export type WelmAuthErrorCode =
   | "undeployed"
   | "disabled"
@@ -69,15 +105,32 @@ export type WelmAuthErrorCode =
   | "network"
   | "unknown";
 
+export type WelmAuthErrorDetails = {
+  serverCode?: string;
+  retryAfterSeconds?: number;
+  attemptsLeft?: number;
+};
+
 export class WelmAuthApiError extends Error {
   readonly code: WelmAuthErrorCode;
   readonly status?: number;
+  readonly serverCode?: string;
+  readonly retryAfterSeconds?: number;
+  readonly attemptsLeft?: number;
 
-  constructor(code: WelmAuthErrorCode, message: string, status?: number) {
+  constructor(
+    code: WelmAuthErrorCode,
+    message: string,
+    status?: number,
+    details?: WelmAuthErrorDetails,
+  ) {
     super(message);
     this.name = "WelmAuthApiError";
     this.code = code;
     this.status = status;
+    this.serverCode = details?.serverCode;
+    this.retryAfterSeconds = details?.retryAfterSeconds;
+    this.attemptsLeft = details?.attemptsLeft;
   }
 }
 

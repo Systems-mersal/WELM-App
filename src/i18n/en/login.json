@@ -1,9 +1,21 @@
 {
   "welcome": "Welcome to WELM",
   "subtitle": "Sign in for an unmatched luxury car rental experience",
+  "email": "Email",
+  "email-placeholder": "name@email.com",
+  "password": "Password",
+  "password-placeholder": "Your password",
+  "email-invalid": "Enter a valid email address",
+  "password-required": "Enter your password",
+  "invalid-credentials": "Invalid email or password",
+  "not-consumer": "This account cannot sign in to WELM",
+  "sign-in": "Sign in",
+  "show-password": "Show password",
+  "hide-password": "Hide password",
   "phone": "Mobile Number",
   "continue": "Continue",
   "or": "or",
   "no-account": "Don't have an account?",
-  "create-account": "Create a new account"
+  "create-account": "Create a new account",
+  "auth-error-dismiss": "Dismiss error"
 }

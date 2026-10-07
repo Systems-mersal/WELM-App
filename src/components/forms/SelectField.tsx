@@ -15,6 +15,7 @@ type Props = {
   onPress: () => void;
   autoFilled?: boolean;
   autoFilledLabel?: string;
+  inputClassName?: string;
 };
 
 export function SelectField({
@@ -25,6 +26,7 @@ export function SelectField({
   onPress,
   autoFilled = false,
   autoFilledLabel,
+  inputClassName = "",
 }: Props) {
   const { chevronEnd } = useRtl();
 
@@ -57,7 +59,7 @@ export function SelectField({
             : autoFilled
               ? "border-primarySoft"
               : "border-border"
-        }`}
+        } ${inputClassName}`}
       >
         <AppText
           variant="body"
