@@ -61,6 +61,8 @@ export {
   refreshWelmSession,
   startWelmPhoneOtp,
   verifyWelmPhoneOtp,
+  startWelmPhoneLogin,
+  verifyWelmPhoneLogin,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
   registerWelmAccount,

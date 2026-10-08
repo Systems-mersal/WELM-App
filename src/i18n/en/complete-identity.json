@@ -9,6 +9,8 @@
   "id-type-visitor": "Visitor",
   "phone-label": "Mobile number",
   "phone-locked": "Verified mobile number, not editable",
+  "phone-invalid": "Enter a Saudi mobile starting with 5",
+  "email-locked": "Verified email, not editable",
   "section-personal": "Personal details",
   "section-license": "License",
   "section-contact": "Contact",

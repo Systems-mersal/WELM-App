@@ -219,6 +219,8 @@ export function getWelmOAuthStartUrl(provider: "google"): string {
 
 const PHONE_START_PATH = "/api/welm/auth/phone/start";
 const PHONE_VERIFY_PATH = "/api/welm/auth/phone/verify";
+const PHONE_LOGIN_START_PATH = "/api/welm/auth/phone/login/start";
+const PHONE_LOGIN_VERIFY_PATH = "/api/welm/auth/phone/login/verify";
 
 /** POST /api/welm/auth/phone/start — never sent to Apple/Google. */
 export async function startWelmPhoneOtp(
@@ -232,6 +234,45 @@ export async function startWelmPhoneOtp(
     );
     if (!data?.sent || !data.phone) {
       throw new WelmAuthApiError("unknown", "Invalid phone start response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/phone/login/start — signs in by Saudi mobile. No Bearer. */
+export async function startWelmPhoneLogin(
+  phone: string,
+): Promise<WelmPhoneStartResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPhoneStartResponse>(
+      PHONE_LOGIN_START_PATH,
+      { phone },
+    );
+    if (!data?.sent || !data.phone) {
+      throw new WelmAuthApiError("unknown", "Invalid phone login response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/phone/login/verify — returns a consumer session. */
+export async function verifyWelmPhoneLogin(
+  phone: string,
+  code: string,
+): Promise<WelmAuthSession> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmAuthSession>(
+      PHONE_LOGIN_VERIFY_PATH,
+      { phone, code },
+    );
+    if (!data?.accessToken || !data?.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid phone login response");
     }
     return data;
   } catch (error) {

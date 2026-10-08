@@ -13,6 +13,7 @@
   "show-password": "Show password",
   "hide-password": "Hide password",
   "phone": "Mobile Number",
+  "phone-invalid": "Enter a valid Saudi mobile number",
   "continue": "Continue",
   "or": "or",
   "no-account": "Don't have an account?",

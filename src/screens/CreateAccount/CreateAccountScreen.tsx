@@ -24,8 +24,10 @@ import {
   mapWelmSessionToAuthUser,
   registerWelmAccount,
   routeAfterWelmAuth,
+  reportWelmAuthFailure,
   routePastAuthGate,
   routeToEmailOtp,
+  startWelmPhoneLogin,
   signInWithAppleToWelm,
   signInWithSocial,
   SocialAuthStatus,
@@ -65,6 +67,7 @@ export function CreateAccountScreen({ navigation }: Props) {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [socialBusy, setSocialBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
+  const [phoneBusy, setPhoneBusy] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const appleSheetOpen = useRef(false);
@@ -235,7 +238,7 @@ export function CreateAccountScreen({ navigation }: Props) {
         .getState()
         .setSession(
           session.accessToken,
-          mapWelmSessionToAuthUser(session),
+          { ...mapWelmSessionToAuthUser(session), signInMethod: "email" },
           session.refreshToken,
         );
       if (session.user.emailVerified === false) {
@@ -260,17 +263,32 @@ export function CreateAccountScreen({ navigation }: Props) {
     }
   }, [emailBusy, navigation, password, t, validateEmailForm]);
 
-  const handleContinueWithPhone = useCallback(() => {
-    if (!requireTerms() || !isValidSaudiMobile(phone)) {
+  const handleContinueWithPhone = useCallback(async () => {
+    if (!requireTerms() || !isValidSaudiMobile(phone) || phoneBusy) {
       return;
     }
 
+    const e164 = `+966${normalizeSaudiMobile(phone)}`;
     setAuthError(null);
-    navigation.navigate("Otp", {
-      phone: `+966${normalizeSaudiMobile(phone)}`,
-      intent: "signup",
-    });
-  }, [navigation, phone, requireTerms]);
+    setPhoneBusy(true);
+    try {
+      const started = await startWelmPhoneLogin(e164);
+      navigation.navigate("Otp", {
+        phone: started.phone,
+        intent: "phone",
+        debugCode: started.debugCode,
+      });
+    } catch (error) {
+      const message = welmAuthUserMessage(error, {
+        unavailable: t("common:auth.api-unavailable"),
+        fallback: t("common:error"),
+      });
+      setAuthError(message);
+      reportWelmAuthFailure(error, message, t("common:error"));
+    } finally {
+      setPhoneBusy(false);
+    }
+  }, [navigation, phone, phoneBusy, requireTerms, t]);
 
   return (
     <View className="flex-1">
@@ -531,7 +549,10 @@ export function CreateAccountScreen({ navigation }: Props) {
           />
           <AppButton
             label={t("continue-phone")}
-            onPress={handleContinueWithPhone}
+            onPress={() => {
+              void handleContinueWithPhone();
+            }}
+            loading={phoneBusy}
             variant={canContinuePhone ? "outline" : "muted"}
           />
         </View>

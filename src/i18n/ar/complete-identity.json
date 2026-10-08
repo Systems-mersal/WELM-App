@@ -9,6 +9,8 @@
   "id-type-visitor": "زائر",
   "phone-label": "رقم الجوال",
   "phone-locked": "رقم الجوال مؤكد ولا يمكن تعديله",
+  "phone-invalid": "أدخل رقم جوال سعودي يبدأ بـ 5",
+  "email-locked": "البريد الإلكتروني مؤكد ولا يمكن تعديله",
   "section-personal": "البيانات الشخصية",
   "section-license": "الرخصة",
   "section-contact": "التواصل",

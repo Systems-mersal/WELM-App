@@ -13,11 +13,15 @@ import { Screen } from "../../components/common/Screen";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
+  mapWelmSessionToAuthUser,
   reportWelmAuthFailure,
   routePastAuthGate,
+  routeToHome,
   startWelmPhoneOtp,
+  startWelmPhoneLogin,
   startWelmEmailOtp,
   verifyWelmPhoneOtp,
+  verifyWelmPhoneLogin,
   verifyWelmEmailOtp,
   welmAuthUserMessage,
 } from "../../features/auth";
@@ -48,9 +52,14 @@ export function OtpScreen({ navigation, route }: Props) {
   const intent = route.params?.intent;
   const isSocial = intent === "social";
   const isEmailOtp = Boolean(email);
+  const isPhoneLogin =
+    intent === "phone" || (Boolean(phone) && !isEmailOtp && !isSocial);
 
   const [code, setCode] = useState("");
-  const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(
+    route.params?.resendIn ?? RESEND_SECONDS,
+  );
+  const [sendFailed, setSendFailed] = useState(Boolean(route.params?.sendFailed));
   const [busy, setBusy] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [debugCode, setDebugCode] = useState(route.params?.debugCode ?? "");
@@ -84,66 +93,72 @@ export function OtpScreen({ navigation, route }: Props) {
         return;
       }
 
-      if (isSocial) {
-        verifyingRef.current = true;
-        setBusy(true);
-        setVerifyError(null);
-        try {
-          if (isEmailOtp) {
-            const verified = await verifyWelmEmailOtp(email, nextCode);
-            const { accessToken, refreshToken, user } = useAuthStore.getState();
-            if (accessToken && user) {
-              setSession(
-                accessToken,
-                { ...user, email: verified.email },
-                refreshToken,
-              );
-            }
+      verifyingRef.current = true;
+      setBusy(true);
+      setVerifyError(null);
+      try {
+        if (isPhoneLogin) {
+          const session = await verifyWelmPhoneLogin(phone, nextCode);
+          setSession(
+            session.accessToken,
+            { ...mapWelmSessionToAuthUser(session), signInMethod: "phone" },
+            session.refreshToken,
+          );
+          if (session.isNew) {
+            routePastAuthGate(navigation);
           } else {
-            const verified = await verifyWelmPhoneOtp(phone, nextCode);
-            const { accessToken, refreshToken, user } = useAuthStore.getState();
-            if (accessToken && user) {
-              setSession(
-                accessToken,
-                { ...user, phone: verified.phone },
-                refreshToken,
-              );
-            }
+            routeToHome(navigation);
           }
-          routePastAuthGate(navigation);
-        } catch (error) {
-          const message = welmAuthUserMessage(error, {
-            unavailable: t("common:auth.api-unavailable"),
-            fallback: t("invalid-code"),
-          });
-          setVerifyError(message);
-          reportWelmAuthFailure(error, message, t("common:error"));
-          setCode("");
-          inputRef.current?.focus();
-        } finally {
-          verifyingRef.current = false;
-          setBusy(false);
+          return;
         }
-        return;
-      }
 
-      setSession("dev-token", {
-        id: "user-1",
-        name: "User",
-        phone,
-      });
-      if (phone) {
-        navigation.replace("CompleteIdentity", { phone });
-        return;
+        if (isEmailOtp) {
+          const verified = await verifyWelmEmailOtp(email, nextCode);
+          const { accessToken, refreshToken, user } = useAuthStore.getState();
+          if (accessToken && user) {
+            setSession(
+              accessToken,
+              {
+                ...user,
+                email: verified.email,
+                emailVerified: true,
+                signInMethod: user.signInMethod ?? "email",
+              },
+              refreshToken,
+            );
+          }
+        } else {
+          const verified = await verifyWelmPhoneOtp(phone, nextCode);
+          const { accessToken, refreshToken, user } = useAuthStore.getState();
+          if (accessToken && user) {
+            setSession(
+              accessToken,
+              { ...user, phone: verified.phone },
+              refreshToken,
+            );
+          }
+        }
+        routePastAuthGate(navigation);
+      } catch (error) {
+        const message = welmAuthUserMessage(error, {
+          unavailable: t("common:auth.api-unavailable"),
+          fallback: t("invalid-code"),
+        });
+        setVerifyError(message);
+        reportWelmAuthFailure(error, message, t("common:error"));
+        setCode("");
+        inputRef.current?.focus();
+      } finally {
+        verifyingRef.current = false;
+        setBusy(false);
       }
-      navigation.replace("MainTabs");
     },
     [
       busy,
       code,
       email,
       isEmailOtp,
-      isSocial,
+      isPhoneLogin,
       navigation,
       phone,
       setSession,
@@ -170,15 +185,19 @@ export function OtpScreen({ navigation, route }: Props) {
     setBusy(true);
     setVerifyError(null);
     try {
-      if (isSocial) {
-        if (isEmailOtp) {
-          const started = await startWelmEmailOtp(email);
-          if (started.debugCode) {
-            setDebugCode(started.debugCode);
-          }
-        } else {
-          await startWelmPhoneOtp(phone);
+      if (isPhoneLogin) {
+        const started = await startWelmPhoneLogin(phone);
+        if (started.debugCode) {
+          setDebugCode(started.debugCode);
         }
+      } else if (isEmailOtp) {
+        const started = await startWelmEmailOtp(email);
+        setSendFailed(false);
+        if (started.debugCode) {
+          setDebugCode(started.debugCode);
+        }
+      } else {
+        await startWelmPhoneOtp(phone);
       }
       setSecondsLeft(RESEND_SECONDS);
       setCode("");
@@ -188,11 +207,14 @@ export function OtpScreen({ navigation, route }: Props) {
         unavailable: t("common:auth.api-unavailable"),
         fallback: t("common:error"),
       });
+      if (isEmailOtp) {
+        setSendFailed(true);
+      }
       reportWelmAuthFailure(error, message, t("common:error"));
     } finally {
       setBusy(false);
     }
-  }, [canResend, email, isEmailOtp, isSocial, phone, t]);
+  }, [canResend, email, isEmailOtp, isPhoneLogin, phone, t]);
 
   return (
     <Screen
@@ -228,7 +250,7 @@ export function OtpScreen({ navigation, route }: Props) {
               lineHeight: 22,
             }}
           >
-            {t("sent-to")}
+            {sendFailed ? t("send-failed") : t("sent-to")}
           </AppText>
           <AppText
             className="text-center text-text"

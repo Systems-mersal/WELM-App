@@ -15,15 +15,16 @@ export function routeToHome(
 }
 
 /**
- * New signup only — Complete profile after contact OTP.
- * Sign-in must call `routeToHome` instead.
+ * Incomplete customer profile — Complete your details.
+ * A finished customer row must call `routeToHome` instead.
  */
 export function routePastAuthGate(
   navigation: NavigationProp<RootStackParamList>,
 ): void {
+  const phone = useAuthStore.getState().user?.phone;
   navigation.reset({
     index: 0,
-    routes: [{ name: "ProfileGate" }],
+    routes: [{ name: "CompleteIdentity", params: phone ? { phone } : undefined }],
   });
 }
 
@@ -66,7 +67,7 @@ export function resetToLocationRadius(
 
 /**
  * US-5 «متابعة كـ»: open the parked session, then US-8.
- * Incomplete identity → ProfileGate. Unset location → LocationRadius when
+ * Incomplete identity → Complete your details. Unset location → LocationRadius when
  * coordinates exist; otherwise Home (Enable Location card).
  */
 export async function routeAfterContinueAs(

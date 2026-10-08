@@ -26,6 +26,8 @@ export type AuthUser = {
   provider?: "apple" | "google";
   /** false until the email OTP step succeeds (email + password signup). */
   emailVerified?: boolean;
+  /** Contact used to open this session. Locks that field on Complete your details. */
+  signInMethod?: "email" | "phone";
   nationalId?: string;
   idDocumentType?: IdDocumentType;
   dateOfBirth?: string;
@@ -78,6 +80,7 @@ function userFromStored(user: {
   email?: string;
   provider?: string;
   emailVerified?: boolean;
+  signInMethod?: string;
   nationalId?: string;
   idDocumentType?: string;
   dateOfBirth?: string;
@@ -99,6 +102,10 @@ function userFromStored(user: {
         ? user.provider
         : undefined,
     emailVerified: user.emailVerified,
+    signInMethod:
+      user.signInMethod === "email" || user.signInMethod === "phone"
+        ? user.signInMethod
+        : undefined,
     nationalId: user.nationalId,
     idDocumentType: isIdDocumentType(user.idDocumentType)
       ? user.idDocumentType
@@ -113,6 +120,22 @@ function userFromStored(user: {
       ? user.nationality
       : undefined,
   };
+}
+
+export function resolveSignInMethod(
+  user: Pick<AuthUser, "signInMethod" | "email" | "phone"> | null | undefined,
+): "email" | "phone" {
+  if (user?.signInMethod === "email" || user?.signInMethod === "phone") {
+    return user.signInMethod;
+  }
+  const email = user?.email?.trim() ?? "";
+  const phone = (user?.phone ?? "").replace(/\s+/g, "");
+  const realEmail = email.length > 0 && !email.endsWith("@consumers.welm");
+  const saudiPhone = /^\+9665\d{8}$/.test(phone);
+  if (saudiPhone && !realEmail) {
+    return "phone";
+  }
+  return "email";
 }
 
 type AuthState = {

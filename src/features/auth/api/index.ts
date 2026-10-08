@@ -9,6 +9,8 @@ export {
   socialSuccessToRequest,
   startWelmPhoneOtp,
   verifyWelmPhoneOtp,
+  startWelmPhoneLogin,
+  verifyWelmPhoneLogin,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
   registerWelmAccount,

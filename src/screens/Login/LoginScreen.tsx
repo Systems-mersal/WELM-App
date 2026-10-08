@@ -15,6 +15,7 @@ import {
   loginWelmAccount,
   mapWelmSessionToAuthUser,
   reportWelmAuthFailure,
+  startWelmPhoneLogin,
   routeAfterWelmAuth,
   routePastAuthGate,
   routeToEmailOtp,
@@ -31,6 +32,10 @@ import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
+import {
+  isValidSaudiMobile,
+  normalizeSaudiMobile,
+} from "../../utils/saudi-mobile";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -50,14 +55,42 @@ export function LoginScreen({ navigation }: Props) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [emailBusy, setEmailBusy] = useState(false);
   const [phone, setPhone] = useState("");
+  const [phoneBusy, setPhoneBusy] = useState(false);
   const [socialBusy, setSocialBusy] = useState(false);
 
-  const handleContinue = useCallback(() => {
-    navigation.navigate("Otp", {
-      phone: phone.trim() || undefined,
-      intent: "signup",
-    });
-  }, [navigation, phone]);
+  const handleContinue = useCallback(async () => {
+    if (phoneBusy || emailBusy) {
+      return;
+    }
+    if (!isValidSaudiMobile(phone)) {
+      setAuthError(t("phone-invalid"));
+      return;
+    }
+
+    const e164 = `+966${normalizeSaudiMobile(phone)}`;
+    setAuthError(null);
+    setPhoneBusy(true);
+    try {
+      const started = await startWelmPhoneLogin(e164);
+      navigation.navigate("Otp", {
+        phone: started.phone,
+        intent: "phone",
+        debugCode: started.debugCode,
+      });
+    } catch (error) {
+      const message =
+        error instanceof WelmAuthApiError && error.status === 403
+          ? t("not-consumer")
+          : welmAuthUserMessage(error, {
+              unavailable: t("common:auth.api-unavailable"),
+              fallback: t("common:error"),
+            });
+      setAuthError(message);
+      reportWelmAuthFailure(error, message, t("common:error"));
+    } finally {
+      setPhoneBusy(false);
+    }
+  }, [emailBusy, navigation, phone, phoneBusy, t]);
 
   const handleCreateAccount = useCallback(() => {
     navigation.navigate("CreateAccount");
@@ -93,7 +126,7 @@ export function LoginScreen({ navigation }: Props) {
         .getState()
         .setSession(
           session.accessToken,
-          mapWelmSessionToAuthUser(session),
+          { ...mapWelmSessionToAuthUser(session), signInMethod: "email" },
           session.refreshToken,
         );
       if (session.user.emailVerified === false) {
@@ -329,7 +362,13 @@ export function LoginScreen({ navigation }: Props) {
         </View>
 
         <View className="mt-6">
-          <AppButton label={t("continue")} onPress={handleContinue} />
+          <AppButton
+            label={t("continue")}
+            onPress={() => {
+              void handleContinue();
+            }}
+            loading={phoneBusy}
+          />
         </View>
 
         <View className="mt-8 flex-row items-center gap-4">

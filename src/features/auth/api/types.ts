@@ -42,6 +42,8 @@ export type WelmMeResponse = {
 export type WelmPhoneStartResponse = {
   sent: boolean;
   phone: string;
+  /** Local/dev only — omitted in production. */
+  debugCode?: string;
 };
 
 export type WelmPhoneVerifyResponse = {
@@ -78,6 +80,7 @@ export type WelmProfilePatchRequest = {
   dateOfBirth?: string;
   address?: string;
   email?: string;
+  phone?: string;
   licenseType?: "private" | "public" | "motorcycle" | "heavy";
   licenseNumber?: string;
   licenseExpiry?: string;

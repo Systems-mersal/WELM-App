@@ -7,6 +7,7 @@ import { AppButton } from "../../components/buttons/AppButton";
 import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
 import { AppInput } from "../../components/forms/AppInput";
+import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { SelectField } from "../../components/forms/SelectField";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
@@ -53,10 +54,13 @@ import {
 } from "../../lib/hijri";
 import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
-import { useAuthStore } from "../../stores/auth-store";
+import { resolveSignInMethod, useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 import { fontFamily, fontSize } from "../../theme/typography";
-import { normalizeSaudiMobile } from "../../utils/saudi-mobile";
+import {
+  isValidSaudiMobile,
+  normalizeSaudiMobile,
+} from "../../utils/saudi-mobile";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CompleteIdentity">;
 type OpenSheet =
@@ -81,9 +85,12 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const { textAlign } = useRtl();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
+  const signedInWithPhone = resolveSignInMethod(user) === "phone";
   const phoneDigits = normalizeSaudiMobile(
     route.params?.phone || user?.phone || "",
   );
+  const [mobile, setMobile] = useState(signedInWithPhone ? "" : phoneDigits);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const [idType, setIdType] = useState<IdDocumentType>("national");
   const [name, setName] = useState(
@@ -190,7 +197,8 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     placeOfIssue,
     i18n.language,
   );
-  const formValid = isIdentityFormValid(values, uniqueness);
+  const phoneEntryValid = signedInWithPhone || isValidSaudiMobile(mobile);
+  const formValid = isIdentityFormValid(values, uniqueness) && phoneEntryValid;
 
   const markTouched = useCallback((field: IdentityField) => {
     setTouched((current) => ({ ...current, [field]: true }));
@@ -366,6 +374,9 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         dateOfBirth,
         address: address.trim(),
         email: email.trim(),
+        phone: signedInWithPhone
+          ? undefined
+          : `+966${normalizeSaudiMobile(mobile)}`,
         licenseNumber: needsLicense ? licenseNumber.trim() : undefined,
         licenseExpiry: needsLicense ? licenseExpiry.trim() : undefined,
         placeOfIssue: needsLicense ? placeOfIssue.trim() : undefined,
@@ -377,7 +388,9 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         name: saved.user.name || name.trim(),
         firstName: saved.user.firstName || name.trim().split(/\s+/)[0],
         email: email.trim(),
-        phone: user?.phone || route.params?.phone,
+        phone: signedInWithPhone
+          ? user?.phone || route.params?.phone
+          : `+966${normalizeSaudiMobile(mobile)}`,
         idDocumentType: saved.user.idDocumentType ?? idType,
         nationalId: saved.user.nationalId ?? nationalId.trim(),
         nationality: storedNationality,
@@ -410,6 +423,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     idType,
     licenseExpiry,
     licenseNumber,
+    mobile,
     name,
     nationalId,
     nationality,
@@ -418,6 +432,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     placeOfIssue,
     route.params?.phone,
     saveBusy,
+    signedInWithPhone,
     t,
     updateUser,
     user?.phone,
@@ -511,34 +526,56 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
           </AppText>
 
           <View className="mt-6">
-            <AppText variant="label" className="mb-2">
-              {t("phone-label")}
-            </AppText>
-            <View className="h-[56px] flex-row items-center rounded-2xl border border-border bg-background px-4">
-              <View className="flex-row items-center gap-2">
-                <Text
-                  accessibilityLabel={t("common:a11y.country-sa")}
-                  style={{ fontSize: 18, lineHeight: 20 }}
-                >
-                  🇸🇦
-                </Text>
-                <AppText variant="body" className="text-text">
-                  +966
+            {signedInWithPhone ? (
+              <>
+                <AppText variant="label" className="mb-2">
+                  {t("phone-label")}
                 </AppText>
-              </View>
-              <View className="mx-3 h-6 w-px bg-border" />
-              <AppText
-                variant="body"
-                className="flex-1 text-textMuted"
-                style={{ textAlign, writingDirection: "ltr" }}
-              >
-                {phoneDigits || "—"}
-              </AppText>
-              <AppIcon name="lock" size={18} color={colors.textMuted} />
-            </View>
-            <AppText variant="caption" muted className="mt-1 text-start">
-              {t("phone-locked")}
-            </AppText>
+                <View className="h-[56px] flex-row items-center rounded-2xl border border-border bg-background px-4">
+                  <View className="flex-row items-center gap-2">
+                    <Text
+                      accessibilityLabel={t("common:a11y.country-sa")}
+                      style={{ fontSize: 18, lineHeight: 20 }}
+                    >
+                      🇸🇦
+                    </Text>
+                    <AppText variant="body" className="text-text">
+                      +966
+                    </AppText>
+                  </View>
+                  <View className="mx-3 h-6 w-px bg-border" />
+                  <AppText
+                    variant="body"
+                    className="flex-1 text-textMuted"
+                    style={{ textAlign, writingDirection: "ltr" }}
+                  >
+                    {phoneDigits || "—"}
+                  </AppText>
+                  <AppIcon name="lock" size={18} color={colors.textMuted} />
+                </View>
+                <AppText variant="caption" muted className="mt-1 text-start">
+                  {t("phone-locked")}
+                </AppText>
+              </>
+            ) : (
+              <>
+                <SaudiPhoneField
+                  label={t("phone-label")}
+                  value={mobile}
+                  onChangeText={(next) => {
+                    setPhoneTouched(true);
+                    setMobile(next.replace(/\D/g, "").slice(0, 9));
+                  }}
+                  onBlur={() => setPhoneTouched(true)}
+                  placeholder="5XXXXXXXX"
+                />
+                {phoneTouched && !isValidSaudiMobile(mobile) ? (
+                  <AppText variant="caption" className="mt-1 text-start text-danger">
+                    {t("phone-invalid")}
+                  </AppText>
+                ) : null}
+              </>
+            )}
           </View>
 
           {saveError ? (
@@ -698,18 +735,39 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
             {t("section-contact")}
           </AppText>
           <View className="gap-4">
-            <AppInput
-              label={t("email-label")}
-              value={email}
-              onChangeText={setEmail}
-              onBlur={() => markTouched("email")}
-              placeholder={t("email-placeholder")}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              error={visibleError("email", email)}
-              inputClassName={inputClass}
-            />
+            {signedInWithPhone ? (
+              <AppInput
+                label={t("email-label")}
+                value={email}
+                onChangeText={setEmail}
+                onBlur={() => markTouched("email")}
+                placeholder={t("email-placeholder")}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={visibleError("email", email)}
+                inputClassName={inputClass}
+              />
+            ) : (
+              <View>
+                <AppText variant="label" className="mb-2">
+                  {t("email-label")}
+                </AppText>
+                <View className="h-[56px] flex-row items-center rounded-2xl border border-border bg-background px-4">
+                  <AppText
+                    variant="body"
+                    className="flex-1 text-textMuted"
+                    style={{ textAlign, writingDirection: "ltr" }}
+                  >
+                    {email.trim() || "—"}
+                  </AppText>
+                  <AppIcon name="lock" size={18} color={colors.textMuted} />
+                </View>
+                <AppText variant="caption" muted className="mt-1 text-start">
+                  {t("email-locked")}
+                </AppText>
+              </View>
+            )}
             <AppInput
               label={t("address-label")}
               value={address}
