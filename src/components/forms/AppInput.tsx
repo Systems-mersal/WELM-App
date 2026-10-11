@@ -11,6 +11,7 @@ export interface AppInputProps extends TextInputProps {
   containerClassName?: string;
   inputClassName?: string;
   rightElement?: ReactNode;
+  required?: boolean;
   /** Mint autofill chrome from ID scan. */
   autoFilled?: boolean;
   autoFilledLabel?: string;
@@ -22,6 +23,7 @@ export function AppInput({
   containerClassName = "",
   inputClassName = "",
   rightElement,
+  required = false,
   autoFilled = false,
   autoFilledLabel,
   ...props
@@ -37,6 +39,7 @@ export function AppInput({
           {label ? (
             <AppText variant="label" className="text-start">
               {label}
+              {required ? <AppText className="text-danger"> *</AppText> : null}
             </AppText>
           ) : null}
           {autoFilled && autoFilledLabel ? (

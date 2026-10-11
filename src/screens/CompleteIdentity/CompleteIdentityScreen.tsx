@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -13,12 +14,14 @@ import { AppIcon } from "../../components/icons/AppIcon";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { HijriDateSheet } from "../../components/sheets/HijriDateSheet";
 import { SearchSelectSheet } from "../../components/sheets/SearchSelectSheet";
+import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
 import {
   fetchWelmCompanies,
   patchWelmProfile,
   routeAfterIdentity,
   welmAuthUserMessage,
+  type WelmCompanyOption,
 } from "../../features/auth";
 import {
   identityFieldError,
@@ -33,6 +36,13 @@ import {
   type IdDocumentType,
   type NationalityCode,
 } from "../../features/auth/profile/lookups";
+import {
+  autofilledKeysFromFields,
+  scanCustomerIdImage,
+  type ScanTrackedKey,
+} from "../../features/auth/profile/scan-id";
+import { IdScanCameraSheet } from "../../features/auth/ui/IdScanCameraSheet";
+import { IdScanCard } from "../../features/auth/ui/IdScanCard";
 import {
   GCC_COUNTRIES,
   YAKEEN_CITIES,
@@ -49,6 +59,7 @@ import {
   defaultHijriFutureDraft,
   formatHijriIso,
   formatHijriSummary,
+  hijriFromStored,
   hijriToGregorianIso,
   type HijriYmd,
 } from "../../lib/hijri";
@@ -64,12 +75,18 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, "CompleteIdentity">;
 type OpenSheet =
+  | "company"
+  | "idType"
   | "nationality"
   | "dob"
   | "licenseExpiry"
   | "placeOfIssue"
   | null;
 type Touched = Partial<Record<IdentityField, boolean>>;
+type ScanBanner =
+  | { kind: "success" | "partial"; filled: number; total: number }
+  | { kind: "error"; message: string }
+  | null;
 
 function TwoSegmentProgress() {
   return (
@@ -92,16 +109,20 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const [mobile, setMobile] = useState(signedInWithPhone ? "" : phoneDigits);
   const [phoneTouched, setPhoneTouched] = useState(false);
 
-  const [idType, setIdType] = useState<IdDocumentType>("national");
+  const [idType, setIdType] = useState<IdDocumentType>("resident");
   const [name, setName] = useState(
     user?.name && user.name !== "User" ? user.name : "",
   );
   const [nationalId, setNationalId] = useState("");
   const [hijriDob, setHijriDob] = useState<HijriYmd | null>(null);
   const [idCopyNumber, setIdCopyNumber] = useState("");
-  const [nationality, setNationality] = useState<NationalityCode>(
-    DEFAULT_NATIONALITY,
+  const [nationality, setNationality] = useState<NationalityCode | "">("");
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [autofilled, setAutofilled] = useState<Set<ScanTrackedKey>>(
+    () => new Set(),
   );
+  const [scanBanner, setScanBanner] = useState<ScanBanner>(null);
   const [licenseNumber, setLicenseNumber] = useState("");
   const [hijriLicenseExpiry, setHijriLicenseExpiry] = useState<HijriYmd | null>(
     null,
@@ -110,7 +131,10 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const [email, setEmail] = useState(user?.email ?? "");
   const [address, setAddress] = useState("");
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
+  const [companies, setCompanies] = useState<WelmCompanyOption[]>([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyTouched, setCompanyTouched] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Touched>({});
@@ -118,7 +142,6 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
 
   const needsLicense = idType === "gcc" || idType === "visitor";
   const showCountry = idType === "gcc";
-  const showNationality = idType === "resident" || idType === "visitor";
   const tenDigitId = idType === "national" || idType === "resident";
   const dateOfBirth = hijriDob ? hijriToGregorianIso(hijriDob) : "";
   const licenseExpiry = hijriLicenseExpiry
@@ -159,6 +182,14 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     () => lookupOptions(nationalityItems, i18n.language),
     [i18n.language, nationalityItems],
   );
+  const idTypeOptions = useMemo(
+    () =>
+      ID_DOCUMENT_TYPES.map((type) => ({
+        value: type,
+        label: t(`id-type-${type}`),
+      })),
+    [t],
+  );
   const cityOptions = useMemo(
     () => lookupOptions(YAKEEN_CITIES, i18n.language),
     [i18n.language],
@@ -198,7 +229,8 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     i18n.language,
   );
   const phoneEntryValid = signedInWithPhone || isValidSaudiMobile(mobile);
-  const formValid = isIdentityFormValid(values, uniqueness) && phoneEntryValid;
+  const formValid =
+    isIdentityFormValid(values, uniqueness) && phoneEntryValid && Boolean(companyId);
 
   const markTouched = useCallback((field: IdentityField) => {
     setTouched((current) => ({ ...current, [field]: true }));
@@ -237,14 +269,22 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   useEffect(() => {
     let cancelled = false;
     void fetchWelmCompanies()
-      .then((companies) => {
-        if (!cancelled) {
-          setCompanyId(companies[0]?.id ?? null);
+      .then((list) => {
+        if (cancelled) {
+          return;
         }
+        setCompanies(list);
+        setCompanyId(list.length === 1 ? list[0]?.id ?? null : null);
       })
       .catch(() => {
         if (!cancelled) {
+          setCompanies([]);
           setCompanyId(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCompaniesLoading(false);
         }
       });
     return () => {
@@ -309,17 +349,35 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     };
   }, [licenseNumber, needsLicense]);
 
+  const clearAutofill = useCallback((key: ScanTrackedKey) => {
+    setAutofilled((current) => {
+      if (!current.has(key)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
   const clearIdentityFields = useCallback(() => {
     setNationalId("");
     setHijriDob(null);
     setIdCopyNumber("");
-    setNationality(DEFAULT_NATIONALITY);
     setLicenseNumber("");
     setHijriLicenseExpiry(null);
     setPlaceOfIssue("");
+    setAddress("");
+    if (signedInWithPhone) {
+      setEmail("");
+    } else {
+      setMobile("");
+      setPhoneTouched(false);
+    }
     setTouched({});
     setUniqueness({});
-  }, []);
+    setAutofilled(new Set());
+  }, [signedInWithPhone]);
 
   const handleSelectIdType = useCallback(
     (next: IdDocumentType) => {
@@ -328,13 +386,113 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
       }
       setIdType(next);
       clearIdentityFields();
-      setNationality(next === "gcc" ? "AE" : DEFAULT_NATIONALITY);
+      setNationality(
+        next === "national" || next === "gcc" ? DEFAULT_NATIONALITY : "",
+      );
     },
     [clearIdentityFields, idType],
   );
 
+  const applyScanResult = useCallback(
+    async (uri: string) => {
+      setScanning(true);
+      setScanBanner(null);
+      try {
+        const result = await scanCustomerIdImage(uri);
+        if (!result.ok) {
+          setScanBanner({ kind: "error", message: t("scan-error") });
+          return;
+        }
+
+        const { fields, meta } = result;
+        setAutofilled(autofilledKeysFromFields(fields));
+        const nextType = fields.idType ?? idType;
+        if (fields.idType) {
+          setIdType(fields.idType);
+        }
+        if (fields.name) {
+          setName(fields.name);
+        }
+        if (fields.nationalId) {
+          const digitsOnly = nextType === "national" || nextType === "resident";
+          setNationalId(
+            digitsOnly
+              ? fields.nationalId.replace(/\D/g, "").slice(0, 10)
+              : fields.nationalId,
+          );
+        }
+        if (fields.nationality) {
+          setNationality(fields.nationality);
+        } else if (nextType === "national" || nextType === "gcc") {
+          setNationality(DEFAULT_NATIONALITY);
+        }
+        if (fields.birthDate) {
+          setHijriDob(hijriFromStored(undefined, fields.birthDate));
+        }
+        if (fields.licenseNumber) {
+          setLicenseNumber(fields.licenseNumber);
+        }
+        if (fields.licenseExpiry) {
+          setHijriLicenseExpiry(hijriFromStored(undefined, fields.licenseExpiry));
+        }
+        if (fields.placeOfIssue) {
+          const city = YAKEEN_CITIES.find(
+            (item) =>
+              item.code === fields.placeOfIssue ||
+              item.en === fields.placeOfIssue ||
+              item.ar === fields.placeOfIssue,
+          );
+          if (city) {
+            setPlaceOfIssue(city.code);
+          }
+        }
+
+        setScanBanner({
+          kind: meta.filledFields >= meta.totalFields ? "success" : "partial",
+          filled: meta.filledFields,
+          total: meta.totalFields,
+        });
+        setCameraOpen(false);
+      } finally {
+        setScanning(false);
+      }
+    },
+    [idType, t],
+  );
+
+  const pickFromGallery = useCallback(async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setScanBanner({ kind: "error", message: t("scan-gallery-denied") });
+      return;
+    }
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.85,
+    });
+    if (picked.canceled || !picked.assets[0]?.uri) {
+      return;
+    }
+    await applyScanResult(picked.assets[0].uri);
+  }, [applyScanResult, t]);
+
+  const pickFromNativeCamera = useCallback(async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      setScanBanner({ kind: "error", message: t("scan-permission-denied") });
+      void pickFromGallery();
+      return;
+    }
+    const shot = await ImagePicker.launchCameraAsync({ quality: 0.85 });
+    if (shot.canceled || !shot.assets[0]?.uri) {
+      return;
+    }
+    await applyScanResult(shot.assets[0].uri);
+  }, [applyScanResult, pickFromGallery, t]);
+
   const handleSave = useCallback(async () => {
     setSaveError(null);
+    setCompanyTouched(true);
     setTouched({
       name: true,
       nationalId: true,
@@ -353,18 +511,14 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
 
     setSaveBusy(true);
     try {
-      let ownerId = companyId;
+      const ownerId = companyId;
       if (!ownerId) {
-        const companies = await fetchWelmCompanies();
-        ownerId = companies[0]?.id ?? null;
-        setCompanyId(ownerId);
-      }
-      if (!ownerId) {
-        setSaveError(t("company-required"));
+        setSaveError(t("validation.companyRequired"));
         return;
       }
 
-      const storedNationality = idType === "national" ? "SA" : nationality;
+      const storedNationality: NationalityCode =
+        idType === "national" ? DEFAULT_NATIONALITY : (nationality as NationalityCode);
       const saved = await patchWelmProfile({
         companyId: ownerId,
         name: name.trim(),
@@ -441,6 +595,16 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const inputClass = "h-[56px]";
   const fallbackHijri = useMemo(() => defaultHijriDraft(), []);
   const fallbackHijriExpiry = useMemo(() => defaultHijriFutureDraft(), []);
+  const autoLabel = t("scan-auto-filled");
+  const bannerMessage =
+    scanBanner?.kind === "error"
+      ? scanBanner.message
+      : scanBanner
+        ? t(scanBanner.kind === "success" ? "scan-success" : "scan-partial", {
+            filled: scanBanner.filled,
+            total: scanBanner.total,
+          })
+        : null;
 
   return (
     <View className="flex-1">
@@ -489,47 +653,116 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
             </AppText>
           </View>
 
-          <View className="mt-6 flex-row flex-wrap gap-3">
-            {ID_DOCUMENT_TYPES.map((type) => {
-              const selected = type === idType;
-              return (
-                <Pressable
-                  key={type}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  onPress={() => handleSelectIdType(type)}
-                  className={`h-14 w-[47%] items-center justify-center rounded-2xl border px-2 ${
-                    selected
-                      ? "border-primary bg-primaryMuted"
-                      : "border-border bg-white"
+          <View className="mt-6">
+            <IdScanCard
+              title={t("scan-title")}
+              description={t("scan-description")}
+              cameraLabel={t("scan-camera")}
+              uploadLabel={t("scan-upload")}
+              scanning={scanning}
+              onCamera={() => setCameraOpen(true)}
+              onUpload={() => {
+                void pickFromGallery();
+              }}
+            />
+          </View>
+
+          {saveError ? (
+            <View className="mt-4">
+              <InlineErrorBanner
+                message={saveError}
+                onDismiss={() => setSaveError(null)}
+                dismissAccessibilityLabel={t("sheet-close")}
+              />
+            </View>
+          ) : null}
+
+          {bannerMessage ? (
+            <View className="mt-4">
+              {scanBanner?.kind === "error" ? (
+                <InlineErrorBanner
+                  message={bannerMessage}
+                  onDismiss={() => setScanBanner(null)}
+                  dismissAccessibilityLabel={t("sheet-close")}
+                />
+              ) : (
+                <View
+                  className={`rounded-2xl border px-4 py-3 ${
+                    scanBanner?.kind === "success"
+                      ? "border-primarySoft bg-primaryMuted"
+                      : "border-border bg-backgroundWarm"
                   }`}
                 >
                   <AppText
-                    className={`text-center ${
-                      selected ? "text-primary" : "text-text"
-                    }`}
+                    className="text-start text-text"
                     style={{
-                      fontFamily: selected
-                        ? fontFamily.semibold
-                        : fontFamily.regular,
+                      fontFamily: fontFamily.regular,
                       fontSize: fontSize.caption,
+                      lineHeight: 20,
                     }}
                   >
-                    {t(`id-type-${type}`)}
+                    {bannerMessage}
                   </AppText>
-                </Pressable>
-              );
-            })}
-          </View>
-          <AppText variant="caption" muted className="mt-3 text-start">
-            {t("id-type-reset")}
-          </AppText>
+                </View>
+              )}
+            </View>
+          ) : null}
 
-          <View className="mt-6">
+          <View className="mt-6 gap-4">
+            <SelectField
+              label={t("company-label")}
+              value={companies.find((company) => company.id === companyId)?.name}
+              placeholder={
+                companiesLoading ? t("company-loading") : t("select-company")
+              }
+              required
+              onPress={() => {
+                setCompanyTouched(true);
+                if (!companiesLoading && companies.length > 0) {
+                  setOpenSheet("company");
+                }
+              }}
+              error={
+                companies.length === 0 && !companiesLoading
+                  ? t("company-empty")
+                  : companyTouched && !companyId
+                    ? t("validation.companyRequired")
+                    : undefined
+              }
+              inputClassName={inputClass}
+            />
+            <SelectField
+              label={t("id-type-label")}
+              value={t(`id-type-${idType}`)}
+              placeholder={t("select-id-type")}
+              required
+              onPress={() => setOpenSheet("idType")}
+              autoFilled={autofilled.has("idType")}
+              autoFilledLabel={autoLabel}
+              inputClassName={inputClass}
+            />
+            <AppInput
+              label={t("name-label")}
+              value={name}
+              required
+              onChangeText={(value) => {
+                clearAutofill("name");
+                setName(value);
+              }}
+              onBlur={() => markTouched("name")}
+              placeholder={t("name-placeholder")}
+              autoCapitalize="words"
+              maxLength={100}
+              error={visibleError("name", name)}
+              autoFilled={autofilled.has("name")}
+              autoFilledLabel={autoLabel}
+              inputClassName={inputClass}
+            />
             {signedInWithPhone ? (
-              <>
+              <View>
                 <AppText variant="label" className="mb-2">
                   {t("phone-label")}
+                  <AppText className="text-danger"> *</AppText>
                 </AppText>
                 <View className="h-[56px] flex-row items-center rounded-2xl border border-border bg-background px-4">
                   <View className="flex-row items-center gap-2">
@@ -556,18 +789,19 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                 <AppText variant="caption" muted className="mt-1 text-start">
                   {t("phone-locked")}
                 </AppText>
-              </>
+              </View>
             ) : (
               <>
                 <SaudiPhoneField
                   label={t("phone-label")}
+                  required
                   value={mobile}
                   onChangeText={(next) => {
                     setPhoneTouched(true);
                     setMobile(next.replace(/\D/g, "").slice(0, 9));
                   }}
                   onBlur={() => setPhoneTouched(true)}
-                  placeholder="5XXXXXXXX"
+                  placeholder={t("phone-placeholder")}
                 />
                 {phoneTouched && !isValidSaudiMobile(mobile) ? (
                   <AppText variant="caption" className="mt-1 text-start text-danger">
@@ -576,47 +810,61 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                 ) : null}
               </>
             )}
-          </View>
-
-          {saveError ? (
-            <View className="mt-4">
-              <InlineErrorBanner
-                message={saveError}
-                onDismiss={() => setSaveError(null)}
-                dismissAccessibilityLabel={t("sheet-close")}
+            {showCountry ? (
+              <SelectField
+                label={t("country-label")}
+                value={nationalityLabel}
+                placeholder={t("select-country")}
+                required
+                onPress={() => {
+                  clearAutofill("nationality");
+                  markTouched("nationality");
+                  setOpenSheet("nationality");
+                }}
+                error={visibleError("nationality")}
+                autoFilled={autofilled.has("nationality")}
+                autoFilledLabel={autoLabel}
+                inputClassName={inputClass}
               />
-            </View>
-          ) : null}
-
-          <AppText
-            className="mb-3 mt-8 text-start text-text"
-            style={{ fontFamily: fontFamily.semibold, fontSize: fontSize.label }}
-          >
-            {t("section-personal")}
-          </AppText>
-          <View className="gap-4">
-            <AppInput
-              label={t("name-label")}
-              value={name}
-              onChangeText={setName}
-              onBlur={() => markTouched("name")}
-              placeholder={t("name-placeholder")}
-              autoCapitalize="words"
-              maxLength={100}
-              error={visibleError("name", name)}
-              inputClassName={inputClass}
-            />
+            ) : null}
+            {idType === "visitor" ? (
+              <SelectField
+                label={t("nationality-label")}
+                value={nationalityLabel}
+                placeholder={t("select-nationality")}
+                required
+                onPress={() => {
+                  clearAutofill("nationality");
+                  markTouched("nationality");
+                  setOpenSheet("nationality");
+                }}
+                error={visibleError("nationality")}
+                autoFilled={autofilled.has("nationality")}
+                autoFilledLabel={autoLabel}
+                inputClassName={inputClass}
+              />
+            ) : null}
             <AppInput
               label={t(`id-label-${idType}`)}
               value={nationalId}
-              onChangeText={(value) =>
-                setNationalId(tenDigitId ? value.replace(/\D/g, "").slice(0, 10) : value)
-              }
+              required
+              onChangeText={(value) => {
+                clearAutofill("nationalId");
+                setNationalId(
+                  tenDigitId ? value.replace(/\D/g, "").slice(0, 10) : value,
+                );
+              }}
               onBlur={() => markTouched("nationalId")}
-              placeholder={t("id-placeholder")}
-              keyboardType={idType === "visitor" ? "default" : "number-pad"}
+              placeholder={
+                idType === "visitor"
+                  ? t("id-placeholder-visitor")
+                  : t("id-placeholder")
+              }
+              keyboardType={tenDigitId ? "number-pad" : "default"}
               maxLength={tenDigitId ? 10 : 50}
               error={visibleError("nationalId", nationalId)}
+              autoFilled={autofilled.has("nationalId")}
+              autoFilledLabel={autoLabel}
               inputClassName={inputClass}
               rightElement={
                 tenDigitId ? (
@@ -630,17 +878,22 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
               label={t("dob-label")}
               value={dobLabel}
               placeholder={t("select-date")}
+              required
               onPress={() => {
+                clearAutofill("birthDate");
                 markTouched("dateOfBirth");
                 setOpenSheet("dob");
               }}
               error={visibleError("dateOfBirth", dateOfBirth)}
+              autoFilled={autofilled.has("birthDate")}
+              autoFilledLabel={autoLabel}
               inputClassName={inputClass}
             />
             {needsLicense ? (
               <AppInput
                 label={t("id-copy-label")}
                 value={idCopyNumber}
+                required
                 onChangeText={(value) =>
                   setIdCopyNumber(value.replace(/\D/g, ""))
                 }
@@ -651,94 +904,90 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                 inputClassName={inputClass}
               />
             ) : null}
-            {showCountry ? (
-              <SelectField
-                label={t("country-label")}
-                value={nationalityLabel}
-                placeholder={t("select-country")}
-                onPress={() => {
-                  markTouched("nationality");
-                  setOpenSheet("nationality");
-                }}
-                error={visibleError("nationality")}
-                inputClassName={inputClass}
-              />
-            ) : null}
-            {showNationality ? (
+            {idType === "resident" ? (
               <SelectField
                 label={t("nationality-label")}
                 value={nationalityLabel}
                 placeholder={t("select-nationality")}
+                required
                 onPress={() => {
+                  clearAutofill("nationality");
                   markTouched("nationality");
                   setOpenSheet("nationality");
                 }}
                 error={visibleError("nationality")}
+                autoFilled={autofilled.has("nationality")}
+                autoFilledLabel={autoLabel}
                 inputClassName={inputClass}
               />
             ) : null}
-          </View>
-
-          {needsLicense ? (
-            <>
-              <AppText
-                className="mb-3 mt-8 text-start text-text"
-                style={{
-                  fontFamily: fontFamily.semibold,
-                  fontSize: fontSize.label,
-                }}
-              >
-                {t("section-license")}
-              </AppText>
-              <View className="gap-4">
+            {needsLicense ? (
+              <>
                 <AppInput
                   label={t("license-number-label")}
                   value={licenseNumber}
-                  onChangeText={setLicenseNumber}
+                  required
+                  onChangeText={(value) => {
+                    clearAutofill("licenseNumber");
+                    setLicenseNumber(value);
+                  }}
                   onBlur={() => markTouched("licenseNumber")}
-                  placeholder={t("id-placeholder")}
+                  placeholder={t("license-number-placeholder")}
                   keyboardType="numbers-and-punctuation"
                   maxLength={50}
                   error={visibleError("licenseNumber", licenseNumber)}
+                  autoFilled={autofilled.has("licenseNumber")}
+                  autoFilledLabel={autoLabel}
                   inputClassName={inputClass}
                 />
                 <SelectField
                   label={t("license-expiry-label")}
                   value={licenseExpiryLabel}
-                  placeholder={t("select-date")}
+                  placeholder={t("license-expiry-placeholder")}
+                  required
                   onPress={() => {
+                    clearAutofill("licenseExpiry");
                     markTouched("licenseExpiry");
                     setOpenSheet("licenseExpiry");
                   }}
                   error={visibleError("licenseExpiry", licenseExpiry)}
+                  autoFilled={autofilled.has("licenseExpiry")}
+                  autoFilledLabel={autoLabel}
                   inputClassName={inputClass}
                 />
                 <SelectField
                   label={t("place-of-issue-label")}
                   value={placeOfIssueLabel}
                   placeholder={t("select-place-of-issue")}
+                  required
                   onPress={() => {
+                    clearAutofill("placeOfIssue");
                     markTouched("placeOfIssue");
                     setOpenSheet("placeOfIssue");
                   }}
                   error={visibleError("placeOfIssue", placeOfIssue)}
+                  autoFilled={autofilled.has("placeOfIssue")}
+                  autoFilledLabel={autoLabel}
                   inputClassName={inputClass}
                 />
-              </View>
-            </>
-          ) : null}
-
-          <AppText
-            className="mb-3 mt-8 text-start text-text"
-            style={{ fontFamily: fontFamily.semibold, fontSize: fontSize.label }}
-          >
-            {t("section-contact")}
-          </AppText>
-          <View className="gap-4">
+              </>
+            ) : null}
+            <AppInput
+              label={t("address-label")}
+              value={address}
+              required
+              onChangeText={setAddress}
+              onBlur={() => markTouched("address")}
+              placeholder={t("address-placeholder")}
+              maxLength={500}
+              error={visibleError("address", address)}
+              inputClassName={inputClass}
+            />
             {signedInWithPhone ? (
               <AppInput
                 label={t("email-label")}
                 value={email}
+                required
                 onChangeText={setEmail}
                 onBlur={() => markTouched("email")}
                 placeholder={t("email-placeholder")}
@@ -752,6 +1001,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
               <View>
                 <AppText variant="label" className="mb-2">
                   {t("email-label")}
+                  <AppText className="text-danger"> *</AppText>
                 </AppText>
                 <View className="h-[56px] flex-row items-center rounded-2xl border border-border bg-background px-4">
                   <AppText
@@ -768,16 +1018,6 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                 </AppText>
               </View>
             )}
-            <AppInput
-              label={t("address-label")}
-              value={address}
-              onChangeText={setAddress}
-              onBlur={() => markTouched("address")}
-              placeholder={t("address-placeholder")}
-              maxLength={500}
-              error={visibleError("address", address)}
-              inputClassName={inputClass}
-            />
           </View>
         </ScrollView>
 
@@ -807,8 +1047,52 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         searchPlaceholder={t("search-placeholder")}
         confirmLabel={t("sheet-confirm")}
         closeLabel={t("sheet-close")}
-        onConfirm={(value) => setNationality(value as NationalityCode)}
+        onConfirm={(value) => {
+          clearAutofill("nationality");
+          setNationality(value as NationalityCode);
+        }}
         onClose={() => setOpenSheet(null)}
+      />
+      <SearchSelectSheet
+        visible={openSheet === "company"}
+        title={t("select-company")}
+        options={companies.map((company) => ({
+          value: company.id,
+          label: company.name,
+        }))}
+        selected={companyId ?? undefined}
+        searchPlaceholder={t("search-placeholder")}
+        confirmLabel={t("sheet-confirm")}
+        closeLabel={t("sheet-close")}
+        onConfirm={setCompanyId}
+        onClose={() => setOpenSheet(null)}
+      />
+      <SelectSheet
+        visible={openSheet === "idType"}
+        title={t("select-id-type")}
+        options={idTypeOptions}
+        selected={idType}
+        onSelect={(value) => handleSelectIdType(value as IdDocumentType)}
+        onClose={() => setOpenSheet(null)}
+        closeLabel={t("sheet-close")}
+      />
+      <IdScanCameraSheet
+        visible={cameraOpen}
+        frameHint={t("scan-frame-hint")}
+        statusReady={t("scan-status-ready")}
+        statusScanning={t("scan-status-scanning")}
+        captureLabel={t("scan-capture")}
+        galleryLabel={t("scan-gallery")}
+        cancelLabel={t("scan-cancel")}
+        permissionDenied={t("scan-permission-denied")}
+        scanning={scanning}
+        onCapture={() => {
+          void pickFromNativeCamera();
+        }}
+        onGallery={() => {
+          void pickFromGallery();
+        }}
+        onCancel={() => setCameraOpen(false)}
       />
       <SearchSelectSheet
         visible={openSheet === "placeOfIssue"}

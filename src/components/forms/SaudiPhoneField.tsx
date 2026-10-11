@@ -10,12 +10,14 @@ export interface SaudiPhoneFieldProps
   value: string;
   onChangeText: (value: string) => void;
   label?: string;
+  required?: boolean;
 }
 
 export function SaudiPhoneField({
   value,
   onChangeText,
   label,
+  required = false,
   placeholder,
   ...props
 }: SaudiPhoneFieldProps) {
@@ -26,6 +28,7 @@ export function SaudiPhoneField({
       {label ? (
         <AppText variant="label" className="mb-2">
           {label}
+          {required ? <AppText className="text-danger"> *</AppText> : null}
         </AppText>
       ) : null}
       <View className="h-14 flex-row items-center rounded-2xl border border-border bg-background px-4">
