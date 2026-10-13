@@ -2,13 +2,12 @@
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
-## `expo-modules-jsi` patch
+## iOS 27 SDK / UIScene
 
-This repo applies [`patches/expo-modules-jsi+57.0.4.patch`](patches/expo-modules-jsi+57.0.4.patch) via `patch-package` (`postinstall`).
+Xcode 27 refuses to launch apps without the UIKit scene life cycle. [`app.json`](app.json) sets `expo-build-properties` → `ios.enableSceneSupport: true` (needs `expo` ≥ 57.0.23). React Native starts from Expo's scene delegate, not `AppDelegate`. Drop the flag on Expo SDK 58+.
 
-- **Why:** Swift concurrency / Date coding fixes needed for the current Expo 57 + RN 0.86 iOS build.
-- **Hoist:** [`.npmrc`](.npmrc) uses `node-linker=hoisted` and `public-hoist-pattern[]=expo-modules-jsi` so the patch target resolves.
-- **When upgrading Expo:** re-test native iOS builds; refresh or remove the patch once upstream includes the fix. Do not bump Expo blindly without verifying this patch still applies.
+- `ios/` is generated: change `app.json` and run `npx expo prebuild -p ios`, do not hand-edit native files. Signing team comes from `ios.appleTeamId`.
+- `patch-package` (`postinstall`) is kept for future patches. The old `expo-modules-jsi+57.0.4` patch was removed: `expo-modules-jsi` 57.1.x includes the Date fix and its `weak let` compiles on Xcode 27. Re-test native iOS builds before bumping Expo.
 
 ## Architecture notes
 

@@ -9,7 +9,8 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.welmm.tajeerplus",
+      "bundleIdentifier": "com.welm.tajeerplus",
+      "appleTeamId": "6F8YNN5BBY",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development.",
@@ -58,6 +59,14 @@
         {
           "merchantIdentifier": "merchant.com.welm.tajeerplus",
           "enableGooglePay": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
         }
       ]
     ]
