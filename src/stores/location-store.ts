@@ -26,6 +26,8 @@ type LocationState = {
   enableLocation: () => Promise<"granted" | "denied" | "unavailable" | "failed">;
   skipLocation: () => void;
   selectCity: (cityKey: CityKey) => void;
+  /** Point picked from address search; persisted like a manual city. */
+  setSearchPoint: (latitude: number, longitude: number) => void;
   setRadiusKm: (radiusKm: LocationRadiusKm) => void;
 };
 
@@ -144,6 +146,17 @@ export const useLocationStore = create<LocationState>((set, get) => ({
     };
     set(next);
     persistSnapshot({ ...next, cityKey });
+  },
+  setSearchPoint: (latitude, longitude) => {
+    const next = {
+      status: "city" as const,
+      cityKey: null,
+      latitude,
+      longitude,
+      radiusKm: get().radiusKm,
+    };
+    set(next);
+    persistSnapshot(next);
   },
   setRadiusKm: (radiusKm) => {
     const { status, latitude, longitude, cityKey } = get();
