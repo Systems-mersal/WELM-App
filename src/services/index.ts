@@ -12,5 +12,6 @@ export {
   verifyWelmEmailOtp,
   registerWelmAccount,
   loginWelmAccount,
+  patchWelmProfile,
   saveWelmProfile,
 } from "../features/auth";

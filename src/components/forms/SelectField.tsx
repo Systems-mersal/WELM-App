@@ -13,8 +13,10 @@ type Props = {
   placeholder: string;
   error?: string;
   onPress: () => void;
+  required?: boolean;
   autoFilled?: boolean;
   autoFilledLabel?: string;
+  inputClassName?: string;
 };
 
 export function SelectField({
@@ -23,8 +25,10 @@ export function SelectField({
   placeholder,
   error,
   onPress,
+  required = false,
   autoFilled = false,
   autoFilledLabel,
+  inputClassName = "",
 }: Props) {
   const { chevronEnd } = useRtl();
 
@@ -35,6 +39,7 @@ export function SelectField({
       <View className="mb-2 flex-row flex-wrap items-center gap-2">
         <AppText variant="label" className="text-start">
           {label}
+          {required ? <AppText className="text-danger"> *</AppText> : null}
         </AppText>
         {autoFilled && autoFilledLabel ? (
           <View className="rounded-pill bg-white px-2.5 py-0.5">
@@ -57,7 +62,7 @@ export function SelectField({
             : autoFilled
               ? "border-primarySoft"
               : "border-border"
-        }`}
+        } ${inputClassName}`}
       >
         <AppText
           variant="body"

@@ -2,7 +2,7 @@
   "header": "Create account",
   "brand": "WELM",
   "title": "Create your WELM account",
-  "subtitle": "Start with email and password, then complete your rental details",
+  "subtitle": "Start with one step, then complete your rental details after verifying your mobile",
   "or": "or",
   "email": "Email",
   "email-placeholder": "name@email.com",
@@ -17,6 +17,7 @@
   "show-password": "Show password",
   "hide-password": "Hide password",
   "a11y-apple": "Continue with Apple",
+  "a11y-google": "Continue with Google",
   "a11y-x": "Continue with X",
   "terms-agree": "I agree to the ",
   "terms-link": "Terms and Conditions",
@@ -25,5 +26,11 @@
   "terms-error": "Please accept the terms to continue",
   "a11y-terms": "Accept terms and privacy policy",
   "create-account": "Create account",
+  "social-failed": "Could not complete sign-up with {{provider}}. Try again or use your mobile number.",
+  "provider-apple": "Apple",
+  "provider-google": "Google",
+  "phone": "Mobile Number",
+  "phone-placeholder": "5XXXXXXXX",
+  "continue-phone": "Continue with mobile number",
   "social-error-dismiss": "Dismiss error"
 }

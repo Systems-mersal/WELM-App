@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../../stores/auth-store";
+import { copyLocalProfileFields, useAuthStore } from "../../../stores/auth-store";
 import type { WelmAuthSession } from "../api/types";
 import { logoutWelmSession, mapWelmSessionToAuthUser } from "../api/welm-auth";
 import {
@@ -25,8 +25,9 @@ export function applyWelmAuthSession(
     return destination;
   }
 
+  const profile = copyLocalProfileFields(store.user, session.user.id);
   store.clearSession();
-  store.setPendingSession(session);
+  store.setPendingSession(session, profile);
   return destination;
 }
 
@@ -42,17 +43,18 @@ export function completeSocialSignIn(
 
 /** US-5 «متابعة كـ {firstName}» — open the parked session. */
 export function commitPendingWelmSession(): boolean {
-  const pending = useAuthStore.getState().pendingSession;
+  const { pendingSession: pending, pendingProfile } = useAuthStore.getState();
   if (!pending?.accessToken) {
     return false;
   }
-  useAuthStore
-    .getState()
-    .setSession(
-      pending.accessToken,
-      mapWelmSessionToAuthUser(pending),
-      pending.refreshToken,
-    );
+  useAuthStore.getState().setSession(
+    pending.accessToken,
+    {
+      ...mapWelmSessionToAuthUser(pending),
+      ...pendingProfile,
+    },
+    pending.refreshToken,
+  );
   return true;
 }
 

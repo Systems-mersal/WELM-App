@@ -16,10 +16,10 @@ import {
   type WelmPhoneVerifyResponse,
   type WelmEmailStartResponse,
   type WelmEmailVerifyResponse,
-  type WelmProfileRequest,
-  type WelmProfileResponse,
   type WelmCompanyOption,
   type WelmSocialAuthRequest,
+  type WelmProfilePatchRequest,
+  type WelmProfilePatchResponse,
 } from "./types";
 
 const SOCIAL_PATH = "/api/welm/auth/social";
@@ -70,7 +70,11 @@ function mapAxiosError(error: unknown): WelmAuthApiError {
 
   if (details.serverCode) {
     const code =
-      status === 401 ? "unauthorized" : status && status < 500 ? "invalid" : "unknown";
+      status === 401
+        ? "unauthorized"
+        : status && status < 500
+          ? "invalid"
+          : "unknown";
     return new WelmAuthApiError(code, message, status, details);
   }
 
@@ -111,6 +115,12 @@ export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
       "User",
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    provider:
+      session.provider === "apple" || session.provider === "google"
+        ? session.provider
+        : current?.id === session.user.id
+          ? current.provider
+          : undefined,
     emailVerified: session.user.emailVerified,
     ...copyLocalProfileFields(current, session.user.id),
   };
@@ -209,6 +219,8 @@ export function getWelmOAuthStartUrl(provider: "google"): string {
 
 const PHONE_START_PATH = "/api/welm/auth/phone/start";
 const PHONE_VERIFY_PATH = "/api/welm/auth/phone/verify";
+const PHONE_LOGIN_START_PATH = "/api/welm/auth/phone/login/start";
+const PHONE_LOGIN_VERIFY_PATH = "/api/welm/auth/phone/login/verify";
 
 /** POST /api/welm/auth/phone/start — never sent to Apple/Google. */
 export async function startWelmPhoneOtp(
@@ -222,6 +234,45 @@ export async function startWelmPhoneOtp(
     );
     if (!data?.sent || !data.phone) {
       throw new WelmAuthApiError("unknown", "Invalid phone start response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/phone/login/start — signs in by Saudi mobile. No Bearer. */
+export async function startWelmPhoneLogin(
+  phone: string,
+): Promise<WelmPhoneStartResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPhoneStartResponse>(
+      PHONE_LOGIN_START_PATH,
+      { phone },
+    );
+    if (!data?.sent || !data.phone) {
+      throw new WelmAuthApiError("unknown", "Invalid phone login response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/phone/login/verify — returns a consumer session. */
+export async function verifyWelmPhoneLogin(
+  phone: string,
+  code: string,
+): Promise<WelmAuthSession> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmAuthSession>(
+      PHONE_LOGIN_VERIFY_PATH,
+      { phone, code },
+    );
+    if (!data?.accessToken || !data?.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid phone login response");
     }
     return data;
   } catch (error) {
@@ -333,10 +384,10 @@ export async function verifyWelmEmailOtp(
   }
 }
 
-const PROFILE_PATH = "/api/welm/profile";
 const COMPANIES_PATH = "/api/welm/companies";
+const PROFILE_PATH = "/api/welm/profile";
 
-/** GET /api/welm/companies — rental operators the consumer can attach to. */
+/** GET /api/welm/companies — operators the consumer may attach to. */
 export async function fetchWelmCompanies(): Promise<WelmCompanyOption[]> {
   assertEnabled();
   try {
@@ -349,21 +400,24 @@ export async function fetchWelmCompanies(): Promise<WelmCompanyOption[]> {
   }
 }
 
-/** PATCH /api/welm/profile — writes the Tajeer Plus customer row. */
-export async function saveWelmProfile(
-  body: WelmProfileRequest,
-): Promise<WelmProfileResponse> {
+/** PATCH /api/welm/profile — Tajeer Plus customer validations (US-10). */
+export async function patchWelmProfile(
+  body: WelmProfilePatchRequest,
+): Promise<WelmProfilePatchResponse> {
   assertEnabled();
   try {
-    const { data } = await apiClient.patch<WelmProfileResponse>(
+    const { data } = await apiClient.patch<WelmProfilePatchResponse>(
       PROFILE_PATH,
       body,
     );
     if (!data?.customerId || !data.user?.id) {
-      throw new WelmAuthApiError("unknown", "Invalid profile response");
+      throw new WelmAuthApiError("unknown", "Invalid profile save response");
     }
     return data;
   } catch (error) {
     throw mapAxiosError(error);
   }
 }
+
+/** Same as `patchWelmProfile`. */
+export const saveWelmProfile = patchWelmProfile;

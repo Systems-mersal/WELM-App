@@ -33,6 +33,12 @@
 				<string>com.welm.tajeerplus</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.107422081244-p0svshl4fnf0e5erkopgbdbct1kcgbs4</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>

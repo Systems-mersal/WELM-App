@@ -1,0 +1,15 @@
+{
+  "header": "Set location",
+  "title": "Set your location",
+  "subtitle": "WELM uses your location only to show cars available in your area.",
+  "benefit-nearby": "See cars near you",
+  "benefit-radius": "More accurate results by search radius",
+  "benefit-fast": "Faster browsing and booking",
+  "legal": "We do not share your location with drivers or use it for ads.",
+  "use-current": "Use my current location",
+  "choose-manual": "Set location manually",
+  "denied-banner": "Location permission was denied. Choose a city manually.",
+  "denied-dismiss": "Dismiss",
+  "error-unavailable": "Turn on Location Services or choose a city manually.",
+  "error-failed": "Could not get your location. Choose a city manually."
+}

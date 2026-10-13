@@ -11,6 +11,8 @@ import arCreateAccount from "./ar/create-account.json";
 import arLinkMobile from "./ar/link-mobile.json";
 import arAccountExists from "./ar/account-exists.json";
 import arProfileGate from "./ar/profile-gate.json";
+import arCompleteIdentity from "./ar/complete-identity.json";
+import arLocation from "./ar/location.json";
 import arLegal from "./ar/legal.json";
 import arOtp from "./ar/otp.json";
 import arHome from "./ar/home.json";
@@ -35,6 +37,8 @@ import enCreateAccount from "./en/create-account.json";
 import enLinkMobile from "./en/link-mobile.json";
 import enAccountExists from "./en/account-exists.json";
 import enProfileGate from "./en/profile-gate.json";
+import enCompleteIdentity from "./en/complete-identity.json";
+import enLocation from "./en/location.json";
 import enLegal from "./en/legal.json";
 import enOtp from "./en/otp.json";
 import enHome from "./en/home.json";
@@ -60,6 +64,8 @@ export const namespaces = [
   "link-mobile",
   "account-exists",
   "profile-gate",
+  "complete-identity",
+  "location",
   "legal",
   "otp",
   "home",
@@ -100,6 +106,8 @@ void i18n.use(initReactI18next).init({
       "link-mobile": arLinkMobile,
       "account-exists": arAccountExists,
       "profile-gate": arProfileGate,
+      "complete-identity": arCompleteIdentity,
+      location: arLocation,
       legal: arLegal,
       otp: arOtp,
       home: arHome,
@@ -125,6 +133,8 @@ void i18n.use(initReactI18next).init({
       "link-mobile": enLinkMobile,
       "account-exists": enAccountExists,
       "profile-gate": enProfileGate,
+      "complete-identity": enCompleteIdentity,
+      location: enLocation,
       legal: enLegal,
       otp: enOtp,
       home: enHome,

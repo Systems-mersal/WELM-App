@@ -42,6 +42,8 @@ export type WelmMeResponse = {
 export type WelmPhoneStartResponse = {
   sent: boolean;
   phone: string;
+  /** Local/dev only — omitted in production. */
+  debugCode?: string;
 };
 
 export type WelmPhoneVerifyResponse = {
@@ -69,29 +71,39 @@ export type WelmCompanyOption = {
   name: string;
 };
 
-export type WelmProfileRequest = {
+export type WelmProfilePatchRequest = {
   companyId: string;
   name: string;
-  idDocumentType?: "national" | "resident";
+  idDocumentType?: "national" | "resident" | "gcc" | "visitor";
   nationalId: string;
   nationality?: string;
   dateOfBirth?: string;
-  licenseType?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  licenseType?: "private" | "public" | "motorcycle" | "heavy";
   licenseNumber?: string;
   licenseExpiry?: string;
   placeOfIssue?: string;
+  passportNumber?: string;
+  idCopyNumber?: string;
 };
 
-export type WelmProfileResponse = {
+/** Same payload as `WelmProfilePatchRequest`. Kept for existing profile saves. */
+export type WelmProfileRequest = WelmProfilePatchRequest;
+
+export type WelmProfilePatchResponse = {
   customerId: string;
   user: {
     id: string;
     name: string;
-    firstName: string;
-    nationalId: string;
-    idDocumentType: "national" | "resident";
+    firstName?: string;
+    nationalId?: string;
+    idDocumentType?: "national" | "resident" | "gcc" | "visitor";
   };
 };
+
+export type WelmProfileResponse = WelmProfilePatchResponse;
 
 export type WelmAuthErrorCode =
   | "undeployed"

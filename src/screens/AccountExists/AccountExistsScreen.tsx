@@ -12,7 +12,7 @@ import {
   commitPendingWelmSession,
   discardWelmAuth,
   firstNameFromWelmUser,
-  routeToHome,
+  routeAfterContinueAs,
 } from "../../features/auth";
 import type { RootStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../stores/auth-store";
@@ -45,7 +45,7 @@ export function AccountExistsScreen({ navigation }: Props) {
       navigation.replace("Login");
       return;
     }
-    routeToHome(navigation);
+    void routeAfterContinueAs(navigation);
   }, [navigation]);
 
   return (
@@ -62,7 +62,7 @@ export function AccountExistsScreen({ navigation }: Props) {
       }
     >
       <View className="mt-10 items-center">
-        <View className="h-16 w-16 items-center justify-center rounded-full bg-successBg">
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-primaryMuted">
           <AppIcon name="check" size={28} color={colors.primary} />
         </View>
       </View>

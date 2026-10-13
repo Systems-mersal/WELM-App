@@ -9,11 +9,14 @@ export {
   socialSuccessToRequest,
   startWelmPhoneOtp,
   verifyWelmPhoneOtp,
+  startWelmPhoneLogin,
+  verifyWelmPhoneLogin,
   startWelmEmailOtp,
   verifyWelmEmailOtp,
   registerWelmAccount,
   loginWelmAccount,
   fetchWelmCompanies,
+  patchWelmProfile,
   saveWelmProfile,
 } from "./welm-auth";
 export {
@@ -23,6 +26,7 @@ export {
   type WelmAuthProvider,
   type WelmAuthSession,
   type WelmAuthUser,
+  type WelmEmailOtpErrorCode,
   type WelmMeResponse,
   type WelmPhoneStartResponse,
   type WelmPhoneVerifyResponse,
@@ -32,4 +36,6 @@ export {
   type WelmProfileResponse,
   type WelmCompanyOption,
   type WelmSocialAuthRequest,
+  type WelmProfilePatchRequest,
+  type WelmProfilePatchResponse,
 } from "./types";

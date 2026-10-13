@@ -4,10 +4,15 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  constrainHijri,
+  clampHijriNotPast,
+  clampHijriToToday,
   hijriMonthLength,
   hijriYearRange,
+  isHijriFuture,
+  isHijriPast,
   setHijriPart,
+  todayHijri,
+  toEasternDigits,
   type HijriYmd,
 } from "../../lib/hijri";
 import { AppText } from "../typography/AppText";
@@ -17,6 +22,16 @@ type Props = {
   value: HijriYmd;
   onConfirm: (next: HijriYmd) => void;
   onClose: () => void;
+  title?: string;
+  confirmLabel?: string;
+  closeLabel?: string;
+  monthLabels?: Record<string, string>;
+  yearColumnLabel?: string;
+  monthColumnLabel?: string;
+  dayColumnLabel?: string;
+  /** Date of birth rejects future; license expiry rejects past. */
+  bound?: "not-future" | "not-past";
+  helperText?: string;
 };
 
 function Column({
@@ -57,42 +72,77 @@ function Column({
   );
 }
 
-export function HijriDateSheet({ visible, value, onConfirm, onClose }: Props) {
-  const { t } = useTranslation("profile-gate");
+export function HijriDateSheet({
+  visible,
+  value,
+  onConfirm,
+  onClose,
+  title,
+  confirmLabel,
+  closeLabel,
+  monthLabels,
+  yearColumnLabel,
+  monthColumnLabel,
+  dayColumnLabel,
+  bound = "not-future",
+  helperText,
+}: Props) {
+  const { t, i18n } = useTranslation("profile-gate");
   const insets = useSafeAreaInsets();
+  const eastern = i18n.language.startsWith("ar");
   const [draft, setDraft] = useState(value);
+  const clampDraft =
+    bound === "not-past" ? clampHijriNotPast : clampHijriToToday;
+  const invalid =
+    bound === "not-past" ? isHijriPast(draft) : isHijriFuture(draft);
 
   useEffect(() => {
     if (visible) {
-      setDraft(value);
+      setDraft(clampDraft(value));
     }
-  }, [visible, value]);
+  }, [clampDraft, value, visible]);
 
-  const years = useMemo(() => hijriYearRange(draft.year), [draft.year]);
+  const years = useMemo(() => {
+    if (bound === "not-past") {
+      const current = todayHijri().year;
+      return hijriYearRange(draft.year, {
+        fromYear: current,
+        toYear: current + 20,
+      });
+    }
+    return hijriYearRange(draft.year);
+  }, [bound, draft.year]);
   const monthItems = useMemo(
     () =>
       Array.from({ length: 12 }, (_, index) => {
         const month = index + 1;
         return {
           key: String(month),
-          label: t(`hijri-month.${month}`),
+          label: monthLabels?.[String(month)] ?? t(`hijri-month.${month}`),
         };
       }),
-    [t],
+    [monthLabels, t],
   );
   const dayCount = hijriMonthLength(draft.year, draft.month);
   const dayItems = useMemo(
     () =>
       Array.from({ length: dayCount }, (_, index) => {
         const day = index + 1;
-        return { key: String(day), label: String(day) };
+        return {
+          key: String(day),
+          label: eastern ? toEasternDigits(day) : String(day),
+        };
       }),
-    [dayCount],
+    [dayCount, eastern],
   );
 
   const setPart = (part: keyof HijriYmd, next: number) => {
-    setDraft((current) => setHijriPart(current, part, next));
+    setDraft((current) => clampDraft(setHijriPart(current, part, next)));
   };
+
+  const showHeaders = Boolean(
+    yearColumnLabel || monthColumnLabel || dayColumnLabel,
+  );
 
   return (
     <Modal
@@ -108,13 +158,29 @@ export function HijriDateSheet({ visible, value, onConfirm, onClose }: Props) {
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         >
           <AppText variant="subtitle" className="mb-4 text-start text-text">
-            {t("select-date")}
+            {title ?? t("select-date")}
           </AppText>
+          {showHeaders ? (
+            <View className="mb-2 flex-row gap-2">
+              <AppText variant="caption" muted className="flex-1 text-center">
+                {yearColumnLabel}
+              </AppText>
+              <AppText variant="caption" muted className="flex-1 text-center">
+                {monthColumnLabel}
+              </AppText>
+              <AppText variant="caption" muted className="flex-1 text-center">
+                {dayColumnLabel}
+              </AppText>
+            </View>
+          ) : null}
           <View className="h-56 flex-row gap-2">
             <Column
-              items={dayItems}
-              selected={String(draft.day)}
-              onSelect={(key) => setPart("day", Number(key))}
+              items={years.map((year) => ({
+                key: String(year),
+                label: eastern ? toEasternDigits(year) : String(year),
+              }))}
+              selected={String(draft.year)}
+              onSelect={(key) => setPart("year", Number(key))}
             />
             <Column
               items={monthItems}
@@ -122,24 +188,33 @@ export function HijriDateSheet({ visible, value, onConfirm, onClose }: Props) {
               onSelect={(key) => setPart("month", Number(key))}
             />
             <Column
-              items={years.map((year) => ({
-                key: String(year),
-                label: String(year),
-              }))}
-              selected={String(draft.year)}
-              onSelect={(key) => setPart("year", Number(key))}
+              items={dayItems}
+              selected={String(draft.day)}
+              onSelect={(key) => setPart("day", Number(key))}
             />
           </View>
+          {helperText ? (
+            <AppText variant="caption" muted className="mt-3 text-start">
+              {helperText}
+            </AppText>
+          ) : null}
           <Pressable
             accessibilityRole="button"
+            disabled={invalid}
             onPress={() => {
-              onConfirm(constrainHijri(draft));
+              const next = clampDraft(draft);
+              if (bound === "not-past" ? isHijriPast(next) : isHijriFuture(next)) {
+                return;
+              }
+              onConfirm(next);
               onClose();
             }}
-            className="mt-4 h-14 items-center justify-center rounded-pill bg-primary active:opacity-90"
+            className={`mt-4 h-14 items-center justify-center rounded-pill bg-primary ${
+              invalid ? "opacity-50" : "active:opacity-90"
+            }`}
           >
             <AppText variant="button" className="text-white">
-              {t("sheet-confirm")}
+              {confirmLabel ?? t("sheet-confirm")}
             </AppText>
           </Pressable>
           <Pressable
@@ -148,7 +223,7 @@ export function HijriDateSheet({ visible, value, onConfirm, onClose }: Props) {
             className="mt-2 h-12 items-center justify-center"
           >
             <AppText variant="body" className="text-textMuted">
-              {t("sheet-close")}
+              {closeLabel ?? t("sheet-close")}
             </AppText>
           </Pressable>
         </View>

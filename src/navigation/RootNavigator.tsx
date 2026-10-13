@@ -10,10 +10,12 @@ import { DocumentsScreen } from "../screens/Documents/DocumentsScreen";
 import { LegalScreen } from "../screens/Legal/LegalScreen";
 import { LinkMobileScreen } from "../screens/LinkMobile/LinkMobileScreen";
 import { LocationRadiusScreen } from "../screens/LocationRadius/LocationRadiusScreen";
+import { LocationRationaleScreen } from "../screens/LocationRationale/LocationRationaleScreen";
 import { LoginScreen } from "../screens/Login/LoginScreen";
 import { NotificationsScreen } from "../screens/Notifications/NotificationsScreen";
 import { OnboardingScreen } from "../screens/Onboarding/OnboardingScreen";
 import { OtpScreen } from "../screens/Otp/OtpScreen";
+import { CompleteIdentityScreen } from "../screens/CompleteIdentity/CompleteIdentityScreen";
 import { ProfileGateScreen } from "../screens/ProfileGate/ProfileGateScreen";
 import { SplashScreen } from "../screens/Splash/SplashScreen";
 import { VehicleDetailsScreen } from "../screens/VehicleDetails/VehicleDetailsScreen";
@@ -37,6 +39,7 @@ export function RootNavigator() {
       <Stack.Screen name="Legal" component={LegalScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />
       <Stack.Screen name="ProfileGate" component={ProfileGateScreen} />
+      <Stack.Screen name="CompleteIdentity" component={CompleteIdentityScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen} />
       <Stack.Screen name="BookingDates" component={BookingDatesScreen} />
@@ -45,6 +48,11 @@ export function RootNavigator() {
       <Stack.Screen name="BookingConfirmed" component={BookingConfirmedScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Documents" component={DocumentsScreen} />
+      <Stack.Screen
+        name="LocationRationale"
+        component={LocationRationaleScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen name="LocationRadius" component={LocationRadiusScreen} />
     </Stack.Navigator>
   );

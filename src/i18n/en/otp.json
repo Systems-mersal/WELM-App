@@ -2,6 +2,7 @@
   "header": "Verification Code",
   "title": "Enter Verification Code",
   "sent-to": "A 4-digit code was sent to",
+  "send-failed": "The code could not be emailed. Tap Resend to try again.",
   "resend-in": "Resend in {{time}}",
   "verify": "Verify",
   "didnt-receive": "Didn't receive the code?",
