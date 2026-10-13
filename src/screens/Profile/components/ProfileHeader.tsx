@@ -5,8 +5,14 @@ import avatarSource from "../../../assets/figma/profile/avatar.png";
 import { Avatar } from "../../../components/common/Avatar";
 import { Badge } from "../../../components/common/Badge";
 import { AppText } from "../../../components/typography/AppText";
+import { useWelmBookings } from "../../../features/bookings";
 import { useAuthStore } from "../../../stores/auth-store";
 import { fontFamily } from "../../../theme/typography";
+
+function formatStat(value: number, language: string): string {
+  const arabic = language.startsWith("ar");
+  return new Intl.NumberFormat(arabic ? "ar-SA-u-nu-arab" : "en").format(value);
+}
 
 export function ProfileHeader() {
   const { t } = useTranslation("profile");
@@ -41,13 +47,20 @@ export function ProfileHeader() {
 }
 
 export function ProfileStats() {
-  const { t } = useTranslation("profile");
+  const { t, i18n } = useTranslation("profile");
+  const { bookings, isLoading, isError } = useWelmBookings();
+  const bookingCount = bookings.length;
+  const favoriteCount = 0;
+  const bookingLabel =
+    bookingCount === 0 && (isLoading || isError)
+      ? "—"
+      : formatStat(bookingCount, i18n.language);
 
   return (
     <View className="mx-6 mt-5 flex-row rounded-[16px] bg-white px-3 py-2.5 shadow-sm">
       <View className="flex-1 items-center border-e border-border">
         <AppText variant="subtitle" className="text-primary">
-          {t("stats-bookings")}
+          {bookingLabel}
         </AppText>
         <AppText variant="caption" muted className="text-center">
           {t("total-bookings")}
@@ -55,7 +68,7 @@ export function ProfileStats() {
       </View>
       <View className="flex-1 items-center">
         <AppText variant="subtitle" className="text-primary">
-          {t("stats-favorites")}
+          {formatStat(favoriteCount, i18n.language)}
         </AppText>
         <AppText variant="caption" muted className="text-center">
           {t("favorite-cars")}

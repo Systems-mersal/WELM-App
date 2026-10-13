@@ -19,6 +19,8 @@ export type WelmVehicleDto = {
     id: string | null;
     name: string | null;
     city: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   };
   status: string;
 };
@@ -77,6 +79,8 @@ export function mapWelmVehicleDto(dto: WelmVehicleDto): Vehicle {
     image: photoUri ?? "remote",
     imageSource: photoUri ? { uri: photoUri } : FALLBACK_IMAGE,
     locationLabel: branchLabel,
+    latitude: dto.branch.latitude ?? undefined,
+    longitude: dto.branch.longitude ?? undefined,
     seats: 5,
     transmission: "automatic",
     fuelType: "petrol",
@@ -88,12 +92,18 @@ export async function fetchWelmVehicles(options?: {
   page?: number;
   limit?: number;
   search?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
 }): Promise<WelmVehiclesResponse> {
   const { data } = await apiClient.get<WelmVehiclesResponse>("/api/welm/vehicles", {
     params: {
       page: options?.page ?? 1,
       limit: options?.limit ?? 40,
       search: options?.search || undefined,
+      latitude: options?.latitude,
+      longitude: options?.longitude,
+      radiusKm: options?.radiusKm,
     },
   });
   return data;
