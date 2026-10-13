@@ -26,6 +26,10 @@
   "radius-title": "نطاق البحث",
   "radius-label": "النطاق",
   "radius-confirm": "تأكيد",
+  "location-search-placeholder": "ابحث عن مدينة أو حي أو عنوان",
+  "location-search-clear": "مسح البحث",
+  "location-search-empty": "لا توجد نتائج. جرّب اسمًا آخر.",
+  "location-search-error": "البحث غير متاح حاليًا. حاول مرة أخرى.",
   "radius-km": {
     "10": "١٠ كم",
     "25": "٢٥ كم",

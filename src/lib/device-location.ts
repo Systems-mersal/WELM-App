@@ -30,3 +30,67 @@ export async function requestForegroundLocation(): Promise<ForegroundLocationRes
     return { ok: false, reason: "failed" };
   }
 }
+
+export type PlaceSearchResult = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  title: string;
+  subtitle: string;
+};
+
+const MAX_PLACE_RESULTS = 5;
+
+function joinParts(parts: Array<string | null | undefined>): string {
+  return Array.from(
+    new Set(parts.map((part) => part?.trim()).filter(Boolean) as string[]),
+  ).join(", ");
+}
+
+/**
+ * Address / place text → coordinates with readable labels.
+ * Call on submit only — the OS geocoder rate-limits frequent requests.
+ */
+export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const matches = (await Location.geocodeAsync(trimmed)).slice(
+    0,
+    MAX_PLACE_RESULTS,
+  );
+
+  return Promise.all(
+    matches.map(async (match, index) => {
+      let title = trimmed;
+      let subtitle = "";
+      try {
+        const [address] = await Location.reverseGeocodeAsync({
+          latitude: match.latitude,
+          longitude: match.longitude,
+        });
+        if (address) {
+          title =
+            address.name || address.district || address.city || trimmed;
+          subtitle = joinParts([
+            address.district !== title ? address.district : null,
+            address.city !== title ? address.city : null,
+            address.region,
+            address.country,
+          ]);
+        }
+      } catch {
+        // Keep the typed text as the label.
+      }
+      return {
+        id: `${match.latitude},${match.longitude},${index}`,
+        latitude: match.latitude,
+        longitude: match.longitude,
+        title,
+        subtitle,
+      };
+    }),
+  );
+}

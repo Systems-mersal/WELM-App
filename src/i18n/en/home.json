@@ -26,6 +26,10 @@
   "radius-title": "Search radius",
   "radius-label": "Radius",
   "radius-confirm": "Confirm",
+  "location-search-placeholder": "Search for a city, area, or address",
+  "location-search-clear": "Clear search",
+  "location-search-empty": "No places found. Try a different name.",
+  "location-search-error": "Search is unavailable right now. Try again.",
   "radius-km": {
     "10": "10 km",
     "25": "25 km",
