@@ -13,10 +13,15 @@ export type StoredAuthSession = {
     email?: string;
     provider?: "apple" | "google";
     emailVerified?: boolean;
+    customerId?: string;
+    avatarUrl?: string;
+    companyId?: string;
+    companyName?: string;
     nationalId?: string;
     idDocumentType?: "national" | "resident" | "gcc" | "visitor";
     dateOfBirth?: string;
     dateOfBirthHijri?: string;
+    dateOfBirthCalendar?: "hijri" | "gregorian";
     licenseNumber?: string;
     licenseType?: "private" | "public" | "motorcycle" | "heavy";
     licenseExpiry?: string;

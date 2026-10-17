@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,6 +18,16 @@ export function BookingsScreen() {
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<BookingTab>("upcoming");
   const { bookings, isLoading, isError, isEmpty, refetch } = useWelmBookings();
+  const [pulling, setPulling] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setPulling(true);
+    try {
+      await refetch();
+    } finally {
+      setPulling(false);
+    }
+  }, [refetch]);
 
   const tabLabels = useMemo(
     () => ({
@@ -91,6 +101,16 @@ export function BookingsScreen() {
         className="bg-background"
         contentClassName="px-6"
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={pulling}
+            onRefresh={() => {
+              void handleRefresh();
+            }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         <AppText variant="label" className="mb-3 mt-2">
           {selectedTab === "upcoming"
@@ -100,11 +120,30 @@ export function BookingsScreen() {
               : t("active-booking")}
         </AppText>
 
+        {isError && bookings.length > 0 ? (
+          <View className="mb-3 items-start gap-3 rounded-2xl border border-danger bg-white px-4 py-3">
+            <AppText variant="caption" className="text-danger">
+              {t("common:error")}
+            </AppText>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                void refetch();
+              }}
+              className="rounded-pill bg-primary px-5 py-2"
+            >
+              <AppText variant="caption" className="text-white">
+                {t("retry")}
+              </AppText>
+            </Pressable>
+          </View>
+        ) : null}
+
         {isLoading ? (
           <View className="items-center py-16">
             <ActivityIndicator color={colors.primary} />
           </View>
-        ) : isError ? (
+        ) : isError && bookings.length === 0 ? (
           <View className="items-center gap-3 rounded-2xl border border-border bg-white px-4 py-8">
             <AppText variant="body" muted className="text-center">
               {t("common:error")}

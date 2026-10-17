@@ -16,8 +16,11 @@ export {
   registerWelmAccount,
   loginWelmAccount,
   fetchWelmCompanies,
+  welmCompanyDisplayName,
   patchWelmProfile,
+  patchWelmPersonalDetails,
   saveWelmProfile,
+  uploadWelmAvatar,
 } from "./welm-auth";
 export {
   WelmAuthApiError,
@@ -38,4 +41,5 @@ export {
   type WelmSocialAuthRequest,
   type WelmProfilePatchRequest,
   type WelmProfilePatchResponse,
+  type WelmPersonalPatchRequest,
 } from "./types";

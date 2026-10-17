@@ -16,6 +16,7 @@ import { NotificationsScreen } from "../screens/Notifications/NotificationsScree
 import { OnboardingScreen } from "../screens/Onboarding/OnboardingScreen";
 import { OtpScreen } from "../screens/Otp/OtpScreen";
 import { CompleteIdentityScreen } from "../screens/CompleteIdentity/CompleteIdentityScreen";
+import { EditPersonalInfoScreen } from "../screens/EditPersonalInfo/EditPersonalInfoScreen";
 import { ProfileGateScreen } from "../screens/ProfileGate/ProfileGateScreen";
 import { SplashScreen } from "../screens/Splash/SplashScreen";
 import { VehicleDetailsScreen } from "../screens/VehicleDetails/VehicleDetailsScreen";
@@ -40,6 +41,7 @@ export function RootNavigator() {
       <Stack.Screen name="Otp" component={OtpScreen} />
       <Stack.Screen name="ProfileGate" component={ProfileGateScreen} />
       <Stack.Screen name="CompleteIdentity" component={CompleteIdentityScreen} />
+      <Stack.Screen name="EditPersonalInfo" component={EditPersonalInfoScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen} />
       <Stack.Screen name="BookingDates" component={BookingDatesScreen} />

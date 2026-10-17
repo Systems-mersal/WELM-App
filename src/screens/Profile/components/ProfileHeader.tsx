@@ -1,7 +1,6 @@
 import React from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
-import avatarSource from "../../../assets/figma/profile/avatar.png";
 import { Avatar } from "../../../components/common/Avatar";
 import { Badge } from "../../../components/common/Badge";
 import { AppText } from "../../../components/typography/AppText";
@@ -19,10 +18,11 @@ export function ProfileHeader() {
   const user = useAuthStore((state) => state.user);
   const displayName = user?.name || t("user-name");
   const displayEmail = user?.email || t("user-email");
+  const avatarSource = user?.avatarUrl ? { uri: user.avatarUrl } : undefined;
 
   return (
     <View className="flex-row items-center gap-2">
-      <Avatar source={avatarSource} size={36} />
+      <Avatar source={avatarSource} name={displayName} size={36} />
       <View className="min-w-0 flex-1 flex-row items-center justify-between gap-2">
         <View className="min-w-0 flex-1 items-start">
           <AppText

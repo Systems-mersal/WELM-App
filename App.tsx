@@ -21,6 +21,7 @@ import i18n, { defaultLanguage } from "./src/i18n";
 import { LocaleRoot } from "./src/components/locale/LocaleRoot";
 import { getStoredLanguage } from "./src/lib/language-storage";
 import { PaymentProvider } from "./src/payments";
+import { fetchWelmMe, mapWelmSessionToAuthUser } from "./src/features/auth";
 import { queryClient } from "./src/lib/query-client";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { useAuthStore } from "./src/stores/auth-store";
@@ -54,6 +55,25 @@ export default function App() {
       }
 
       await useAuthStore.getState().hydrate();
+      const { accessToken, refreshToken, user } = useAuthStore.getState();
+      if (accessToken && user) {
+        try {
+          const me = await fetchWelmMe();
+          useAuthStore.getState().setSession(
+            accessToken,
+            mapWelmSessionToAuthUser({
+              accessToken,
+              refreshToken: refreshToken ?? "",
+              expiresIn: 0,
+              user: me.user,
+              isNew: me.isNew,
+            }),
+            refreshToken,
+          );
+        } catch {
+          // Keep the locally stored session if /me is unavailable.
+        }
+      }
       await useLocationStore.getState().hydrate();
 
       if (!cancelled) {

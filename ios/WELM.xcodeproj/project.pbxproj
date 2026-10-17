@@ -28,7 +28,7 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		D04B7980D354315C49E12739 /* Pods-WELM.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WELM.release.xcconfig"; path = "Target Support Files/Pods-WELM/Pods-WELM.release.xcconfig"; sourceTree = "<group>"; };
 		DAA88F6F72F3724071FD2AB3 /* libPods-WELM.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WELM.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED21664662525B77EA386EC8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = WELM/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		ED21664662525B77EA386EC8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = WELM/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = WELM/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* WELM-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "WELM-Bridging-Header.h"; path = "WELM/WELM-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -122,7 +122,6 @@
 				116268C46B03E0CF58E09B91 /* Pods-WELM.debug.xcconfig */,
 				D04B7980D354315C49E12739 /* Pods-WELM.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -369,7 +368,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = WELM/WELM.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6F8YNN5BBY;
+				DEVELOPMENT_TEAM = ZWRCC7LA2X;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -407,7 +406,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = WELM/WELM.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6F8YNN5BBY;
+				DEVELOPMENT_TEAM = ZWRCC7LA2X;
 				INFOPLIST_FILE = WELM/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (

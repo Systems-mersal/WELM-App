@@ -11,6 +11,7 @@ export interface SaudiPhoneFieldProps
   onChangeText: (value: string) => void;
   label?: string;
   required?: boolean;
+  error?: string;
 }
 
 export function SaudiPhoneField({
@@ -18,6 +19,7 @@ export function SaudiPhoneField({
   onChangeText,
   label,
   required = false,
+  error,
   placeholder,
   ...props
 }: SaudiPhoneFieldProps) {
@@ -62,6 +64,11 @@ export function SaudiPhoneField({
           {...props}
         />
       </View>
+      {error ? (
+        <AppText variant="caption" className="mt-1 text-danger">
+          {error}
+        </AppText>
+      ) : null}
     </View>
   );
 }
