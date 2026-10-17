@@ -10,6 +10,10 @@ export type WelmAuthUser = {
   phone?: string | null;
   /** false → email signup that still needs the email OTP step. */
   emailVerified?: boolean;
+  avatarUrl?: string | null;
+  companyId?: string | null;
+  companyName?: string | null;
+  customerId?: string | null;
 };
 
 export type WelmAuthSession = {
@@ -75,7 +79,7 @@ export type WelmProfilePatchRequest = {
   companyId: string;
   name: string;
   idDocumentType?: "national" | "resident" | "gcc" | "visitor";
-  nationalId: string;
+  nationalId?: string;
   nationality?: string;
   dateOfBirth?: string;
   address?: string;
@@ -92,6 +96,14 @@ export type WelmProfilePatchRequest = {
 /** Same payload as `WelmProfilePatchRequest`. Kept for existing profile saves. */
 export type WelmProfileRequest = WelmProfilePatchRequest;
 
+export type WelmPersonalPatchRequest = {
+  companyId: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatarUrl?: string | null;
+};
+
 export type WelmProfilePatchResponse = {
   customerId: string;
   user: {
@@ -100,7 +112,17 @@ export type WelmProfilePatchResponse = {
     firstName?: string;
     nationalId?: string;
     idDocumentType?: "national" | "resident" | "gcc" | "visitor";
+    email?: string | null;
+    phone?: string | null;
+    avatarUrl?: string | null;
+    companyId?: string | null;
+    companyName?: string | null;
   };
+};
+
+export type WelmAvatarUploadResponse = {
+  url: string;
+  fileName?: string;
 };
 
 export type WelmProfileResponse = WelmProfilePatchResponse;

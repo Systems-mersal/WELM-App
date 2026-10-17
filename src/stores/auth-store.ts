@@ -28,12 +28,16 @@ export type AuthUser = {
   emailVerified?: boolean;
   /** Tajeer Plus `customers.id` after PATCH /api/welm/profile. */
   customerId?: string;
+  avatarUrl?: string;
+  companyId?: string;
+  companyName?: string;
   /** Contact used to open this session. Locks that field on Complete your details. */
   signInMethod?: "email" | "phone";
   nationalId?: string;
   idDocumentType?: IdDocumentType;
   dateOfBirth?: string;
   dateOfBirthHijri?: string;
+  dateOfBirthCalendar?: "hijri" | "gregorian";
   licenseNumber?: string;
   licenseType?: LicenseType;
   licenseExpiry?: string;
@@ -44,10 +48,14 @@ export type AuthUser = {
 export type LocalProfileFields = Pick<
   AuthUser,
   | "customerId"
+  | "avatarUrl"
+  | "companyId"
+  | "companyName"
   | "nationalId"
   | "idDocumentType"
   | "dateOfBirth"
   | "dateOfBirthHijri"
+  | "dateOfBirthCalendar"
   | "licenseNumber"
   | "licenseType"
   | "licenseExpiry"
@@ -64,10 +72,14 @@ export function copyLocalProfileFields(
   }
   return {
     customerId: current.customerId,
+    avatarUrl: current.avatarUrl,
+    companyId: current.companyId,
+    companyName: current.companyName,
     nationalId: current.nationalId,
     idDocumentType: current.idDocumentType,
     dateOfBirth: current.dateOfBirth,
     dateOfBirthHijri: current.dateOfBirthHijri,
+    dateOfBirthCalendar: current.dateOfBirthCalendar,
     licenseNumber: current.licenseNumber,
     licenseType: current.licenseType,
     licenseExpiry: current.licenseExpiry,
@@ -85,11 +97,15 @@ function userFromStored(user: {
   provider?: string;
   emailVerified?: boolean;
   customerId?: string;
+  avatarUrl?: string;
+  companyId?: string;
+  companyName?: string;
   signInMethod?: string;
   nationalId?: string;
   idDocumentType?: string;
   dateOfBirth?: string;
   dateOfBirthHijri?: string;
+  dateOfBirthCalendar?: string;
   licenseNumber?: string;
   licenseType?: string;
   licenseExpiry?: string;
@@ -108,6 +124,9 @@ function userFromStored(user: {
         : undefined,
     emailVerified: user.emailVerified,
     customerId: user.customerId,
+    avatarUrl: user.avatarUrl,
+    companyId: user.companyId,
+    companyName: user.companyName,
     signInMethod:
       user.signInMethod === "email" || user.signInMethod === "phone"
         ? user.signInMethod
@@ -118,6 +137,8 @@ function userFromStored(user: {
       : undefined,
     dateOfBirth: user.dateOfBirth,
     dateOfBirthHijri: user.dateOfBirthHijri,
+    dateOfBirthCalendar:
+      user.dateOfBirthCalendar === "gregorian" ? "gregorian" : user.dateOfBirthCalendar === "hijri" ? "hijri" : undefined,
     licenseNumber: user.licenseNumber,
     licenseType: isLicenseType(user.licenseType) ? user.licenseType : undefined,
     licenseExpiry: user.licenseExpiry,
@@ -127,6 +148,17 @@ function userFromStored(user: {
       : undefined,
   };
 }
+
+export type PendingPersonalSave = {
+  name: string;
+  email: string;
+  phone: string;
+  companyId: string;
+  companyName: string;
+  photoUri: string | null;
+  awaitEmail: boolean;
+  awaitPhone: boolean;
+};
 
 export function resolveSignInMethod(
   user: Pick<AuthUser, "signInMethod" | "email" | "phone"> | null | undefined,
@@ -161,11 +193,16 @@ type AuthState = {
    * Survives US-5 `clearSession` so Continue-as can run the US-8 gate.
    */
   pendingProfile: LocalProfileFields | null;
+  /**
+   * In-memory Profile edit waiting on email/phone OTP. Not persisted.
+   */
+  pendingPersonalSave: PendingPersonalSave | null;
   setPendingSocial: (credential: SocialAuthSuccess | null) => void;
   setPendingSession: (
     session: WelmAuthSession | null,
     profile?: LocalProfileFields | null,
   ) => void;
+  setPendingPersonalSave: (draft: PendingPersonalSave | null) => void;
   setSession: (
     accessToken: string,
     user: AuthUser,
@@ -185,6 +222,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   pendingSocial: null,
   pendingSession: null,
   pendingProfile: null,
+  pendingPersonalSave: null,
   setPendingSocial: (credential) => {
     set({ pendingSocial: credential });
   },
@@ -193,6 +231,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       pendingSession: session,
       pendingProfile: session ? (profile ?? null) : null,
     });
+  },
+  setPendingPersonalSave: (draft) => {
+    set({ pendingPersonalSave: draft });
   },
   setSession: (accessToken, user, refreshToken = null) => {
     set({
@@ -222,6 +263,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       pendingSocial: null,
       pendingSession: null,
       pendingProfile: null,
+      pendingPersonalSave: null,
     });
     void clearAuthSession();
   },

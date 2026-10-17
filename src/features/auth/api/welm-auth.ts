@@ -20,6 +20,8 @@ import {
   type WelmSocialAuthRequest,
   type WelmProfilePatchRequest,
   type WelmProfilePatchResponse,
+  type WelmPersonalPatchRequest,
+  type WelmAvatarUploadResponse,
 } from "./types";
 
 const SOCIAL_PATH = "/api/welm/auth/social";
@@ -122,7 +124,21 @@ export function mapWelmSessionToAuthUser(session: WelmAuthSession): AuthUser {
           ? current.provider
           : undefined,
     emailVerified: session.user.emailVerified,
+    avatarUrl: session.user.avatarUrl ?? undefined,
+    companyId: session.user.companyId ?? undefined,
+    companyName: session.user.companyName ?? undefined,
+    customerId: session.user.customerId ?? undefined,
     ...copyLocalProfileFields(current, session.user.id),
+    ...(session.user.avatarUrl
+      ? { avatarUrl: session.user.avatarUrl }
+      : {}),
+    ...(session.user.companyId ? { companyId: session.user.companyId } : {}),
+    ...(session.user.companyName
+      ? { companyName: session.user.companyName }
+      : {}),
+    ...(session.user.customerId
+      ? { customerId: session.user.customerId }
+      : {}),
   };
 }
 
@@ -387,6 +403,14 @@ export async function verifyWelmEmailOtp(
 const COMPANIES_PATH = "/api/welm/companies";
 const PROFILE_PATH = "/api/welm/profile";
 
+export function welmCompanyDisplayName(
+  name: string | null | undefined,
+  unnamed: string,
+): string {
+  const trimmed = name?.trim() ?? "";
+  return trimmed || unnamed;
+}
+
 /** GET /api/welm/companies — operators the consumer may attach to. */
 export async function fetchWelmCompanies(): Promise<WelmCompanyOption[]> {
   assertEnabled();
@@ -421,3 +445,56 @@ export async function patchWelmProfile(
 
 /** Same as `patchWelmProfile`. */
 export const saveWelmProfile = patchWelmProfile;
+
+const AVATAR_PATH = "/api/welm/profile/avatar";
+
+/** POST /api/welm/profile/avatar — consumer photo, not staff /api/upload-avatar. */
+export async function uploadWelmAvatar(uri: string): Promise<string> {
+  assertEnabled();
+  const form = new FormData();
+  const fileName = uri.split("/").pop() || "avatar.jpg";
+  const ext = fileName.split(".").pop()?.toLowerCase() ?? "jpg";
+  const mime =
+    ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+  form.append("file", {
+    uri,
+    name: fileName.includes(".") ? fileName : `avatar.${ext}`,
+    type: mime,
+  } as unknown as Blob);
+
+  try {
+    const { data } = await apiClient.post<WelmAvatarUploadResponse>(
+      AVATAR_PATH,
+      form,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 30000,
+      },
+    );
+    if (!data?.url) {
+      throw new WelmAuthApiError("unknown", "Invalid avatar upload response");
+    }
+    return data.url;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** PATCH /api/welm/profile — later personal details (no identity fields). */
+export async function patchWelmPersonalDetails(
+  body: WelmPersonalPatchRequest,
+): Promise<WelmProfilePatchResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.patch<WelmProfilePatchResponse>(
+      PROFILE_PATH,
+      body,
+    );
+    if (!data?.user?.id) {
+      throw new WelmAuthApiError("unknown", "Invalid profile save response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}

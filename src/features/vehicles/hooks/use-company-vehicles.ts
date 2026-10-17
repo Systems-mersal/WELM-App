@@ -9,6 +9,7 @@ export const COMPANY_VEHICLES_QUERY_KEY = ["welm", "vehicles"] as const;
 
 export function useCompanyVehicles() {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const companyId = useAuthStore((state) => state.user?.companyId);
   const locationHydrated = useLocationStore((state) => state.hydrated);
   const latitude = useLocationStore((state) => state.latitude);
   const longitude = useLocationStore((state) => state.longitude);
@@ -19,6 +20,7 @@ export function useCompanyVehicles() {
     queryKey: [
       ...COMPANY_VEHICLES_QUERY_KEY,
       accessToken ? "auth" : "anon",
+      companyId ?? "none",
       hasSearchPoint ? latitude : "all",
       hasSearchPoint ? longitude : "all",
       hasSearchPoint ? radiusKm : "all",

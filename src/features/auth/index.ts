@@ -68,8 +68,11 @@ export {
   registerWelmAccount,
   loginWelmAccount,
   fetchWelmCompanies,
+  welmCompanyDisplayName,
   patchWelmProfile,
+  patchWelmPersonalDetails,
   saveWelmProfile,
+  uploadWelmAvatar,
 } from "./api";
 export type {
   WelmAuthErrorCode,
@@ -80,3 +83,8 @@ export type {
   WelmSocialAuthRequest,
   WelmCompanyOption,
 } from "./api";
+export {
+  submitPersonalDetails,
+  continuePersonalDetailsAfterVerify,
+} from "./profile/save-personal";
+export type { PersonalDetailsDraft } from "./profile/save-personal";
