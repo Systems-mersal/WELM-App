@@ -5,6 +5,7 @@ export {
 export {
   computeInclusiveDays,
   computeLocalQuote,
+  WELM_MAX_RENTAL_DAYS,
   createWelmBooking,
   confirmWelmBookingPayment,
   bookingNeedsPayment,

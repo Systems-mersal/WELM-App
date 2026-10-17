@@ -11,9 +11,11 @@ import { AppIcon } from "../../components/icons/AppIcon";
 import { AppText } from "../../components/typography/AppText";
 import { getVehicleById } from "../../constants/vehicles";
 import {
+  computeInclusiveDays,
   createWelmBooking,
   toEndOfDayIso,
   toStartOfDayIso,
+  WELM_MAX_RENTAL_DAYS,
 } from "../../features/bookings";
 import { useWelmVehicle } from "../../features/vehicles";
 import type { RootStackParamList } from "../../navigation/types";
@@ -32,7 +34,7 @@ function parseDateOnly(value: string | null): Date | null {
 }
 
 export function BookingReviewScreen({ navigation, route }: Props) {
-  const { t } = useTranslation(["booking-review", "vehicles", "common"]);
+  const { t } = useTranslation(["booking-review", "booking-dates", "vehicles", "common"]);
   const insets = useSafeAreaInsets();
   const [submitting, setSubmitting] = useState(false);
 
@@ -98,6 +100,13 @@ export function BookingReviewScreen({ navigation, route }: Props) {
       Alert.alert(t("common:error"), t("submit-error"));
       return;
     }
+    if (computeInclusiveDays(start, end) > WELM_MAX_RENTAL_DAYS) {
+      Alert.alert(
+        t("common:error"),
+        t("booking-dates:max-days", { max: WELM_MAX_RENTAL_DAYS }),
+      );
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -131,13 +140,16 @@ export function BookingReviewScreen({ navigation, route }: Props) {
         bookingId: booking.id,
       });
     } catch (error) {
-      const message = isAxiosError(error)
-        ? String(
-            (error.response?.data as { error?: string } | undefined)?.error ??
-              "",
-          )
-        : "";
-      if (message.toLowerCase().includes("profile")) {
+      const body = isAxiosError(error)
+        ? (error.response?.data as { error?: string; code?: string } | undefined)
+        : undefined;
+      const message = String(body?.error ?? "");
+      if (body?.code === "max_days_exceeded") {
+        Alert.alert(
+          t("common:error"),
+          t("booking-dates:max-days", { max: WELM_MAX_RENTAL_DAYS }),
+        );
+      } else if (message.toLowerCase().includes("profile")) {
         Alert.alert(t("common:error"), t("profile-required"), [
           {
             text: "OK",

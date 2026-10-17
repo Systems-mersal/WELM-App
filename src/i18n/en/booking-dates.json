@@ -15,6 +15,7 @@
   "days": "{{count}} days",
   "select-dates": "Select start and end dates",
   "select-range-hint": "Tap start date, then end date. Past dates are disabled.",
+  "max-days": "A rental cannot be longer than {{max}} days. Tajeer will not accept a longer contract.",
   "days-short": "5 days",
   "weekdays": {
     "0": "Sun",

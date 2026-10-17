@@ -42,6 +42,12 @@ export type WelmBookingDto = {
 
 export const VAT_RATE = 0.15;
 
+/**
+ * Tajeer rejects a daily contract longer than this with
+ * server.error.create.contract.max.days.exceeded.
+ */
+export const WELM_MAX_RENTAL_DAYS = 30;
+
 export function computeInclusiveDays(start: Date, end: Date): number {
   const startUtc = Date.UTC(
     start.getFullYear(),

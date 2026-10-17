@@ -10,6 +10,7 @@ import { AppText } from "../../components/typography/AppText";
 import {
   computeInclusiveDays,
   computeLocalQuote,
+  WELM_MAX_RENTAL_DAYS,
 } from "../../features/bookings";
 import { useWelmVehicle } from "../../features/vehicles";
 import { getVehicleById } from "../../constants/vehicles";
@@ -54,6 +55,7 @@ export function BookingDatesScreen({ navigation, route }: Props) {
   );
   const [rangeStart, setRangeStart] = useState<Date | null>(today);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  const [rangeError, setRangeError] = useState<"max-days" | null>(null);
   const [differentReturn, setDifferentReturn] = useState(false);
 
   const mockVehicle = getVehicleById(route.params.vehicleId);
@@ -101,15 +103,23 @@ export function BookingDatesScreen({ navigation, route }: Props) {
     if (!rangeStart || (rangeStart && rangeEnd)) {
       setRangeStart(selected);
       setRangeEnd(null);
+      setRangeError(null);
       return;
     }
 
     if (isBeforeDay(selected, rangeStart)) {
       setRangeStart(selected);
       setRangeEnd(null);
+      setRangeError(null);
       return;
     }
 
+    if (computeInclusiveDays(rangeStart, selected) > WELM_MAX_RENTAL_DAYS) {
+      setRangeError("max-days");
+      return;
+    }
+
+    setRangeError(null);
     setRangeEnd(selected);
   };
 
@@ -134,7 +144,13 @@ export function BookingDatesScreen({ navigation, route }: Props) {
     return "text-text";
   };
 
-  const canContinue = Boolean(rangeStart && rangeEnd && dailyRate >= 0);
+  const canContinue = Boolean(
+    rangeStart &&
+      rangeEnd &&
+      selectedDays >= 1 &&
+      selectedDays <= WELM_MAX_RENTAL_DAYS &&
+      dailyRate >= 0,
+  );
 
   const handleContinue = () => {
     if (!rangeStart || !rangeEnd) return;
@@ -251,6 +267,11 @@ export function BookingDatesScreen({ navigation, route }: Props) {
           <AppText variant="caption" muted className="mt-3 text-center">
             {t("select-range-hint")}
           </AppText>
+          {rangeError === "max-days" ? (
+            <AppText variant="caption" className="mt-2 text-center text-danger">
+              {t("max-days", { max: WELM_MAX_RENTAL_DAYS })}
+            </AppText>
+          ) : null}
         </View>
 
         <View className="mt-4 flex-row gap-3">
