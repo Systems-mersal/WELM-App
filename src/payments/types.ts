@@ -26,7 +26,12 @@ export interface PaymentError {
 }
 
 export type PaymentResult =
-  | { status: "success"; paymentIntentId: string }
+  | {
+      status: "success";
+      paymentIntentId: string;
+      amountCents: number;
+      currency: PaymentCurrency;
+    }
   | { status: "canceled" }
   | { status: "failure"; error: PaymentError };
 
@@ -36,6 +41,11 @@ export interface CreateIntentResponse {
 }
 
 export interface PayWithApplePayParams {
+  /**
+   * When set, the PaymentIntent is created on the live Tajeer Plus API
+   * for this booking. The charged amount comes from the booking quote.
+   */
+  bookingId?: string;
   /** Total charge in smallest currency unit. */
   amountCents: number;
   currency: PaymentCurrency;

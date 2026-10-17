@@ -1,13 +1,16 @@
+import { isAxiosError } from "axios";
 import {
   confirmPlatformPayPayment,
   isPlatformPaySupported,
   PlatformPay,
 } from "@stripe/stripe-react-native";
+import { apiClient } from "../lib/api-client";
 import { PAYMENTS_API_BASE_URL, STRIPE_PUBLISHABLE_KEY } from "./constants";
 import { formatAmountFromCents, toApplePayCurrencyCode } from "./money";
 import type {
   CreateIntentResponse,
   PayWithApplePayParams,
+  PaymentCurrency,
   PaymentError,
   PaymentResult,
 } from "./types";
@@ -27,8 +30,7 @@ function networkError(detail?: string): PaymentError {
     code: "network",
     message:
       detail ??
-      "Could not reach the payments server. Check that it is running and EXPO_PUBLIC_PAYMENTS_API_URL is correct.",
-
+      "Could not reach Tajeer Plus to start the payment.",
   };
 }
 
@@ -54,10 +56,15 @@ function invalidConfigError(): PaymentError {
   };
 }
 
+function asPaymentCurrency(value: string | undefined, fallback: PaymentCurrency): PaymentCurrency {
+  const code = (value ?? "").trim().toLowerCase();
+  if (code === "usd" || code === "sar") return code;
+  return fallback;
+}
+
 /**
- * Framework-agnostic payments API.
- * Talks to our Express stub for client secrets, then to Stripe Platform Pay.
- * Never receives or uses a Stripe secret key.
+ * Booking payments create the PaymentIntent on Tajeer Plus.
+ * The Stripe secret key stays on that server.
  */
 export const PaymentService = {
   async isApplePayAvailable(): Promise<boolean> {
@@ -111,6 +118,48 @@ export const PaymentService = {
     };
   },
 
+  async createBookingPaymentIntent(bookingId: string): Promise<
+    CreateIntentResponse & { amountCents: number; currency: string }
+  > {
+    if (!STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY.includes("REPLACE_ME")) {
+      throw new PaymentServiceError(invalidConfigError());
+    }
+
+    try {
+      const { data } = await apiClient.post<{
+        clientSecret?: string;
+        paymentIntentId?: string;
+        amountCents?: number;
+        currency?: string;
+        error?: string;
+      }>(`/api/welm/bookings/${bookingId}/payment-intent`);
+
+      if (!data?.clientSecret || !data.paymentIntentId || !data.amountCents) {
+        throw new PaymentServiceError(
+          networkError("Tajeer Plus did not return a payment secret."),
+        );
+      }
+
+      return {
+        clientSecret: data.clientSecret,
+        paymentIntentId: data.paymentIntentId,
+        amountCents: data.amountCents,
+        currency: data.currency ?? "sar",
+      };
+    } catch (error) {
+      if (error instanceof PaymentServiceError) throw error;
+      if (isAxiosError(error)) {
+        const body = error.response?.data as { error?: string } | undefined;
+        throw new PaymentServiceError(
+          networkError(body?.error ?? "Could not reach Tajeer Plus to start the payment."),
+        );
+      }
+      throw new PaymentServiceError(
+        networkError("Could not reach Tajeer Plus to start the payment."),
+      );
+    }
+  },
+
   async payWithApplePay(params: PayWithApplePayParams): Promise<PaymentResult> {
     const available = await PaymentService.isApplePayAvailable();
     if (!available) {
@@ -119,13 +168,23 @@ export const PaymentService = {
 
     let clientSecret: string;
     let paymentIntentId: string;
+    let amountCents = params.amountCents;
+    let currency = params.currency;
     try {
-      const intent = await PaymentService.createPaymentIntent(
-        params.amountCents,
-        params.currency,
-      );
-      clientSecret = intent.clientSecret;
-      paymentIntentId = intent.paymentIntentId;
+      if (params.bookingId) {
+        const intent = await PaymentService.createBookingPaymentIntent(params.bookingId);
+        clientSecret = intent.clientSecret;
+        paymentIntentId = intent.paymentIntentId;
+        amountCents = intent.amountCents;
+        currency = asPaymentCurrency(intent.currency, params.currency);
+      } else {
+        const intent = await PaymentService.createPaymentIntent(
+          params.amountCents,
+          params.currency,
+        );
+        clientSecret = intent.clientSecret;
+        paymentIntentId = intent.paymentIntentId;
+      }
     } catch (error) {
       if (error instanceof PaymentServiceError) {
         return { status: "failure", error: error.paymentError };
@@ -139,7 +198,7 @@ export const PaymentService = {
     const lineItems: PlatformPay.CartSummaryItem[] = (params.cartItems ?? []).map(
       (item) => ({
         label: item.label,
-        amount: formatAmountFromCents(item.amountCents),
+        amount: formatAmountFromCents(params.bookingId ? amountCents : item.amountCents),
         paymentType: PlatformPay.PaymentType.Immediate as const,
       }),
     );
@@ -150,12 +209,12 @@ export const PaymentService = {
           ...lineItems,
           {
             label: params.merchantDisplayName,
-            amount: formatAmountFromCents(params.amountCents),
+            amount: formatAmountFromCents(amountCents),
             paymentType: PlatformPay.PaymentType.Immediate as const,
           },
         ],
         merchantCountryCode: params.merchantCountryCode,
-        currencyCode: toApplePayCurrencyCode(params.currency),
+        currencyCode: toApplePayCurrencyCode(currency),
       },
     });
 
@@ -172,6 +231,8 @@ export const PaymentService = {
     return {
       status: "success",
       paymentIntentId: paymentIntent?.id ?? paymentIntentId,
+      amountCents,
+      currency,
     };
   },
 };

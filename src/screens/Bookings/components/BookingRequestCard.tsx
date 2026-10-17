@@ -40,6 +40,7 @@ export const BookingRequestCard = memo(function BookingRequestCard({
         (booking.currency || "SAR").toLowerCase() === "usd" ? "usd" : "sar"
       ) as "sar" | "usd";
       const result = await PaymentService.payWithApplePay({
+        bookingId: booking.id,
         amountCents,
         currency,
         merchantDisplayName: "WELM",
@@ -66,8 +67,8 @@ export const BookingRequestCard = memo(function BookingRequestCard({
       await confirmWelmBookingPayment({
         bookingId: booking.id,
         paymentIntentId: result.paymentIntentId,
-        amountCents,
-        currency,
+        amountCents: result.amountCents,
+        currency: result.currency,
       });
 
       await queryClient.invalidateQueries({ queryKey: WELM_BOOKINGS_QUERY_KEY });
