@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import { CalendarToggle, type BirthCalendar } from "../../components/forms/CalendarToggle";
 import { AppInput } from "../../components/forms/AppInput";
 import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { SelectField } from "../../components/forms/SelectField";
@@ -11,6 +12,12 @@ import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
+import {
+  GregorianDateSheet,
+  defaultGregorianDraftIso,
+  formatGregorianSummary,
+  todayGregorianIso,
+} from "../../components/sheets/GregorianDateSheet";
 import { HijriDateSheet } from "../../components/sheets/HijriDateSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
@@ -64,7 +71,7 @@ function isValidEmail(value: string): boolean {
 }
 
 export function ProfileGateScreen({ navigation }: Props) {
-  const { t } = useTranslation(["profile-gate", "common"]);
+  const { t, i18n } = useTranslation(["profile-gate", "common"]);
   const { chevronEnd } = useRtl();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
@@ -83,8 +90,16 @@ export function ProfileGateScreen({ navigation }: Props) {
   const [nationality, setNationality] = useState<NationalityCode>(
     user?.nationality ?? DEFAULT_NATIONALITY,
   );
+  const [birthCalendar, setBirthCalendar] = useState<BirthCalendar>(
+    user?.dateOfBirthCalendar === "gregorian" ? "gregorian" : "hijri",
+  );
   const [hijriDob, setHijriDob] = useState<HijriYmd | null>(() =>
-    hijriFromStored(user?.dateOfBirthHijri, user?.dateOfBirth),
+    user?.dateOfBirthCalendar === "gregorian"
+      ? null
+      : hijriFromStored(user?.dateOfBirthHijri, user?.dateOfBirth),
+  );
+  const [gregorianDob, setGregorianDob] = useState(
+    user?.dateOfBirthCalendar === "gregorian" ? (user.dateOfBirth ?? "") : "",
   );
   const [licenseType, setLicenseType] = useState<LicenseType | undefined>(
     user?.licenseType,
@@ -101,13 +116,26 @@ export function ProfileGateScreen({ navigation }: Props) {
   );
   const [scanBanner, setScanBanner] = useState<ScanBanner>(null);
 
+  const dateOfBirth =
+    birthCalendar === "hijri"
+      ? hijriDob
+        ? hijriToGregorianIso(hijriDob)
+        : ""
+      : gregorianDob;
   const nameError = submitted && name.trim().length === 0;
   const emailError =
     submitted && email.trim().length > 0 && !isValidEmail(email);
   const idError = submitted && nationalId.trim().length === 0;
+  const dobError = submitted && !dateOfBirth
+    ? t("dob-required")
+    : submitted && dateOfBirth > todayGregorianIso()
+      ? t("dob-future")
+      : undefined;
   const canSubmit =
     name.trim().length > 0 &&
     nationalId.trim().length > 0 &&
+    Boolean(dateOfBirth) &&
+    dateOfBirth <= todayGregorianIso() &&
     (email.trim().length === 0 || isValidEmail(email));
   const autoLabel = t("scan-auto-filled");
   const lockedPhone = user?.phone?.trim()
@@ -174,9 +202,32 @@ export function ProfileGateScreen({ navigation }: Props) {
     [t],
   );
 
-  const dobLabel = hijriDob
-    ? `${hijriDob.day} ${t(`hijri-month.${hijriDob.month}`)} ${hijriDob.year}`
-    : undefined;
+  const gregorianMonthLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => {
+          const month = String(index + 1);
+          return [month, t(`gregorian-month.${month}`)];
+        }),
+      ),
+    [t],
+  );
+  const weekdayLabels = t("weekday-sat-first", {
+    returnObjects: true,
+  }) as string[];
+  const dobLabel =
+    birthCalendar === "hijri"
+      ? hijriDob
+        ? `${hijriDob.day} ${t(`hijri-month.${hijriDob.month}`)} ${hijriDob.year}`
+        : undefined
+      : gregorianDob
+        ? formatGregorianSummary(
+            gregorianDob,
+            gregorianMonthLabels[String(Number(gregorianDob.slice(5, 7)))] ??
+              "",
+            { eastern: i18n.language.startsWith("ar") },
+          )
+        : undefined;
 
   const clearAutofill = useCallback((key: ScanTrackedKey) => {
     setAutofilled((current) => {
@@ -220,7 +271,13 @@ export function ProfileGateScreen({ navigation }: Props) {
           setNationality(fields.nationality);
         }
         if (fields.birthDate) {
-          setHijriDob(hijriFromStored(undefined, fields.birthDate));
+          if (birthCalendar === "gregorian") {
+            setGregorianDob(fields.birthDate);
+            setHijriDob(null);
+          } else {
+            setHijriDob(hijriFromStored(undefined, fields.birthDate));
+            setGregorianDob("");
+          }
         }
         if (fields.licenseNumber) {
           setLicenseNumber(fields.licenseNumber);
@@ -247,7 +304,7 @@ export function ProfileGateScreen({ navigation }: Props) {
         setScanning(false);
       }
     },
-    [t],
+    [birthCalendar, t],
   );
 
   const pickFromGallery = useCallback(async () => {
@@ -310,7 +367,7 @@ export function ProfileGateScreen({ navigation }: Props) {
         idDocumentType: idType,
         nationalId: trimmedId,
         nationality,
-        dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
+        dateOfBirth,
         licenseType,
         licenseNumber: licenseNumber.trim() || undefined,
         licenseExpiry: licenseExpiry.trim() || undefined,
@@ -328,8 +385,12 @@ export function ProfileGateScreen({ navigation }: Props) {
         idDocumentType: saved.user.idDocumentType ?? idType,
         nationalId: saved.user.nationalId ?? trimmedId,
         nationality,
-        dateOfBirth: hijriDob ? hijriToGregorianIso(hijriDob) : undefined,
-        dateOfBirthHijri: hijriDob ? formatHijriIso(hijriDob) : undefined,
+        dateOfBirth,
+        dateOfBirthHijri:
+          birthCalendar === "hijri" && hijriDob
+            ? formatHijriIso(hijriDob)
+            : undefined,
+        dateOfBirthCalendar: birthCalendar,
         licenseType,
         licenseNumber: licenseNumber.trim() || undefined,
         licenseExpiry: licenseExpiry.trim() || undefined,
@@ -348,8 +409,10 @@ export function ProfileGateScreen({ navigation }: Props) {
       setSaveBusy(false);
     }
   }, [
+    birthCalendar,
     canSubmit,
     companyId,
+    dateOfBirth,
     email,
     hijriDob,
     idType,
@@ -523,14 +586,35 @@ export function ProfileGateScreen({ navigation }: Props) {
           autoFilled={autofilled.has("nationality")}
           autoFilledLabel={autoLabel}
         />
-        <SelectField
-          label={t("dob-label")}
-          value={dobLabel}
-          placeholder={t("select-date")}
-          onPress={() => setOpenSheet("dob")}
-          autoFilled={autofilled.has("birthDate")}
-          autoFilledLabel={autoLabel}
-        />
+        <View>
+          <CalendarToggle
+            value={birthCalendar}
+            hijriLabel={t("calendar-hijri")}
+            gregorianLabel={t("calendar-gregorian")}
+            onChange={(next) => {
+              if (next === birthCalendar) {
+                return;
+              }
+              setBirthCalendar(next);
+              setHijriDob(null);
+              setGregorianDob("");
+              clearAutofill("birthDate");
+            }}
+          />
+          <SelectField
+            label={
+              birthCalendar === "hijri"
+                ? t("dob-label-hijri")
+                : t("dob-label-gregorian")
+            }
+            value={dobLabel}
+            placeholder={t("select-date")}
+            onPress={() => setOpenSheet("dob")}
+            error={dobError}
+            autoFilled={autofilled.has("birthDate")}
+            autoFilledLabel={autoLabel}
+          />
+        </View>
         <SelectField
           label={t("license-type-label")}
           value={licenseType ? t(`license-type.${licenseType}`) : undefined}
@@ -640,11 +724,33 @@ export function ProfileGateScreen({ navigation }: Props) {
       />
 
       <HijriDateSheet
-        visible={openSheet === "dob"}
+        visible={openSheet === "dob" && birthCalendar === "hijri"}
         value={hijriDob ?? defaultHijriDraft()}
+        title={t("select-date")}
+        confirmLabel={t("sheet-confirm")}
+        closeLabel={t("sheet-close")}
+        bound="not-future"
         onConfirm={(value) => {
           clearAutofill("birthDate");
           setHijriDob(value);
+          setGregorianDob("");
+        }}
+        onClose={() => setOpenSheet(null)}
+      />
+      <GregorianDateSheet
+        visible={openSheet === "dob" && birthCalendar === "gregorian"}
+        title={t("select-date")}
+        value={gregorianDob}
+        fallback={defaultGregorianDraftIso()}
+        max={todayGregorianIso()}
+        monthLabels={gregorianMonthLabels}
+        weekdayLabels={weekdayLabels}
+        confirmLabel={t("sheet-confirm")}
+        closeLabel={t("sheet-close")}
+        onConfirm={(iso) => {
+          clearAutofill("birthDate");
+          setGregorianDob(iso);
+          setHijriDob(null);
         }}
         onClose={() => setOpenSheet(null)}
       />

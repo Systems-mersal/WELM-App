@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Pressable,
   StyleSheet,
   TextInput,
@@ -13,6 +14,7 @@ import { Screen } from "../../components/common/Screen";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
 import { AppText } from "../../components/typography/AppText";
 import {
+  continuePersonalDetailsAfterVerify,
   discardWelmAuth,
   mapWelmSessionToAuthUser,
   reportWelmAuthFailure,
@@ -72,15 +74,19 @@ function emailOtpErrorKey(error: unknown): string | null {
 }
 
 export function OtpScreen({ navigation, route }: Props) {
-  const { t } = useTranslation(["otp", "common"]);
+  const { t } = useTranslation(["otp", "common", "profile"]);
   const phone = route.params?.phone ?? "";
   const email = route.params?.email ?? "";
   const destination = email || phone || "";
   const intent = route.params?.intent;
   const isSocial = intent === "social";
+  const isProfileEmail = intent === "profile-email";
+  const isProfilePhone = intent === "profile-phone";
+  const isProfileContact = isProfileEmail || isProfilePhone;
   const isEmailOtp = Boolean(email);
   const isPhoneLogin =
-    intent === "phone" || (Boolean(phone) && !isEmailOtp && !isSocial);
+    intent === "phone" ||
+    (Boolean(phone) && !isEmailOtp && !isSocial && !isProfileContact);
   const isEmailSignup = isEmailOtp && intent === "signup";
 
   const [code, setCode] = useState("");
@@ -171,6 +177,34 @@ export function OtpScreen({ navigation, route }: Props) {
           }
         }
         verifiedRef.current = true;
+        if (isProfileContact) {
+          const next = await continuePersonalDetailsAfterVerify(
+            isProfileEmail ? "email" : "phone",
+          );
+          if (next.status === "verify-email") {
+            navigation.replace("Otp", {
+              email: next.email,
+              intent: "profile-email",
+              debugCode: next.debugCode,
+              resendIn: next.resendIn,
+            });
+            return;
+          }
+          if (next.status === "verify-phone") {
+            navigation.replace("Otp", {
+              phone: next.phone,
+              intent: "profile-phone",
+              debugCode: next.debugCode,
+            });
+            return;
+          }
+          Alert.alert(
+            t("profile:edit.save-success-title"),
+            t("profile:edit.save-success"),
+          );
+          navigation.popTo("MainTabs");
+          return;
+        }
         routePastAuthGate(navigation);
       } catch (error) {
         const key = isEmailOtp ? emailOtpErrorKey(error) : null;
@@ -207,6 +241,8 @@ export function OtpScreen({ navigation, route }: Props) {
       email,
       isEmailOtp,
       isPhoneLogin,
+      isProfileContact,
+      isProfileEmail,
       navigation,
       phone,
       setSession,
@@ -284,6 +320,22 @@ export function OtpScreen({ navigation, route }: Props) {
       }
     });
   }, [isEmailSignup, navigation]);
+
+  useEffect(() => {
+    if (!isProfileContact) {
+      return;
+    }
+    return navigation.addListener("beforeRemove", (event) => {
+      if (verifiedRef.current) {
+        return;
+      }
+      const actionType = event.data.action.type;
+      if (actionType === "REPLACE" || actionType === "NAVIGATE") {
+        return;
+      }
+      useAuthStore.getState().setPendingPersonalSave(null);
+    });
+  }, [isProfileContact, navigation]);
 
   return (
     <Screen

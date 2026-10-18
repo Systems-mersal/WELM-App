@@ -7,11 +7,18 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AppButton } from "../../components/buttons/AppButton";
 import { InlineErrorBanner } from "../../components/common/InlineErrorBanner";
 import { Screen } from "../../components/common/Screen";
+import { CalendarToggle, type BirthCalendar } from "../../components/forms/CalendarToggle";
 import { AppInput } from "../../components/forms/AppInput";
 import { SaudiPhoneField } from "../../components/forms/SaudiPhoneField";
 import { SelectField } from "../../components/forms/SelectField";
 import { AppIcon } from "../../components/icons/AppIcon";
 import { StackScreenHeader } from "../../components/layout/StackScreenHeader";
+import {
+  GregorianDateSheet,
+  defaultGregorianDraftIso,
+  formatGregorianSummary,
+  todayGregorianIso,
+} from "../../components/sheets/GregorianDateSheet";
 import { HijriDateSheet } from "../../components/sheets/HijriDateSheet";
 import { SearchSelectSheet } from "../../components/sheets/SearchSelectSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
@@ -21,6 +28,7 @@ import {
   patchWelmProfile,
   routeAfterIdentity,
   welmAuthUserMessage,
+  welmCompanyDisplayName,
   type WelmCompanyOption,
 } from "../../features/auth";
 import {
@@ -114,7 +122,17 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     user?.name && user.name !== "User" ? user.name : "",
   );
   const [nationalId, setNationalId] = useState("");
-  const [hijriDob, setHijriDob] = useState<HijriYmd | null>(null);
+  const [birthCalendar, setBirthCalendar] = useState<BirthCalendar>(
+    user?.dateOfBirthCalendar === "gregorian" ? "gregorian" : "hijri",
+  );
+  const [hijriDob, setHijriDob] = useState<HijriYmd | null>(() =>
+    user?.dateOfBirthCalendar === "gregorian"
+      ? null
+      : hijriFromStored(user?.dateOfBirthHijri, user?.dateOfBirth),
+  );
+  const [gregorianDob, setGregorianDob] = useState(
+    user?.dateOfBirthCalendar === "gregorian" ? (user.dateOfBirth ?? "") : "",
+  );
   const [idCopyNumber, setIdCopyNumber] = useState("");
   const [nationality, setNationality] = useState<NationalityCode | "">("");
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -143,7 +161,12 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const needsLicense = idType === "gcc" || idType === "visitor";
   const showCountry = idType === "gcc";
   const tenDigitId = idType === "national" || idType === "resident";
-  const dateOfBirth = hijriDob ? hijriToGregorianIso(hijriDob) : "";
+  const dateOfBirth =
+    birthCalendar === "hijri"
+      ? hijriDob
+        ? hijriToGregorianIso(hijriDob)
+        : ""
+      : gregorianDob;
   const licenseExpiry = hijriLicenseExpiry
     ? hijriToGregorianIso(hijriLicenseExpiry)
     : "";
@@ -204,6 +227,19 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
       ),
     [t],
   );
+  const gregorianMonthLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => {
+          const month = String(index + 1);
+          return [month, t(`gregorian-month.${month}`)];
+        }),
+      ),
+    [t],
+  );
+  const weekdayLabels = t("weekday-sat-first", {
+    returnObjects: true,
+  }) as string[];
   const formatHijriField = useCallback(
     (value: HijriYmd | null) => {
       if (!value) {
@@ -216,7 +252,17 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     },
     [i18n.language, t],
   );
-  const dobLabel = formatHijriField(hijriDob);
+  const dobLabel =
+    birthCalendar === "hijri"
+      ? formatHijriField(hijriDob)
+      : gregorianDob
+        ? formatGregorianSummary(
+            gregorianDob,
+            gregorianMonthLabels[String(Number(gregorianDob.slice(5, 7)))] ??
+              "",
+            { eastern: i18n.language.startsWith("ar") },
+          )
+        : undefined;
   const licenseExpiryLabel = formatHijriField(hijriLicenseExpiry);
   const nationalityLabel = lookupLabel(
     nationalityItems,
@@ -362,7 +408,9 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
 
   const clearIdentityFields = useCallback(() => {
     setNationalId("");
+    setBirthCalendar("hijri");
     setHijriDob(null);
+    setGregorianDob("");
     setIdCopyNumber("");
     setLicenseNumber("");
     setHijriLicenseExpiry(null);
@@ -427,7 +475,13 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
           setNationality(DEFAULT_NATIONALITY);
         }
         if (fields.birthDate) {
-          setHijriDob(hijriFromStored(undefined, fields.birthDate));
+          if (birthCalendar === "gregorian") {
+            setGregorianDob(fields.birthDate);
+            setHijriDob(null);
+          } else {
+            setHijriDob(hijriFromStored(undefined, fields.birthDate));
+            setGregorianDob("");
+          }
         }
         if (fields.licenseNumber) {
           setLicenseNumber(fields.licenseNumber);
@@ -457,7 +511,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         setScanning(false);
       }
     },
-    [idType, t],
+    [birthCalendar, idType, t],
   );
 
   const pickFromGallery = useCallback(async () => {
@@ -542,6 +596,9 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         customerId: saved.customerId,
         name: saved.user.name || name.trim(),
         firstName: saved.user.firstName || name.trim().split(/\s+/)[0],
+        companyId: ownerId,
+        companyName: companies.find((company) => company.id === ownerId)?.name,
+        avatarUrl: saved.user.avatarUrl ?? undefined,
         email: email.trim(),
         phone: signedInWithPhone
           ? user?.phone || route.params?.phone
@@ -550,7 +607,11 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         nationalId: saved.user.nationalId ?? nationalId.trim(),
         nationality: storedNationality,
         dateOfBirth,
-        dateOfBirthHijri: hijriDob ? formatHijriIso(hijriDob) : undefined,
+        dateOfBirthHijri:
+          birthCalendar === "hijri" && hijriDob
+            ? formatHijriIso(hijriDob)
+            : undefined,
+        dateOfBirthCalendar: birthCalendar,
         licenseNumber: needsLicense ? licenseNumber.trim() : undefined,
         licenseExpiry: needsLicense ? licenseExpiry.trim() : undefined,
         placeOfIssue: needsLicense ? placeOfIssue.trim() : undefined,
@@ -569,6 +630,8 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     }
   }, [
     address,
+    birthCalendar,
+    companies,
     companyId,
     dateOfBirth,
     email,
@@ -712,7 +775,15 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
           <View className="mt-6 gap-4">
             <SelectField
               label={t("company-label")}
-              value={companies.find((company) => company.id === companyId)?.name}
+              value={
+                companyId
+                  ? welmCompanyDisplayName(
+                      companies.find((company) => company.id === companyId)
+                        ?.name,
+                      t("company-unnamed"),
+                    )
+                  : undefined
+              }
               placeholder={
                 companiesLoading ? t("company-loading") : t("select-company")
               }
@@ -875,21 +946,41 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                 ) : undefined
               }
             />
-            <SelectField
-              label={t("dob-label")}
-              value={dobLabel}
-              placeholder={t("select-date")}
-              required
-              onPress={() => {
-                clearAutofill("birthDate");
-                markTouched("dateOfBirth");
-                setOpenSheet("dob");
-              }}
-              error={visibleError("dateOfBirth", dateOfBirth)}
-              autoFilled={autofilled.has("birthDate")}
-              autoFilledLabel={autoLabel}
-              inputClassName={inputClass}
-            />
+            <View>
+              <CalendarToggle
+                value={birthCalendar}
+                hijriLabel={t("calendar-hijri")}
+                gregorianLabel={t("calendar-gregorian")}
+                onChange={(next) => {
+                  if (next === birthCalendar) {
+                    return;
+                  }
+                  setBirthCalendar(next);
+                  setHijriDob(null);
+                  setGregorianDob("");
+                  clearAutofill("birthDate");
+                }}
+              />
+              <SelectField
+                label={
+                  birthCalendar === "hijri"
+                    ? t("dob-label-hijri")
+                    : t("dob-label-gregorian")
+                }
+                value={dobLabel}
+                placeholder={t("select-date")}
+                required
+                onPress={() => {
+                  clearAutofill("birthDate");
+                  markTouched("dateOfBirth");
+                  setOpenSheet("dob");
+                }}
+                error={visibleError("dateOfBirth", dateOfBirth)}
+                autoFilled={autofilled.has("birthDate")}
+                autoFilledLabel={autoLabel}
+                inputClassName={inputClass}
+              />
+            </View>
             {needsLicense ? (
               <AppInput
                 label={t("id-copy-label")}
@@ -1059,7 +1150,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         title={t("select-company")}
         options={companies.map((company) => ({
           value: company.id,
-          label: company.name,
+          label: welmCompanyDisplayName(company.name, t("company-unnamed")),
         }))}
         selected={companyId ?? undefined}
         searchPlaceholder={t("search-placeholder")}
@@ -1107,7 +1198,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         onClose={() => setOpenSheet(null)}
       />
       <HijriDateSheet
-        visible={openSheet === "dob"}
+        visible={openSheet === "dob" && birthCalendar === "hijri"}
         value={hijriDob ?? fallbackHijri}
         title={t("select-date")}
         confirmLabel={t("sheet-confirm")}
@@ -1116,7 +1207,27 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         yearColumnLabel={t("hijri-year-column")}
         monthColumnLabel={t("hijri-month-column")}
         dayColumnLabel={t("hijri-day-column")}
-        onConfirm={setHijriDob}
+        bound="not-future"
+        onConfirm={(value) => {
+          setHijriDob(value);
+          setGregorianDob("");
+        }}
+        onClose={() => setOpenSheet(null)}
+      />
+      <GregorianDateSheet
+        visible={openSheet === "dob" && birthCalendar === "gregorian"}
+        title={t("select-date")}
+        value={gregorianDob}
+        fallback={defaultGregorianDraftIso()}
+        max={todayGregorianIso()}
+        monthLabels={gregorianMonthLabels}
+        weekdayLabels={weekdayLabels}
+        confirmLabel={t("sheet-confirm")}
+        closeLabel={t("sheet-close")}
+        onConfirm={(iso) => {
+          setGregorianDob(iso);
+          setHijriDob(null);
+        }}
         onClose={() => setOpenSheet(null)}
       />
       <HijriDateSheet

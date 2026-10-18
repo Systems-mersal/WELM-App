@@ -24,6 +24,9 @@ function toAuthUser(session: WelmAuthSession): AuthUser {
     firstName: session.user.firstName,
     email: session.user.email ?? undefined,
     phone: session.user.phone ?? undefined,
+    avatarUrl: session.user.avatarUrl ?? undefined,
+    companyId: session.user.companyId ?? undefined,
+    companyName: session.user.companyName ?? undefined,
     provider:
       session.provider === "apple" || session.provider === "google"
         ? session.provider

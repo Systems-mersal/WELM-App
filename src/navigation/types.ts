@@ -18,7 +18,7 @@ export type RootStackParamList = {
     | {
         phone?: string;
         email?: string;
-        intent?: "signup" | "social" | "phone";
+        intent?: "signup" | "social" | "phone" | "profile-email" | "profile-phone";
         provider?: "apple" | "google";
         /** Present only when Tajeer is not production and SMTP is not wired. */
         debugCode?: string;
@@ -33,6 +33,7 @@ export type RootStackParamList = {
   AccountExists: undefined;
   ProfileGate: undefined;
   CompleteIdentity: { phone?: string } | undefined;
+  EditPersonalInfo: undefined;
   Legal: { kind: "terms" | "privacy" };
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   VehicleDetails: { vehicleId: string };

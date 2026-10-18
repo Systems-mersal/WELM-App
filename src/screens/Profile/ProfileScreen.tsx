@@ -25,7 +25,11 @@ export function ProfileScreen() {
   const topRows = useMemo(
     () =>
       [
-        { key: "personalInfo", label: t("rows.personal-info") },
+        {
+          key: "personalInfo",
+          label: t("rows.personal-info"),
+          onPress: () => navigation.navigate("EditPersonalInfo"),
+        },
         { key: "paymentMethods", label: t("rows.payment-methods") },
         {
           key: "notifications",

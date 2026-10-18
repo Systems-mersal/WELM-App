@@ -1,7 +1,6 @@
 import React from "react";
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import avatarSource from "../../../assets/figma/home/avatar.png";
 import { Avatar } from "../../../components/common/Avatar";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { AppText } from "../../../components/typography/AppText";
@@ -22,6 +21,7 @@ export function HomeHeader({
   const { t } = useTranslation(["home", "common", "vehicles"]);
   const user = useAuthStore((state) => state.user);
   const displayName = user?.firstName || user?.name || t("user-name");
+  const avatarSource = user?.avatarUrl ? { uri: user.avatarUrl } : undefined;
   const status = useLocationStore((state) => state.status);
   const cityKey = useLocationStore((state) => state.cityKey);
   const radiusKm = useLocationStore((state) => state.radiusKm);
@@ -39,7 +39,7 @@ export function HomeHeader({
   return (
     <View className="flex-row items-center justify-between py-4">
       <View className="flex-row items-center gap-3">
-        <Avatar source={avatarSource} size={44} />
+        <Avatar source={avatarSource} name={displayName} size={44} />
         <View className="items-start gap-0.5">
           <AppText
             className="text-[13px] text-textMuted"

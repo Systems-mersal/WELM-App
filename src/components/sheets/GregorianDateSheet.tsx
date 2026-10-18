@@ -60,13 +60,40 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
-function todayYmd(): GregorianYmd {
+export function todayYmd(): GregorianYmd {
   const now = new Date();
   return {
     year: now.getFullYear(),
     month: now.getMonth() + 1,
     day: now.getDate(),
   };
+}
+
+export function todayGregorianIso(): string {
+  return isoFromYmd(todayYmd());
+}
+
+export function defaultGregorianDraftIso(): string {
+  const now = todayYmd();
+  return isoFromYmd({ year: now.year - 25, month: 1, day: 1 });
+}
+
+export function formatGregorianSummary(
+  iso: string,
+  monthName: string,
+  options?: { eastern?: boolean },
+): string {
+  const parsed = parseIsoDate(iso);
+  if (!parsed) {
+    return "";
+  }
+  const eastern = options?.eastern === true;
+  const EASTERN = "٠١٢٣٤٥٦٧٨٩";
+  const localize = (value: number) =>
+    eastern
+      ? String(value).replace(/\d/g, (digit) => EASTERN[Number(digit)] ?? digit)
+      : String(value);
+  return `${localize(parsed.day)} ${monthName} ${localize(parsed.year)}`;
 }
 
 function constrainYmd(

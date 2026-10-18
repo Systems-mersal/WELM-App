@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuthStore } from "../../../stores/auth-store";
@@ -12,14 +14,28 @@ export function useWelmBookings() {
     queryKey: [...WELM_BOOKINGS_QUERY_KEY, accessToken ? "auth" : "anon"],
     enabled: Boolean(accessToken),
     queryFn: fetchWelmBookings,
+    staleTime: 0,
+    refetchOnMount: false,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!accessToken) {
+        return;
+      }
+      void query.refetch();
+    }, [accessToken, query.refetch]),
+  );
+
+  const hasData = (query.data?.length ?? 0) > 0;
 
   return {
     bookings: query.data ?? [],
-    isLoading: query.isLoading || query.isFetching,
+    isLoading: query.isPending && !hasData,
+    isRefreshing: query.isFetching && !query.isPending,
     isError: query.isError,
     refetch: query.refetch,
-    isEmpty: !query.isLoading && (query.data?.length ?? 0) === 0,
+    isEmpty: !query.isPending && (query.data?.length ?? 0) === 0,
   };
 }
 
