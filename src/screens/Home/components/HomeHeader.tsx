@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar } from "../../../components/common/Avatar";
 import { AppIcon } from "../../../components/icons/AppIcon";
 import { AppText } from "../../../components/typography/AppText";
+import { useWelmUnreadCount } from "../../../features/notifications";
 import { useAuthStore } from "../../../stores/auth-store";
 import { useLocationStore } from "../../../stores/location-store";
 import { colors } from "../../../theme/colors";
@@ -20,6 +21,7 @@ export function HomeHeader({
 }: HomeHeaderProps) {
   const { t } = useTranslation(["home", "common", "vehicles"]);
   const user = useAuthStore((state) => state.user);
+  const unreadCount = useWelmUnreadCount();
   const displayName = user?.firstName || user?.name || t("user-name");
   const avatarSource = user?.avatarUrl ? { uri: user.avatarUrl } : undefined;
   const status = useLocationStore((state) => state.status);
@@ -83,10 +85,20 @@ export function HomeHeader({
           accessibilityRole="button"
           accessibilityLabel={t("common:a11y.notifications")}
           onPress={onNotificationsPress}
-          className="rounded-[14px] border border-border bg-white p-3 active:opacity-70"
+          className="relative rounded-[14px] border border-border bg-white p-3 active:opacity-70"
           hitSlop={8}
         >
           <AppIcon name="bell" size={20} color={colors.text} />
+          {unreadCount > 0 ? (
+            <View className="absolute -end-1 -top-1 min-w-[16px] items-center rounded-full bg-danger px-1">
+              <AppText
+                className="text-[10px] leading-[14px] text-white"
+                style={{ fontFamily: fontFamily.bold }}
+              >
+                {unreadCount > 9 ? "9+" : String(unreadCount)}
+              </AppText>
+            </View>
+          ) : null}
         </Pressable>
       </View>
     </View>

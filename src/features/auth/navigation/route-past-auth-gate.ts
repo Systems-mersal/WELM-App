@@ -1,5 +1,6 @@
 import type { NavigationProp } from "@react-navigation/native";
 
+import { consumePendingPush } from "../../notifications/open-from-push";
 import type { RootStackParamList } from "../../../navigation/types";
 import { useAuthStore } from "../../../stores/auth-store";
 import { useLocationStore } from "../../../stores/location-store";
@@ -11,6 +12,9 @@ export function routeToHome(
   navigation.reset({
     index: 0,
     routes: [{ name: "MainTabs" }],
+  });
+  queueMicrotask(() => {
+    consumePendingPush(navigation);
   });
 }
 

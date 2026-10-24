@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "../../components/common/LanguageSwitcher";
 import { AppText } from "../../components/typography/AppText";
 import { Screen } from "../../components/common/Screen";
 import { logoutWelmSession } from "../../features/auth";
+import { unregisterWelmPushToken } from "../../features/notifications";
 import { ProfileApplePaySection } from "../../payments";
 import { useAuthStore } from "../../stores/auth-store";
 import type { MainTabNavigationProp } from "../../navigation/types";
@@ -79,6 +80,7 @@ export function ProfileScreen() {
     loggingOutRef.current = true;
     setLoggingOut(true);
     try {
+      await unregisterWelmPushToken();
       // Best-effort server revoke; local session always clears next.
       await logoutWelmSession();
     } catch {

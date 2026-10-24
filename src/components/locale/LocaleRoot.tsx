@@ -2,7 +2,9 @@ import React from "react";
 import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import { PushBootstrap } from "../../features/notifications";
 import { useRtl } from "../../hooks/useRtl";
+import { navigationRef } from "../../navigation/navigation-ref";
 
 interface LocaleRootProps {
   children: React.ReactNode;
@@ -17,9 +19,10 @@ export function LocaleRoot({ children }: LocaleRootProps) {
 
   return (
     <View style={{ flex: 1, direction }}>
-      <NavigationContainer direction={direction}>
+      <NavigationContainer ref={navigationRef} direction={direction}>
         <StatusBar style="dark" />
         {children}
+        <PushBootstrap />
       </NavigationContainer>
     </View>
   );

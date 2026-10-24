@@ -29,6 +29,8 @@
   },
   "days-total": "{{days}} days · {{total}} {{currency}}",
   "retry": "Retry",
+  "detail-title": "Booking",
+  "not-found": "This booking could not be found",
   "pay-awaiting-hint": "Pay the full amount to activate your booking",
   "pay-rental-label": "Vehicle rental",
   "pay-success-title": "Payment received",

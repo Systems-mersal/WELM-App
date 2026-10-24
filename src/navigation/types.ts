@@ -41,6 +41,7 @@ export type RootStackParamList = {
   BookingExtras: { vehicleId: string };
   BookingReview: { vehicleId: string };
   BookingConfirmed: { vehicleId?: string; bookingId?: string };
+  BookingDetail: { bookingId: string };
   Notifications: undefined;
   Documents: undefined;
   LocationRationale: undefined;
