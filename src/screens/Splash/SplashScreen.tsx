@@ -7,11 +7,13 @@ import { CommonActions } from "@react-navigation/native";
 
 import { WelmLogo } from "../../components/brand/WelmLogo";
 import { AppText } from "../../components/typography/AppText";
+import { routeAfterContinueAs } from "../../features/auth";
 import {
   clearHasSeenOnboarding,
   getHasSeenOnboarding,
 } from "../../lib/onboarding-storage";
 import type { RootStackParamList } from "../../navigation/types";
+import { useAuthStore } from "../../stores/auth-store";
 import { colors } from "../../theme/colors";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
@@ -40,6 +42,11 @@ export function SplashScreen({ navigation }: Props) {
         }
 
         if (cancelled) {
+          return;
+        }
+
+        if (useAuthStore.getState().accessToken) {
+          await routeAfterContinueAs(navigation);
           return;
         }
 

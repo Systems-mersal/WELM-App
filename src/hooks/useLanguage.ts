@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { isAppLocale, type AppLocale } from "../i18n/routing";
+import { syncWelmPushTokenLanguage } from "../features/notifications/register";
 import { setStoredLanguage } from "../lib/language-storage";
 
 export type AppLanguage = AppLocale;
@@ -30,6 +31,7 @@ export function useLanguage() {
 
       await setStoredLanguage(lang);
       await i18n.changeLanguage(lang);
+      void syncWelmPushTokenLanguage();
     },
     [i18n, language],
   );

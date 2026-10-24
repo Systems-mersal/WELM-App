@@ -19,7 +19,8 @@
         "NSLocalNetworkUsageDescription": "WELM reaches Tajeer Plus on your computer during local development.",
         "NSLocationWhenInUseUsageDescription": "ويلم يريد الوصول إلى موقعك. لعرض السيارات المتاحة في نطاقك",
         "NSCameraUsageDescription": "WELM uses the camera to scan your national ID or Iqama.",
-        "NSPhotoLibraryUsageDescription": "WELM uses your photos to upload an ID or Iqama image for scanning."
+        "NSPhotoLibraryUsageDescription": "WELM uses your photos to upload an ID or Iqama image for scanning.",
+        "NSUserNotificationsUsageDescription": "ويلم يرسل إشعارات عن حالة حجزك ورخصتك. WELM sends notifications about your bookings and license."
       }
     },
     "android": {
@@ -31,13 +32,27 @@
       "package": "com.welm.tajeerplus",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#117066",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
       "expo-localization",
       "expo-font",
       "expo-asset",
