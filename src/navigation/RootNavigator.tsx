@@ -1,6 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { BookingConfirmedScreen } from "../screens/BookingConfirmed/BookingConfirmedScreen";
+import { BookingDetailScreen } from "../screens/BookingDetail/BookingDetailScreen";
 import { BookingDatesScreen } from "../screens/BookingDates/BookingDatesScreen";
 import { BookingExtrasScreen } from "../screens/BookingExtras/BookingExtrasScreen";
 import { BookingReviewScreen } from "../screens/BookingReview/BookingReviewScreen";
@@ -48,6 +49,7 @@ export function RootNavigator() {
       <Stack.Screen name="BookingExtras" component={BookingExtrasScreen} />
       <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
       <Stack.Screen name="BookingConfirmed" component={BookingConfirmedScreen} />
+      <Stack.Screen name="BookingDetail" component={BookingDetailScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Documents" component={DocumentsScreen} />
       <Stack.Screen

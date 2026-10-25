@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,10 +12,12 @@ import {
   BookingSegmentedControl,
   type BookingTab,
 } from "./components/BookingSegmentedControl";
+import type { MainTabNavigationProp } from "../../navigation/types";
 import { BookingRequestCard } from "./components/BookingRequestCard";
 
 export function BookingsScreen() {
   const { t } = useTranslation(["bookings", "common"]);
+  const navigation = useNavigation<MainTabNavigationProp<"Bookings">>();
   const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<BookingTab>("upcoming");
   const { bookings, isLoading, isError, isEmpty, refetch } = useWelmBookings();
@@ -169,7 +172,13 @@ export function BookingsScreen() {
         ) : (
           <View className="gap-3">
             {list.map((booking) => (
-              <BookingRequestCard key={booking.id} booking={booking} />
+              <BookingRequestCard
+                key={booking.id}
+                booking={booking}
+                onPress={(bookingId) =>
+                  navigation.navigate("BookingDetail", { bookingId })
+                }
+              />
             ))}
           </View>
         )}

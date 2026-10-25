@@ -29,6 +29,8 @@
   },
   "days-total": "{{days}} أيام · {{total}} {{currency}}",
   "retry": "إعادة المحاولة",
+  "detail-title": "الحجز",
+  "not-found": "تعذر العثور على هذا الحجز",
   "pay-awaiting-hint": "ادفع المبلغ كاملًا لتفعيل الحجز",
   "pay-rental-label": "تأجير السيارة",
   "pay-success-title": "تم استلام الدفع",
