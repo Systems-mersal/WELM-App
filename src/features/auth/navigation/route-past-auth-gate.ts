@@ -32,11 +32,6 @@ export function routePastAuthGate(
   });
 }
 
-function hasCompletedProfile(): boolean {
-  const user = useAuthStore.getState().user;
-  return Boolean(user?.name?.trim() && user?.nationalId?.trim());
-}
-
 /** After identity — Home. The main screen asks for the current location itself. */
 export function routeAfterIdentity(
   navigation: NavigationProp<RootStackParamList>,
@@ -55,18 +50,12 @@ export function resetToLocationRadius(
 }
 
 /**
- * US-5 «متابعة كـ»: open the parked session, then US-8.
- * Incomplete identity → Complete your details. Otherwise Home, which places
- * the current-location pin and loads nearby cars.
+ * Returning session opens Home.
+ * Complete Identity stays on the signup path, with a way back to Login.
  */
 export async function routeAfterContinueAs(
   navigation: NavigationProp<RootStackParamList>,
 ): Promise<void> {
-  if (!hasCompletedProfile()) {
-    routePastAuthGate(navigation);
-    return;
-  }
-
   const location = useLocationStore.getState();
   if (!location.hydrated) {
     await location.hydrate();
