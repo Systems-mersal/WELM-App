@@ -84,7 +84,7 @@ export function ProfileGateScreen({ navigation }: Props) {
 
   const [name, setName] = useState(user?.name ?? "");
   const [idType, setIdType] = useState<IdDocumentType | undefined>(
-    user?.idDocumentType,
+    user?.idDocumentType ?? "national",
   );
   const [nationalId, setNationalId] = useState(user?.nationalId ?? "");
   const [nationality, setNationality] = useState<NationalityCode>(

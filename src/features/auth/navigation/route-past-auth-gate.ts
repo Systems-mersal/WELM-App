@@ -37,26 +37,11 @@ function hasCompletedProfile(): boolean {
   return Boolean(user?.name?.trim() && user?.nationalId?.trim());
 }
 
-function hasChosenLocation(): boolean {
-  const { status, latitude, longitude, cityKey } = useLocationStore.getState();
-  if (status === "granted" || status === "city") {
-    return latitude != null && longitude != null;
-  }
-  return Boolean(cityKey);
-}
-
-/** After identity — GPS rationale if location is unset; otherwise Home. */
+/** After identity — Home. The main screen asks for the current location itself. */
 export function routeAfterIdentity(
   navigation: NavigationProp<RootStackParamList>,
 ): void {
-  if (hasChosenLocation()) {
-    routeToHome(navigation);
-    return;
-  }
-  navigation.reset({
-    index: 0,
-    routes: [{ name: "LocationRationale" }],
-  });
+  routeToHome(navigation);
 }
 
 /** Allow / city pick → Home under confirm-radius (US-14). */
@@ -71,8 +56,8 @@ export function resetToLocationRadius(
 
 /**
  * US-5 «متابعة كـ»: open the parked session, then US-8.
- * Incomplete identity → Complete your details. Unset location → LocationRadius when
- * coordinates exist; otherwise Home (Enable Location card).
+ * Incomplete identity → Complete your details. Otherwise Home, which places
+ * the current-location pin and loads nearby cars.
  */
 export async function routeAfterContinueAs(
   navigation: NavigationProp<RootStackParamList>,
@@ -85,16 +70,6 @@ export async function routeAfterContinueAs(
   const location = useLocationStore.getState();
   if (!location.hydrated) {
     await location.hydrate();
-  }
-
-  if (!hasChosenLocation()) {
-    const { latitude, longitude } = useLocationStore.getState();
-    if (latitude != null && longitude != null) {
-      resetToLocationRadius(navigation);
-      return;
-    }
-    routeAfterIdentity(navigation);
-    return;
   }
 
   routeToHome(navigation);

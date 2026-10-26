@@ -117,7 +117,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const [mobile, setMobile] = useState(signedInWithPhone ? "" : phoneDigits);
   const [phoneTouched, setPhoneTouched] = useState(false);
 
-  const [idType, setIdType] = useState<IdDocumentType>("resident");
+  const [idType, setIdType] = useState<IdDocumentType>("national");
   const [name, setName] = useState(
     user?.name && user.name !== "User" ? user.name : "",
   );

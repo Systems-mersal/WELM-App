@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import type { MainTabNavigationProp } from "../../navigation/types";
 import { BrandBanner } from "./components/BrandBanner";
 import { EnableLocationCard } from "./components/EnableLocationCard";
 import { HomeHeader } from "./components/HomeHeader";
+import { NearbyMap } from "./components/NearbyMap";
 import { Screen } from "../../components/common/Screen";
 import { useFilteredVehicles } from "../../hooks/useFilteredVehicles";
 import { useLocationStore } from "../../stores/location-store";
@@ -40,16 +41,28 @@ export function HomeScreen() {
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
   const locationStatus = useLocationStore((state) => state.status);
   const locationHydrated = useLocationStore((state) => state.hydrated);
+  const locationRequesting = useLocationStore((state) => state.requesting);
   const latitude = useLocationStore((state) => state.latitude);
   const longitude = useLocationStore((state) => state.longitude);
+  const radiusKm = useLocationStore((state) => state.radiusKm);
   const cityKey = useLocationStore((state) => state.cityKey);
   const selectCity = useLocationStore((state) => state.selectCity);
   const enableLocation = useLocationStore((state) => state.enableLocation);
+  const autoLocated = useRef(false);
   const { vehicles, isLoading, isError, isEmpty, refetch } =
     useFilteredVehicles();
 
   const hasSearchPoint = latitude != null && longitude != null;
-  const showLocationPrompt = locationHydrated && locationStatus === "idle";
+  const showLocationPrompt =
+    locationHydrated && locationStatus === "idle" && !locationRequesting;
+
+  useEffect(() => {
+    if (!locationHydrated || locationStatus !== "idle" || autoLocated.current) {
+      return;
+    }
+    autoLocated.current = true;
+    void enableLocation();
+  }, [enableLocation, locationHydrated, locationStatus]);
   const needsCity =
     locationHydrated &&
     (locationStatus === "skipped" || locationStatus === "denied") &&
@@ -127,6 +140,23 @@ export function HomeScreen() {
           onNotificationsPress={() => navigation.navigate("Notifications")}
           onLocationPress={() => setLocationMenuOpen(true)}
         />
+        {locationRequesting && !hasSearchPoint ? (
+          <View className="h-56 items-center justify-center gap-3 rounded-2xl border border-border bg-white">
+            <ActivityIndicator color={colors.primary} />
+            <AppText variant="caption" muted>
+              {t("current-location")}
+            </AppText>
+          </View>
+        ) : null}
+        {latitude != null && longitude != null ? (
+          <NearbyMap
+            latitude={latitude}
+            longitude={longitude}
+            radiusKm={radiusKm}
+            vehicles={visibleVehicles}
+            onVehiclePress={openVehicleDetails}
+          />
+        ) : null}
         {showLocationPrompt ? (
           <EnableLocationCard onChooseCity={() => setCitySheetOpen(true)} />
         ) : null}

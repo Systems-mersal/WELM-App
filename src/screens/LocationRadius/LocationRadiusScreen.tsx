@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import MapView, { Circle } from "react-native-maps";
+import MapView, { Circle, Marker } from "react-native-maps";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -161,6 +161,11 @@ export function LocationRadiusScreen({ navigation }: Props) {
             strokeWidth={2}
             strokeColor={colors.primary}
             fillColor={`${colors.primary}33`}
+          />
+          <Marker
+            coordinate={draftPoint}
+            title={t("current-location")}
+            pinColor={colors.primary}
           />
         </MapView>
 
