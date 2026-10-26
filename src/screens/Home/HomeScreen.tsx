@@ -4,13 +4,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VehicleListRow } from "../../components/cards/VehicleListRow";
-import { HorizontalCategoryChips } from "../../components/common/CategoryChips";
 import { SearchBar } from "../../components/common/SearchBar";
 import { SectionHeader } from "../../components/common/SectionHeader";
 import { CityPickerSheet, SelectCityCard } from "../../components/location/CityPickerSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
-import type { VehicleCategory } from "../../types";
 import type { MainTabNavigationProp } from "../../navigation/types";
 import { BrandBanner } from "./components/BrandBanner";
 import { EnableLocationCard } from "./components/EnableLocationCard";
@@ -22,21 +20,10 @@ import { useLocationStore } from "../../stores/location-store";
 import type { CityKey } from "../../constants/search-cities";
 import { colors } from "../../theme/colors";
 
-const CATEGORY_KEYS: VehicleCategory[] = [
-  "luxury",
-  "electric",
-  "sport",
-  "sedan",
-  "suv",
-];
-
 export function HomeScreen() {
   const { t } = useTranslation(["home", "common"]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<MainTabNavigationProp<"Home">>();
-  const [selectedCategory, setSelectedCategory] = useState<
-    VehicleCategory | "all"
-  >("all");
   const [citySheetOpen, setCitySheetOpen] = useState(false);
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
   const locationStatus = useLocationStore((state) => state.status);
@@ -68,17 +55,6 @@ export function HomeScreen() {
     (locationStatus === "skipped" || locationStatus === "denied") &&
     !hasSearchPoint;
 
-  const categories = useMemo(
-    () => [
-      { key: "all", label: t("categories-all") },
-      ...CATEGORY_KEYS.map((key) => ({
-        key,
-        label: t(`categories.${key}`),
-      })),
-    ],
-    [t],
-  );
-
   const locationMenuOptions = useMemo(
     () => [
       { value: "city", label: t("select-city") },
@@ -87,13 +63,6 @@ export function HomeScreen() {
     ],
     [t],
   );
-
-  const visibleVehicles = useMemo(() => {
-    if (selectedCategory === "all") {
-      return vehicles;
-    }
-    return vehicles.filter((vehicle) => vehicle.category === selectedCategory);
-  }, [selectedCategory, vehicles]);
 
   const openVehicleDetails = (vehicleId: string) => {
     navigation.navigate("VehicleDetails", { vehicleId });
@@ -153,7 +122,7 @@ export function HomeScreen() {
             latitude={latitude}
             longitude={longitude}
             radiusKm={radiusKm}
-            vehicles={visibleVehicles}
+            vehicles={vehicles}
             onVehiclePress={openVehicleDetails}
           />
         ) : null}
@@ -167,13 +136,6 @@ export function HomeScreen() {
         <SearchBar
           placeholder={t("search-placeholder")}
           onFilterPress={() => navigation.navigate("Explore")}
-        />
-        <HorizontalCategoryChips
-          categories={categories}
-          selectedKey={selectedCategory}
-          onSelect={(key) =>
-            setSelectedCategory(key as VehicleCategory | "all")
-          }
         />
         <SectionHeader
           title={t("available-cars")}
@@ -199,7 +161,7 @@ export function HomeScreen() {
               </AppText>
             </Pressable>
           </View>
-        ) : isEmpty || visibleVehicles.length === 0 ? (
+        ) : isEmpty ? (
           <View className="items-center rounded-2xl border border-border bg-white px-4 py-8">
             <AppText variant="body" muted className="text-center">
               {t("fleet-empty")}
@@ -207,7 +169,7 @@ export function HomeScreen() {
           </View>
         ) : (
           <View className="gap-3">
-            {visibleVehicles.map((vehicle) => (
+            {vehicles.map((vehicle) => (
               <VehicleListRow
                 key={vehicle.id}
                 vehicle={vehicle}
