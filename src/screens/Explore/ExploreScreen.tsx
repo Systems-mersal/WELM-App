@@ -72,6 +72,7 @@ export function ExploreScreen() {
     useFilteredVehicles();
   const latitude = useLocationStore((state) => state.latitude);
   const longitude = useLocationStore((state) => state.longitude);
+  const hasUserPoint = latitude != null && longitude != null;
   const selectCity = useLocationStore((state) => state.selectCity);
   const cityKey = useLocationStore((state) => state.cityKey);
 
@@ -250,7 +251,7 @@ export function ExploreScreen() {
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator color={colors.primary} />
             </View>
-          ) : isEmpty || mappableVehicles.length === 0 ? (
+          ) : !hasUserPoint && (isEmpty || mappableVehicles.length === 0) ? (
             <View className="flex-1 items-center justify-center rounded-2xl border border-border bg-white px-4">
               <AppText variant="body" muted className="text-center">
                 {isEmpty ? t("home:fleet-empty") : t("home:empty-subtitle")}
@@ -258,6 +259,13 @@ export function ExploreScreen() {
             </View>
           ) : (
             <MapView style={styles.map} region={mapRegion}>
+              {latitude != null && longitude != null ? (
+                <Marker
+                  coordinate={{ latitude, longitude }}
+                  title={t("home:current-location")}
+                  pinColor={colors.primary}
+                />
+              ) : null}
               {mappableVehicles.map((vehicle) => (
                 <MapVehicleMarker
                   key={vehicle.id}

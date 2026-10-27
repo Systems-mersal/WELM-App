@@ -1,70 +1,59 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VehicleListRow } from "../../components/cards/VehicleListRow";
-import { HorizontalCategoryChips } from "../../components/common/CategoryChips";
 import { SearchBar } from "../../components/common/SearchBar";
 import { SectionHeader } from "../../components/common/SectionHeader";
 import { CityPickerSheet, SelectCityCard } from "../../components/location/CityPickerSheet";
 import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
-import type { VehicleCategory } from "../../types";
 import type { MainTabNavigationProp } from "../../navigation/types";
 import { BrandBanner } from "./components/BrandBanner";
 import { EnableLocationCard } from "./components/EnableLocationCard";
 import { HomeHeader } from "./components/HomeHeader";
+import { NearbyMap } from "./components/NearbyMap";
 import { Screen } from "../../components/common/Screen";
 import { useFilteredVehicles } from "../../hooks/useFilteredVehicles";
 import { useLocationStore } from "../../stores/location-store";
 import type { CityKey } from "../../constants/search-cities";
 import { colors } from "../../theme/colors";
 
-const CATEGORY_KEYS: VehicleCategory[] = [
-  "luxury",
-  "electric",
-  "sport",
-  "sedan",
-  "suv",
-];
-
 export function HomeScreen() {
   const { t } = useTranslation(["home", "common"]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<MainTabNavigationProp<"Home">>();
-  const [selectedCategory, setSelectedCategory] = useState<
-    VehicleCategory | "all"
-  >("all");
   const [citySheetOpen, setCitySheetOpen] = useState(false);
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
   const locationStatus = useLocationStore((state) => state.status);
   const locationHydrated = useLocationStore((state) => state.hydrated);
+  const locationRequesting = useLocationStore((state) => state.requesting);
   const latitude = useLocationStore((state) => state.latitude);
   const longitude = useLocationStore((state) => state.longitude);
+  const radiusKm = useLocationStore((state) => state.radiusKm);
   const cityKey = useLocationStore((state) => state.cityKey);
   const selectCity = useLocationStore((state) => state.selectCity);
   const enableLocation = useLocationStore((state) => state.enableLocation);
+  const autoLocated = useRef(false);
   const { vehicles, isLoading, isError, isEmpty, refetch } =
     useFilteredVehicles();
 
   const hasSearchPoint = latitude != null && longitude != null;
-  const showLocationPrompt = locationHydrated && locationStatus === "idle";
+  const showLocationPrompt =
+    locationHydrated && locationStatus === "idle" && !locationRequesting;
+
+  useEffect(() => {
+    if (!locationHydrated || locationStatus !== "idle" || autoLocated.current) {
+      return;
+    }
+    autoLocated.current = true;
+    void enableLocation();
+  }, [enableLocation, locationHydrated, locationStatus]);
   const needsCity =
     locationHydrated &&
     (locationStatus === "skipped" || locationStatus === "denied") &&
     !hasSearchPoint;
-
-  const categories = useMemo(
-    () => [
-      { key: "all", label: t("categories-all") },
-      ...CATEGORY_KEYS.map((key) => ({
-        key,
-        label: t(`categories.${key}`),
-      })),
-    ],
-    [t],
-  );
 
   const locationMenuOptions = useMemo(
     () => [
@@ -74,13 +63,6 @@ export function HomeScreen() {
     ],
     [t],
   );
-
-  const visibleVehicles = useMemo(() => {
-    if (selectedCategory === "all") {
-      return vehicles;
-    }
-    return vehicles.filter((vehicle) => vehicle.category === selectedCategory);
-  }, [selectedCategory, vehicles]);
 
   const openVehicleDetails = (vehicleId: string) => {
     navigation.navigate("VehicleDetails", { vehicleId });
@@ -127,6 +109,23 @@ export function HomeScreen() {
           onNotificationsPress={() => navigation.navigate("Notifications")}
           onLocationPress={() => setLocationMenuOpen(true)}
         />
+        {locationRequesting && !hasSearchPoint ? (
+          <View className="h-56 items-center justify-center gap-3 rounded-2xl border border-border bg-white">
+            <ActivityIndicator color={colors.primary} />
+            <AppText variant="caption" muted>
+              {t("current-location")}
+            </AppText>
+          </View>
+        ) : null}
+        {latitude != null && longitude != null ? (
+          <NearbyMap
+            latitude={latitude}
+            longitude={longitude}
+            radiusKm={radiusKm}
+            vehicles={vehicles}
+            onVehiclePress={openVehicleDetails}
+          />
+        ) : null}
         {showLocationPrompt ? (
           <EnableLocationCard onChooseCity={() => setCitySheetOpen(true)} />
         ) : null}
@@ -137,13 +136,6 @@ export function HomeScreen() {
         <SearchBar
           placeholder={t("search-placeholder")}
           onFilterPress={() => navigation.navigate("Explore")}
-        />
-        <HorizontalCategoryChips
-          categories={categories}
-          selectedKey={selectedCategory}
-          onSelect={(key) =>
-            setSelectedCategory(key as VehicleCategory | "all")
-          }
         />
         <SectionHeader
           title={t("available-cars")}
@@ -169,7 +161,7 @@ export function HomeScreen() {
               </AppText>
             </Pressable>
           </View>
-        ) : isEmpty || visibleVehicles.length === 0 ? (
+        ) : isEmpty ? (
           <View className="items-center rounded-2xl border border-border bg-white px-4 py-8">
             <AppText variant="body" muted className="text-center">
               {t("fleet-empty")}
@@ -177,7 +169,7 @@ export function HomeScreen() {
           </View>
         ) : (
           <View className="gap-3">
-            {visibleVehicles.map((vehicle) => (
+            {vehicles.map((vehicle) => (
               <VehicleListRow
                 key={vehicle.id}
                 vehicle={vehicle}

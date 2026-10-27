@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
@@ -25,6 +25,7 @@ import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
 import {
   fetchWelmCompanies,
+  logoutWelmSession,
   patchWelmProfile,
   routeAfterIdentity,
   welmAuthUserMessage,
@@ -71,6 +72,7 @@ import {
   hijriToGregorianIso,
   type HijriYmd,
 } from "../../lib/hijri";
+import { unregisterWelmPushToken } from "../../features/notifications";
 import { useRtl } from "../../hooks/useRtl";
 import type { RootStackParamList } from "../../navigation/types";
 import { resolveSignInMethod, useAuthStore } from "../../stores/auth-store";
@@ -110,6 +112,8 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const { textAlign } = useRtl();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
+  const clearSession = useAuthStore((state) => state.clearSession);
+  const leavingRef = useRef(false);
   const signedInWithPhone = resolveSignInMethod(user) === "phone";
   const phoneDigits = normalizeSaudiMobile(
     route.params?.phone || user?.phone || "",
@@ -117,7 +121,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   const [mobile, setMobile] = useState(signedInWithPhone ? "" : phoneDigits);
   const [phoneTouched, setPhoneTouched] = useState(false);
 
-  const [idType, setIdType] = useState<IdDocumentType>("resident");
+  const [idType, setIdType] = useState<IdDocumentType>("national");
   const [name, setName] = useState(
     user?.name && user.name !== "User" ? user.name : "",
   );
@@ -544,6 +548,26 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
     await applyScanResult(shot.assets[0].uri);
   }, [applyScanResult, pickFromGallery, t]);
 
+  const returnToLogin = useCallback(() => {
+    if (leavingRef.current) {
+      return;
+    }
+    leavingRef.current = true;
+    void (async () => {
+      try {
+        await unregisterWelmPushToken();
+        await logoutWelmSession();
+      } catch {
+        // Still leave the form if the server is unreachable.
+      }
+      clearSession();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    })();
+  }, [clearSession, navigation]);
+
   const handleSave = useCallback(async () => {
     setSaveError(null);
     setCompanyTouched(true);
@@ -680,7 +704,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         header={
           <StackScreenHeader
             title={t("header")}
-            onBack={() => navigation.goBack()}
+            onBack={returnToLogin}
           />
         }
       >
