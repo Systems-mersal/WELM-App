@@ -17,8 +17,8 @@ export type PersonalDetailsDraft = {
   name: string;
   email: string;
   phone: string;
-  companyId: string;
-  companyName: string;
+  companyId?: string;
+  companyName?: string;
   photoUri: string | null;
 };
 
@@ -62,7 +62,7 @@ async function persistPersonalDetails(
   }
 
   const saved = await patchWelmPersonalDetails({
-    companyId: draft.companyId,
+    ...(draft.companyId ? { companyId: draft.companyId } : {}),
     name: draft.name,
     email: draft.email,
     phone: draft.phone,

@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 
 import type { WelmNotificationDto } from "./api";
-import { getStoredExpoPushToken } from "./storage";
+import { isWelmRemotePushConfigured } from "./register";
 
 /** Ids already on the device this session — skip banners for the initial inbox. */
 let seenIds: Set<string> | null = null;
@@ -18,7 +18,6 @@ export async function presentNewInboxItems(
     return;
   }
 
-  const hasRemoteToken = Boolean(await getStoredExpoPushToken());
   const fresh = items.filter(
     (item) => !item.readAt && !seenIds!.has(item.id),
   );
@@ -27,7 +26,7 @@ export async function presentNewInboxItems(
     seenIds.add(item.id);
   }
 
-  if (hasRemoteToken || fresh.length === 0) {
+  if (fresh.length === 0 || isWelmRemotePushConfigured()) {
     return;
   }
 

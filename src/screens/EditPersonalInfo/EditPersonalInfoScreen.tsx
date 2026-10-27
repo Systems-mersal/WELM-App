@@ -65,37 +65,38 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    void fetchWelmCompanies()
-      .then((list) => {
-        if (cancelled) {
-          return;
-        }
-        setCompanies(list);
-        setCompanyId((current) => {
-          if (current && list.some((company) => company.id === current)) {
-            return current;
-          }
-          const stored = user?.companyId;
-          if (stored && list.some((company) => company.id === stored)) {
-            return stored;
-          }
-          return list.length === 1 ? (list[0]?.id ?? null) : current;
-        });
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompanies([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setCompaniesLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    setCompaniesLoading(false);
+    // let cancelled = false;
+    // void fetchWelmCompanies()
+    //   .then((list) => {
+    //     if (cancelled) {
+    //       return;
+    //     }
+    //     setCompanies(list);
+    //     setCompanyId((current) => {
+    //       if (current && list.some((company) => company.id === current)) {
+    //         return current;
+    //       }
+    //       const stored = user?.companyId;
+    //       if (stored && list.some((company) => company.id === stored)) {
+    //         return stored;
+    //       }
+    //       return list.length === 1 ? (list[0]?.id ?? null) : current;
+    //     });
+    //   })
+    //   .catch(() => {
+    //     if (!cancelled) {
+    //       setCompanies([]);
+    //     }
+    //   })
+    //   .finally(() => {
+    //     if (!cancelled) {
+    //       setCompaniesLoading(false);
+    //     }
+    //   });
+    // return () => {
+    //   cancelled = true;
+    // };
   }, [user?.companyId]);
 
   const trimmedName = name.trim();
@@ -121,9 +122,9 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
   const formValid =
     trimmedName.length >= 2 &&
     emailLooksValid &&
-    isValidSaudiMobile(mobile) &&
-    Boolean(companyId) &&
-    !companyEmpty;
+    isValidSaudiMobile(mobile);
+    // Boolean(companyId) &&
+    // !companyEmpty;
 
   const selectedCompany = companies.find((company) => company.id === companyId);
   const companyName = companyId
@@ -181,7 +182,8 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
   const handleSave = useCallback(async () => {
     setTouched({ name: true, email: true, phone: true, company: true });
     setSaveError(null);
-    if (!formValid || saveBusy || !companyId) {
+    if (!formValid || saveBusy) {
+      // || !companyId
       return;
     }
 
@@ -191,7 +193,9 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
         name: trimmedName,
         email: trimmedEmail,
         phone: phoneE164,
-        companyId,
+        // companyId,
+        // companyName: companyName ?? "",
+        companyId: companyId ?? "",
         companyName: companyName ?? "",
         photoUri,
       });
@@ -325,7 +329,7 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
         />
       </View>
 
-      <View className="mt-4">
+      {/* <View className="mt-4">
         <SelectField
           label={t("complete-identity:company-label")}
           value={companyName}
@@ -343,7 +347,7 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
             }
           }}
         />
-      </View>
+      </View> */}
 
       <AppButton
         label={t("common:save")}
@@ -362,7 +366,7 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
         onPress={handleCancel}
       />
 
-      <SearchSelectSheet
+      {/* <SearchSelectSheet
         visible={companyOpen}
         title={t("complete-identity:select-company")}
         options={companies.map((company) => ({
@@ -381,7 +385,7 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
           setCompanyOpen(false);
         }}
         onClose={() => setCompanyOpen(false)}
-      />
+      /> */}
     </Screen>
   );
 }
