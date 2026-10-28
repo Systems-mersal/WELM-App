@@ -31,9 +31,10 @@
   "location-search-clear": "Clear search",
   "location-search-empty": "No places found. Try a different name.",
   "location-search-error": "Search is unavailable right now. Try again.",
+  "map-pin-hint": "Move the map and drop the pin on a place",
   "radius-km": {
     "10": "10 km",
-    "25": "25 km",
+    "30": "30 km",
     "50": "50 km"
   },
   "error-denied": "Location permission was denied.",

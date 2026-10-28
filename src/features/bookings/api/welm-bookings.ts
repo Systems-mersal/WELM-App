@@ -1,3 +1,5 @@
+import { isAxiosError } from "axios";
+
 import { apiClient } from "../../../lib/api-client";
 
 export type WelmBookingTimelineStep = {
@@ -140,6 +142,27 @@ export async function confirmWelmBookingPayment(input: {
     throw new Error("Invalid confirm-payment response");
   }
   return data.booking;
+}
+
+export async function skipWelmBookingPayment(
+  bookingId: string,
+): Promise<WelmBookingDto> {
+  try {
+    const { data } = await apiClient.post<{
+      booking?: WelmBookingDto;
+      error?: string;
+    }>(`/api/welm/bookings/${bookingId}/skip-payment`);
+    if (!data?.booking?.id) {
+      throw new Error(data?.error || "Invalid skip-payment response");
+    }
+    return data.booking;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      const body = error.response?.data as { error?: string } | undefined;
+      throw new Error(body?.error || "Payment skip is disabled");
+    }
+    throw error;
+  }
 }
 
 export function bookingNeedsPayment(booking: WelmBookingDto): boolean {

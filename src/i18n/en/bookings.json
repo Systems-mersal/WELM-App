@@ -34,5 +34,6 @@
   "pay-awaiting-hint": "Pay the full amount to activate your booking",
   "pay-rental-label": "Vehicle rental",
   "pay-success-title": "Payment received",
-  "pay-success-message": "Paid {{total}} {{currency}}. Your booking is moving to delivery."
+  "pay-success-message": "Paid {{total}} {{currency}}. Your booking is moving to delivery.",
+  "pay-skip": "Skip payment (test)"
 }

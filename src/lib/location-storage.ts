@@ -4,11 +4,11 @@ import { parseCityKey, type CityKey } from "../constants/search-cities";
 
 const LOCATION_KEY = "welm.deviceLocation.v1";
 
-export type LocationRadiusKm = 10 | 25 | 50;
+export type LocationRadiusKm = 10 | 30 | 50;
 export type StoredLocationStatus = "granted" | "denied" | "skipped" | "city";
 
-export const LOCATION_RADIUS_OPTIONS: readonly LocationRadiusKm[] = [10, 25, 50];
-export const DEFAULT_RADIUS_KM: LocationRadiusKm = 10;
+export const LOCATION_RADIUS_OPTIONS: readonly LocationRadiusKm[] = [10, 30, 50];
+export const DEFAULT_RADIUS_KM: LocationRadiusKm = 30;
 
 export type StoredDeviceLocation = {
   status: StoredLocationStatus;
@@ -19,7 +19,7 @@ export type StoredDeviceLocation = {
 };
 
 export function parseRadiusKm(value: number | undefined): LocationRadiusKm {
-  if (value === 10 || value === 25 || value === 50) {
+  if (value === 10 || value === 30 || value === 50) {
     return value;
   }
   return DEFAULT_RADIUS_KM;

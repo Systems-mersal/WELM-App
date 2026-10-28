@@ -7,6 +7,7 @@ import { AppText } from "../../../components/typography/AppText";
 import {
   bookingNeedsPayment,
   confirmWelmBookingPayment,
+  skipWelmBookingPayment,
   quotedTotalToCents,
   WELM_BOOKINGS_QUERY_KEY,
   type WelmBookingDto,
@@ -89,6 +90,29 @@ export const BookingRequestCard = memo(function BookingRequestCard({
     }
   }, [booking, paying, queryClient, t, vehicleName]);
 
+  const onSkipPay = useCallback(async () => {
+    if (paying) return;
+    setPaying(true);
+    try {
+      await skipWelmBookingPayment(booking.id);
+      await queryClient.invalidateQueries({ queryKey: WELM_BOOKINGS_QUERY_KEY });
+      Alert.alert(
+        t("pay-success-title"),
+        t("pay-success-message", {
+          total: booking.quotedTotal,
+          currency: t("common:currency"),
+        }),
+      );
+    } catch (error) {
+      Alert.alert(
+        t("payments:error-title", { defaultValue: "Payment failed" }),
+        error instanceof Error ? error.message : t("common:error"),
+      );
+    } finally {
+      setPaying(false);
+    }
+  }, [booking.id, booking.quotedTotal, paying, queryClient, t]);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -127,6 +151,19 @@ export const BookingRequestCard = memo(function BookingRequestCard({
             {t("pay-awaiting-hint")}
           </AppText>
           <ApplePayButton onPress={() => void onPay()} loading={paying} />
+          {__DEV__ ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("pay-skip")}
+              disabled={paying}
+              onPress={() => void onSkipPay()}
+              className="h-11 items-center justify-center rounded-xl border border-border active:opacity-70"
+            >
+              <AppText variant="caption" className="text-textMuted">
+                {t("pay-skip")}
+              </AppText>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </Pressable>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,6 @@ import { VehicleListRow } from "../../components/cards/VehicleListRow";
 import { SearchBar } from "../../components/common/SearchBar";
 import { SectionHeader } from "../../components/common/SectionHeader";
 import { CityPickerSheet, SelectCityCard } from "../../components/location/CityPickerSheet";
-import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
 import type { MainTabNavigationProp } from "../../navigation/types";
 import { BrandBanner } from "./components/BrandBanner";
@@ -25,7 +24,6 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<MainTabNavigationProp<"Home">>();
   const [citySheetOpen, setCitySheetOpen] = useState(false);
-  const [locationMenuOpen, setLocationMenuOpen] = useState(false);
   const locationStatus = useLocationStore((state) => state.status);
   const locationHydrated = useLocationStore((state) => state.hydrated);
   const locationRequesting = useLocationStore((state) => state.requesting);
@@ -44,7 +42,11 @@ export function HomeScreen() {
     locationHydrated && locationStatus === "idle" && !locationRequesting;
 
   useEffect(() => {
-    if (!locationHydrated || locationStatus !== "idle" || autoLocated.current) {
+    if (
+      !locationHydrated ||
+      autoLocated.current ||
+      (locationStatus !== "idle" && locationStatus !== "granted")
+    ) {
       return;
     }
     autoLocated.current = true;
@@ -55,14 +57,9 @@ export function HomeScreen() {
     (locationStatus === "skipped" || locationStatus === "denied") &&
     !hasSearchPoint;
 
-  const locationMenuOptions = useMemo(
-    () => [
-      { value: "city", label: t("select-city") },
-      { value: "gps", label: t("use-current-location") },
-      { value: "radius", label: t("change-radius") },
-    ],
-    [t],
-  );
+  const openLocationMap = () => {
+    navigation.navigate("LocationRadius");
+  };
 
   const openVehicleDetails = (vehicleId: string) => {
     navigation.navigate("VehicleDetails", { vehicleId });
@@ -72,26 +69,6 @@ export function HomeScreen() {
     selectCity(key);
     setCitySheetOpen(false);
     navigation.navigate("LocationRadius");
-  };
-
-  const handleLocationMenu = async (value: string) => {
-    setLocationMenuOpen(false);
-    if (value === "city") {
-      setCitySheetOpen(true);
-      return;
-    }
-    if (value === "radius") {
-      if (hasSearchPoint) {
-        navigation.navigate("LocationRadius");
-      }
-      return;
-    }
-    const result = await enableLocation();
-    if (result === "granted") {
-      navigation.navigate("LocationRadius");
-      return;
-    }
-    setCitySheetOpen(true);
   };
 
   return (
@@ -107,7 +84,7 @@ export function HomeScreen() {
       <View className="gap-5 pb-2">
         <HomeHeader
           onNotificationsPress={() => navigation.navigate("Notifications")}
-          onLocationPress={() => setLocationMenuOpen(true)}
+          onLocationPress={openLocationMap}
         />
         {locationRequesting && !hasSearchPoint ? (
           <View className="h-56 items-center justify-center gap-3 rounded-2xl border border-border bg-white">
@@ -118,13 +95,21 @@ export function HomeScreen() {
           </View>
         ) : null}
         {latitude != null && longitude != null ? (
-          <NearbyMap
-            latitude={latitude}
-            longitude={longitude}
-            radiusKm={radiusKm}
-            vehicles={vehicles}
-            onVehiclePress={openVehicleDetails}
-          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("change-location")}
+            onPress={openLocationMap}
+          >
+            <View pointerEvents="none">
+              <NearbyMap
+                latitude={latitude}
+                longitude={longitude}
+                radiusKm={radiusKm}
+                vehicles={vehicles}
+                onVehiclePress={openVehicleDetails}
+              />
+            </View>
+          </Pressable>
         ) : null}
         {showLocationPrompt ? (
           <EnableLocationCard onChooseCity={() => setCitySheetOpen(true)} />
@@ -184,16 +169,6 @@ export function HomeScreen() {
         selected={cityKey}
         onSelect={applyCity}
         onClose={() => setCitySheetOpen(false)}
-      />
-      <SelectSheet
-        visible={locationMenuOpen}
-        title={t("change-location")}
-        options={locationMenuOptions}
-        onSelect={(value) => {
-          void handleLocationMenu(value);
-        }}
-        onClose={() => setLocationMenuOpen(false)}
-        closeLabel={t("sheet-close")}
       />
     </Screen>
   );

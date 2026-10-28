@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import MapView, { Circle, Marker } from "react-native-maps";
+import MapView, { Circle } from "react-native-maps";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -36,6 +36,17 @@ const KM_PER_LAT_DEGREE = 111;
 const REGION_PADDING = 2.4;
 
 type SearchState = "idle" | "loading" | "done" | "error";
+type MapPoint = { latitude: number; longitude: number };
+
+function regionFor(point: MapPoint, radiusKm: number) {
+  const latitudeDelta = (radiusKm * REGION_PADDING) / KM_PER_LAT_DEGREE;
+  return {
+    latitude: point.latitude,
+    longitude: point.longitude,
+    latitudeDelta,
+    longitudeDelta: latitudeDelta,
+  };
+}
 
 export function LocationRadiusScreen({ navigation }: Props) {
   const { t } = useTranslation("home");
@@ -45,6 +56,8 @@ export function LocationRadiusScreen({ navigation }: Props) {
   const storedRadiusKm = useLocationStore((state) => state.radiusKm);
   const setRadiusKm = useLocationStore((state) => state.setRadiusKm);
   const setSearchPoint = useLocationStore((state) => state.setSearchPoint);
+  const enableLocation = useLocationStore((state) => state.enableLocation);
+  const requesting = useLocationStore((state) => state.requesting);
   const [draftRadiusKm, setDraftRadiusKm] = useState<LocationRadiusKm>(
     storedRadiusKm,
   );
@@ -54,14 +67,22 @@ export function LocationRadiusScreen({ navigation }: Props) {
   const [query, setQuery] = useState("");
   const [searchState, setSearchState] = useState<SearchState>("idle");
   const [results, setResults] = useState<PlaceSearchResult[]>([]);
-
-  const hasCoordinates = latitude != null && longitude != null;
+  const mapRef = useRef<MapView>(null);
+  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
+  const pointRef = useRef(draftPoint);
+  const skipRadiusZoom = useRef(true);
+  pointRef.current = draftPoint;
 
   useEffect(() => {
-    if (!hasCoordinates) {
-      navigation.goBack();
+    if (draftPoint) {
+      return;
     }
-  }, [hasCoordinates, navigation]);
+    if (latitude != null && longitude != null) {
+      setDraftPoint({ latitude, longitude });
+      return;
+    }
+    void enableLocation();
+  }, [draftPoint, enableLocation, latitude, longitude]);
 
   const radiusOptions = useMemo(
     () =>
@@ -72,18 +93,25 @@ export function LocationRadiusScreen({ navigation }: Props) {
     [t],
   );
 
-  const region = useMemo(() => {
-    if (draftPoint == null) {
-      return null;
+  const cameraRef = useRef<ReturnType<typeof regionFor> | null>(
+    draftPoint ? regionFor(draftPoint, draftRadiusKm) : null,
+  );
+  if (!cameraRef.current && draftPoint) {
+    cameraRef.current = regionFor(draftPoint, draftRadiusKm);
+  }
+  const initialRegion = cameraRef.current;
+
+  useEffect(() => {
+    if (skipRadiusZoom.current) {
+      skipRadiusZoom.current = false;
+      return;
     }
-    const latitudeDelta = (draftRadiusKm * REGION_PADDING) / KM_PER_LAT_DEGREE;
-    return {
-      latitude: draftPoint.latitude,
-      longitude: draftPoint.longitude,
-      latitudeDelta,
-      longitudeDelta: latitudeDelta,
-    };
-  }, [draftPoint, draftRadiusKm]);
+    const point = pointRef.current;
+    if (!point) {
+      return;
+    }
+    mapRef.current?.animateToRegion(regionFor(point, draftRadiusKm), 280);
+  }, [draftRadiusKm]);
 
   const runSearch = async () => {
     const trimmed = query.trim();
@@ -109,10 +137,12 @@ export function LocationRadiusScreen({ navigation }: Props) {
 
   const selectResult = (result: PlaceSearchResult) => {
     Keyboard.dismiss();
-    setDraftPoint({ latitude: result.latitude, longitude: result.longitude });
+    const next = { latitude: result.latitude, longitude: result.longitude };
+    setDraftPoint(next);
     setQuery(result.title);
     setResults([]);
     setSearchState("idle");
+    mapRef.current?.animateToRegion(regionFor(next, draftRadiusKm), 350);
   };
 
   const handleConfirm = () => {
@@ -126,8 +156,26 @@ export function LocationRadiusScreen({ navigation }: Props) {
     navigation.goBack();
   };
 
-  if (!hasCoordinates || region == null || draftPoint == null) {
-    return null;
+  if (initialRegion == null || draftPoint == null) {
+    return (
+      <Screen
+        scrollable={false}
+        edges={["bottom"]}
+        className="bg-white"
+        contentClassName="px-0 items-center justify-center"
+        header={
+          <StackScreenHeader
+            title={t("radius-title")}
+            onBack={() => navigation.goBack()}
+          />
+        }
+      >
+        <ActivityIndicator color={colors.primary} />
+        <AppText variant="caption" muted className="mt-3">
+          {requesting ? t("current-location") : t("error-failed")}
+        </AppText>
+      </Screen>
+    );
   }
 
   const showResults = searchState !== "idle";
@@ -145,15 +193,35 @@ export function LocationRadiusScreen({ navigation }: Props) {
         />
       }
     >
-      <View className="flex-1">
+      <View
+        style={styles.mapFrame}
+        pointerEvents="box-none"
+        onLayout={(event) => {
+          const { width, height } = event.nativeEvent.layout;
+          setMapSize((current) =>
+            current.width === width && current.height === height
+              ? current
+              : { width, height },
+          );
+        }}
+      >
         <MapView
-          style={styles.map}
-          region={region}
+          ref={mapRef}
+          style={StyleSheet.absoluteFill}
+          initialRegion={initialRegion}
           scrollEnabled
           zoomEnabled
+          zoomTapEnabled
           pitchEnabled={false}
           rotateEnabled={false}
+          moveOnMarkerPress={false}
           onPress={Keyboard.dismiss}
+          onRegionChangeComplete={(next) => {
+            setDraftPoint({
+              latitude: next.latitude,
+              longitude: next.longitude,
+            });
+          }}
         >
           <Circle
             center={draftPoint}
@@ -162,14 +230,27 @@ export function LocationRadiusScreen({ navigation }: Props) {
             strokeColor={colors.primary}
             fillColor={`${colors.primary}33`}
           />
-          <Marker
-            coordinate={draftPoint}
-            title={t("current-location")}
-            pinColor={colors.primary}
-          />
         </MapView>
+        {mapSize.width > 0 && mapSize.height > 0 ? (
+          <View
+            pointerEvents="none"
+            style={[
+              styles.pin,
+              {
+                left: mapSize.width / 2 - PIN_WIDTH / 2,
+                top: mapSize.height / 2 - PIN_HEIGHT,
+              },
+            ]}
+          >
+            <View style={styles.pinHead} />
+            <View style={styles.pinStem} />
+          </View>
+        ) : null}
 
-        <View className="absolute inset-x-4 top-4 gap-2">
+        <View
+          pointerEvents="box-none"
+          className="absolute inset-x-4 top-4 gap-2"
+        >
           <View className="h-[52px] flex-row items-center gap-3 rounded-2xl border border-border bg-white px-4 shadow-sm">
             <AppIcon name="search" size={18} color={colors.textMuted} />
             <TextInput
@@ -255,6 +336,9 @@ export function LocationRadiusScreen({ navigation }: Props) {
       </View>
 
       <View className="gap-4 px-6 pb-4 pt-4">
+        <AppText variant="caption" muted className="text-start">
+          {t("map-pin-hint")}
+        </AppText>
         <AppText variant="subtitle" className="text-start text-text">
           {t("radius-label")}
         </AppText>
@@ -278,8 +362,36 @@ export function LocationRadiusScreen({ navigation }: Props) {
   );
 }
 
+const PIN_WIDTH = 28;
+const PIN_HEAD = 28;
+const PIN_STEM = 18;
+const PIN_HEIGHT = PIN_HEAD + PIN_STEM;
+
 const styles = StyleSheet.create({
-  map: {
+  mapFrame: {
     flex: 1,
+  },
+  pin: {
+    position: "absolute",
+    zIndex: 3,
+    elevation: 3,
+    width: PIN_WIDTH,
+    height: PIN_HEIGHT,
+    alignItems: "center",
+  },
+  pinHead: {
+    width: PIN_HEAD,
+    height: PIN_HEAD,
+    borderRadius: PIN_HEAD / 2,
+    backgroundColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  pinStem: {
+    width: 3,
+    height: PIN_STEM,
+    marginTop: -1,
+    borderRadius: 2,
+    backgroundColor: colors.primary,
   },
 });

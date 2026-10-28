@@ -34,5 +34,6 @@
   "pay-awaiting-hint": "ادفع المبلغ كاملًا لتفعيل الحجز",
   "pay-rental-label": "تأجير السيارة",
   "pay-success-title": "تم استلام الدفع",
-  "pay-success-message": "تم دفع {{total}} {{currency}}. الحجز ينتقل لمرحلة التسليم."
+  "pay-success-message": "تم دفع {{total}} {{currency}}. الحجز ينتقل لمرحلة التسليم.",
+  "pay-skip": "تخطي الدفع للتجربة"
 }

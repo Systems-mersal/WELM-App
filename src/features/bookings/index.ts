@@ -8,6 +8,7 @@ export {
   WELM_MAX_RENTAL_DAYS,
   createWelmBooking,
   confirmWelmBookingPayment,
+  skipWelmBookingPayment,
   bookingNeedsPayment,
   quotedTotalToCents,
   fetchWelmBooking,

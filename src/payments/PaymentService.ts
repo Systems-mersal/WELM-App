@@ -41,13 +41,6 @@ function declinedError(detail?: string): PaymentError {
   };
 }
 
-function unavailableError(): PaymentError {
-  return {
-    code: "unavailable",
-    message: "Apple Pay is not available on this device or Wallet has no cards.",
-  };
-}
-
 function invalidConfigError(): PaymentError {
   return {
     code: "invalid_config",
@@ -161,11 +154,6 @@ export const PaymentService = {
   },
 
   async payWithApplePay(params: PayWithApplePayParams): Promise<PaymentResult> {
-    const available = await PaymentService.isApplePayAvailable();
-    if (!available) {
-      return { status: "failure", error: unavailableError() };
-    }
-
     let clientSecret: string;
     let paymentIntentId: string;
     let amountCents = params.amountCents;
@@ -215,6 +203,7 @@ export const PaymentService = {
         ],
         merchantCountryCode: params.merchantCountryCode,
         currencyCode: toApplePayCurrencyCode(currency),
+        additionalEnabledNetworks: ["mada"],
       },
     });
 
