@@ -1,3 +1,4 @@
+import { unregisterWelmPushToken } from "../../notifications/register";
 import { copyLocalProfileFields, useAuthStore } from "../../../stores/auth-store";
 import type { WelmAuthSession } from "../api/types";
 import { logoutWelmSession, mapWelmSessionToAuthUser } from "../api/welm-auth";
@@ -63,6 +64,11 @@ export async function discardWelmAuth(options?: {
   revoke?: boolean;
 }): Promise<void> {
   const store = useAuthStore.getState();
+  try {
+    await unregisterWelmPushToken();
+  } catch {
+    // Token drop must not block local sign-out.
+  }
   if (options?.revoke && store.accessToken) {
     try {
       await logoutWelmSession();

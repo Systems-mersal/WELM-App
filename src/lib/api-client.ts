@@ -68,6 +68,26 @@ apiClient.interceptors.request.use((config) => {
 });
 
 let refreshInFlight: Promise<boolean> | null = null;
+let droppingSession = false;
+
+async function dropSessionAfterFailedRefresh(): Promise<void> {
+  if (droppingSession) {
+    useAuthStore.getState().clearSession();
+    return;
+  }
+  droppingSession = true;
+  try {
+    const { unregisterWelmPushToken } = await import(
+      "../features/notifications/register"
+    );
+    await unregisterWelmPushToken();
+  } catch {
+    // Session still has to clear locally.
+  } finally {
+    useAuthStore.getState().clearSession();
+    droppingSession = false;
+  }
+}
 
 /** Bare POST so refresh never re-enters the 401 interceptor / circular helpers. */
 async function tryRefreshSession(): Promise<boolean> {
@@ -162,7 +182,7 @@ apiClient.interceptors.response.use(
         return apiClient.request(config);
       }
 
-      useAuthStore.getState().clearSession();
+      await dropSessionAfterFailedRefresh();
     }
 
     return Promise.reject(error);

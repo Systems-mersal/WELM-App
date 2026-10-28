@@ -20,6 +20,19 @@ import { colors } from "../../theme/colors";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Notifications">;
 
+function unreadDotColor(type: string): string {
+  switch (type) {
+    case "welm_booking_approved":
+      return colors.success;
+    case "welm_booking_payment_recorded":
+      return colors.primary;
+    case "welm_license_expiring":
+      return colors.warning;
+    default:
+      return colors.peach;
+  }
+}
+
 function InboxRow({
   item,
   onOpen,
@@ -41,7 +54,11 @@ function InboxRow({
         <View className="flex-row items-center gap-2">
           <View
             className={`h-2 w-2 rounded-full ${unread ? "" : "bg-border"}`}
-            style={unread ? { backgroundColor: colors.primary } : undefined}
+            style={
+              unread
+                ? { backgroundColor: unreadDotColor(item.type) }
+                : undefined
+            }
           />
           <AppText variant="label" className="text-start">
             {item.title}

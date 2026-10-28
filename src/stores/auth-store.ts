@@ -153,8 +153,8 @@ export type PendingPersonalSave = {
   name: string;
   email: string;
   phone: string;
-  companyId: string;
-  companyName: string;
+  companyId?: string;
+  companyName?: string;
   photoUri: string | null;
   awaitEmail: boolean;
   awaitPhone: boolean;

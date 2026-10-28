@@ -32,6 +32,13 @@ const PLACEHOLDER_PROJECT_IDS = new Set([
   "00000000-0000-0000-0000-000000000000",
 ]);
 
+const EAS_PROJECT_ID_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isWelmRemotePushConfigured(): boolean {
+  return easProjectId() !== null;
+}
+
 function easProjectId(): string | null {
   const extra = Constants.expoConfig?.extra as
     | { eas?: { projectId?: string } }
@@ -41,7 +48,12 @@ function easProjectId(): string | null {
     extra?.eas?.projectId ??
     ""
   ).trim();
-  if (!id || PLACEHOLDER_PROJECT_IDS.has(id) || id.includes("REPLACE")) {
+  if (
+    !id ||
+    PLACEHOLDER_PROJECT_IDS.has(id) ||
+    id.includes("REPLACE") ||
+    !EAS_PROJECT_ID_UUID.test(id)
+  ) {
     return null;
   }
   return id;

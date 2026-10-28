@@ -12,6 +12,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
+      "deploymentTarget": "16.4",
       "bundleIdentifier": "com.welm.tajeerplus",
       "appleTeamId": "6F8YNN5BBY",
       "usesAppleSignIn": true,
@@ -87,6 +88,7 @@
         "expo-build-properties",
         {
           "ios": {
+            "deploymentTarget": "16.4",
             "enableSceneSupport": true
           }
         }

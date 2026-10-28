@@ -1,11 +1,15 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { AppState } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 
 import { navigationRef } from "../../navigation/navigation-ref";
 import { useAuthStore } from "../../stores/auth-store";
 import { fetchWelmNotifications } from "./api";
-import { WELM_NOTIFICATIONS_QUERY_KEY } from "./hooks";
+import {
+  WELM_INBOX_POLL_MS,
+  WELM_NOTIFICATIONS_QUERY_KEY,
+} from "./hooks";
 import {
   presentNewInboxItems,
   resetInboxLiveSession,
@@ -65,14 +69,30 @@ async function deliverResponse(
 
 export function PushBootstrap() {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
 
   const inbox = useQuery({
     queryKey: [...WELM_NOTIFICATIONS_QUERY_KEY, accessToken ? "auth" : "anon"],
     enabled: Boolean(accessToken),
     queryFn: fetchWelmNotifications,
     staleTime: 0,
-    refetchInterval: accessToken ? 15_000 : false,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
+    refetchInterval: accessToken ? WELM_INBOX_POLL_MS : false,
+    refetchIntervalInBackground: false,
   });
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active" || !useAuthStore.getState().accessToken) {
+        return;
+      }
+      void queryClient.invalidateQueries({
+        queryKey: WELM_NOTIFICATIONS_QUERY_KEY,
+      });
+    });
+    return () => sub.remove();
+  }, [queryClient]);
 
   useEffect(() => {
     if (!accessToken) {

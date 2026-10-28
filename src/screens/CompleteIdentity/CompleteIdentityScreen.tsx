@@ -280,7 +280,8 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   );
   const phoneEntryValid = signedInWithPhone || isValidSaudiMobile(mobile);
   const formValid =
-    isIdentityFormValid(values, uniqueness) && phoneEntryValid && Boolean(companyId);
+    isIdentityFormValid(values, uniqueness) && phoneEntryValid;
+    // && Boolean(companyId);
 
   const markTouched = useCallback((field: IdentityField) => {
     setTouched((current) => ({ ...current, [field]: true }));
@@ -317,29 +318,30 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
   );
 
   useEffect(() => {
-    let cancelled = false;
-    void fetchWelmCompanies()
-      .then((list) => {
-        if (cancelled) {
-          return;
-        }
-        setCompanies(list);
-        setCompanyId(list.length === 1 ? list[0]?.id ?? null : null);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompanies([]);
-          setCompanyId(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setCompaniesLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    setCompaniesLoading(false);
+    // let cancelled = false;
+    // void fetchWelmCompanies()
+    //   .then((list) => {
+    //     if (cancelled) {
+    //       return;
+    //     }
+    //     setCompanies(list);
+    //     setCompanyId(list.length === 1 ? list[0]?.id ?? null : null);
+    //   })
+    //   .catch(() => {
+    //     if (!cancelled) {
+    //       setCompanies([]);
+    //       setCompanyId(null);
+    //     }
+    //   })
+    //   .finally(() => {
+    //     if (!cancelled) {
+    //       setCompaniesLoading(false);
+    //     }
+    //   });
+    // return () => {
+    //   cancelled = true;
+    // };
   }, []);
 
   useEffect(() => {
@@ -570,7 +572,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
 
   const handleSave = useCallback(async () => {
     setSaveError(null);
-    setCompanyTouched(true);
+    // setCompanyTouched(true);
     setTouched({
       name: true,
       nationalId: true,
@@ -589,16 +591,16 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
 
     setSaveBusy(true);
     try {
-      const ownerId = companyId;
-      if (!ownerId) {
-        setSaveError(t("validation.companyRequired"));
-        return;
-      }
+      // const ownerId = companyId;
+      // if (!ownerId) {
+      //   setSaveError(t("validation.companyRequired"));
+      //   return;
+      // }
 
       const storedNationality: NationalityCode =
         idType === "national" ? DEFAULT_NATIONALITY : (nationality as NationalityCode);
       const saved = await patchWelmProfile({
-        companyId: ownerId,
+        // companyId: ownerId,
         name: name.trim(),
         idDocumentType: idType,
         nationalId: nationalId.trim(),
@@ -620,8 +622,10 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         customerId: saved.customerId,
         name: saved.user.name || name.trim(),
         firstName: saved.user.firstName || name.trim().split(/\s+/)[0],
-        companyId: ownerId,
-        companyName: companies.find((company) => company.id === ownerId)?.name,
+        // companyId: ownerId,
+        // companyName: companies.find((company) => company.id === ownerId)?.name,
+        companyId: saved.user.companyId,
+        companyName: saved.user.companyName,
         avatarUrl: saved.user.avatarUrl ?? undefined,
         email: email.trim(),
         phone: signedInWithPhone
@@ -797,7 +801,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
           ) : null}
 
           <View className="mt-6 gap-4">
-            <SelectField
+            {/* <SelectField
               label={t("company-label")}
               value={
                 companyId
@@ -826,7 +830,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
                     : undefined
               }
               inputClassName={inputClass}
-            />
+            /> */}
             <SelectField
               label={t("id-type-label")}
               value={t(`id-type-${idType}`)}
@@ -1169,7 +1173,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         }}
         onClose={() => setOpenSheet(null)}
       />
-      <SearchSelectSheet
+      {/* <SearchSelectSheet
         visible={openSheet === "company"}
         title={t("select-company")}
         options={companies.map((company) => ({
@@ -1182,7 +1186,7 @@ export function CompleteIdentityScreen({ navigation, route }: Props) {
         closeLabel={t("sheet-close")}
         onConfirm={setCompanyId}
         onClose={() => setOpenSheet(null)}
-      />
+      /> */}
       <SelectSheet
         visible={openSheet === "idType"}
         title={t("select-id-type")}
