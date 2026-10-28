@@ -9,6 +9,7 @@ import {
 } from "./api";
 
 export const WELM_NOTIFICATIONS_QUERY_KEY = ["welm", "notifications"] as const;
+export const WELM_INBOX_POLL_MS = 4_000;
 
 function useWelmNotificationsQuery() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -19,8 +20,10 @@ function useWelmNotificationsQuery() {
     enabled: Boolean(accessToken),
     queryFn: fetchWelmNotifications,
     staleTime: 0,
-    refetchOnMount: false,
-    refetchInterval: accessToken ? 15_000 : false,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
+    refetchInterval: accessToken ? WELM_INBOX_POLL_MS : false,
+    refetchIntervalInBackground: false,
   });
 
   useFocusEffect(

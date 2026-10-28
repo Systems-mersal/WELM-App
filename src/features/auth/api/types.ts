@@ -76,7 +76,7 @@ export type WelmCompanyOption = {
 };
 
 export type WelmProfilePatchRequest = {
-  companyId: string;
+  companyId?: string;
   name: string;
   idDocumentType?: "national" | "resident" | "gcc" | "visitor";
   nationalId?: string;
@@ -97,7 +97,7 @@ export type WelmProfilePatchRequest = {
 export type WelmProfileRequest = WelmProfilePatchRequest;
 
 export type WelmPersonalPatchRequest = {
-  companyId: string;
+  companyId?: string;
   name: string;
   email: string;
   phone: string;

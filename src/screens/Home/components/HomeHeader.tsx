@@ -85,17 +85,30 @@ export function HomeHeader({
           accessibilityRole="button"
           accessibilityLabel={t("common:a11y.notifications")}
           onPress={onNotificationsPress}
-          className="relative rounded-[14px] border border-border bg-white p-3 active:opacity-70"
+          className="relative overflow-visible rounded-[14px] border border-border bg-white p-3 active:opacity-70"
           hitSlop={8}
         >
           <AppIcon name="bell" size={20} color={colors.text} />
           {unreadCount > 0 ? (
-            <View className="absolute -end-1 -top-1 min-w-[16px] items-center rounded-full bg-danger px-1">
+            <View
+              className="absolute -end-1.5 -top-1.5 h-7 min-w-7 items-center pt-1 justify-center rounded-full border-2 border-white "
+              style={{ backgroundColor: colors.danger }}
+            >
               <AppText
-                className="text-[10px] leading-[14px] text-white"
-                style={{ fontFamily: fontFamily.bold }}
+                className="text-white"
+                style={{
+                  fontFamily: fontFamily.bold,
+                  fontSize: 12,
+                  lineHeight: 12,
+                  includeFontPadding: false,
+                  textAlign: "center",
+                }}
               >
-                {unreadCount > 9 ? "9+" : String(unreadCount)}
+                {unreadCount > 99
+                  ? "99+"
+                  : unreadCount > 9
+                    ? "9+"
+                    : String(unreadCount)}
               </AppText>
             </View>
           ) : null}
