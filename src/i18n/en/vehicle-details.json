@@ -32,5 +32,11 @@
     "sport": "Sport",
     "sedan": "Sedan",
     "suv": "SUV"
+  },
+  "gallery": {
+    "open-photo": "View photo {{index}}",
+    "close": "Close",
+    "counter": "{{current}} / {{total}}",
+    "zoom-hint": "Pinch or double-tap to zoom"
   }
 }

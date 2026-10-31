@@ -19,7 +19,10 @@ export interface Vehicle {
   rating: number;
   category: VehicleCategory;
   image: string;
+  /** Main photo, shown on list cards. */
   imageSource: ImageSourcePropType;
+  /** All photos in display order (first = main), shown in the details gallery. */
+  gallery?: ImageSourcePropType[];
   locationKey?: string;
   /** Branch / city label from Tajeer Plus (API cars). */
   locationLabel?: string;

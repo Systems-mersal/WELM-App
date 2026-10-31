@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from "react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import * as WebBrowser from "expo-web-browser";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   Cairo_400Regular,
@@ -98,16 +99,18 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <I18nextProvider i18n={i18n}>
-        <QueryClientProvider client={queryClient}>
-          <PaymentProvider>
-            <LocaleRoot>
-              <RootNavigator />
-            </LocaleRoot>
-          </PaymentProvider>
-        </QueryClientProvider>
-      </I18nextProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <I18nextProvider i18n={i18n}>
+          <QueryClientProvider client={queryClient}>
+            <PaymentProvider>
+              <LocaleRoot>
+                <RootNavigator />
+              </LocaleRoot>
+            </PaymentProvider>
+          </QueryClientProvider>
+        </I18nextProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

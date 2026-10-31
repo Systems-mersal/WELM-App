@@ -32,5 +32,11 @@
     "sport": "رياضية",
     "sedan": "سيدان",
     "suv": "دفع رباعي"
+  },
+  "gallery": {
+    "open-photo": "عرض الصورة {{index}}",
+    "close": "إغلاق",
+    "counter": "{{current}} / {{total}}",
+    "zoom-hint": "قرّب بإصبعين أو انقر مرتين للتكبير"
   }
 }

@@ -64,7 +64,10 @@ export function mapWelmVehicleDto(dto: WelmVehicleDto): Vehicle {
   const make = dto.make?.trim() || "Vehicle";
   const model = dto.model?.trim() || "";
   const displayName = [make, model].filter(Boolean).join(" ");
-  const photoUri = dto.photos.find((url) => url.trim().length > 0);
+  const photoUris = (dto.photos ?? [])
+    .map((url) => url?.trim())
+    .filter((url): url is string => Boolean(url));
+  const photoUri = photoUris[0];
   const branchLabel = dto.branch.name?.trim() || dto.branch.city?.trim();
 
   return {
@@ -78,6 +81,7 @@ export function mapWelmVehicleDto(dto: WelmVehicleDto): Vehicle {
     category: mapCarClass(dto.carClass),
     image: photoUri ?? "remote",
     imageSource: photoUri ? { uri: photoUri } : FALLBACK_IMAGE,
+    gallery: photoUris.map((uri) => ({ uri })),
     locationLabel: branchLabel,
     latitude: dto.branch.latitude ?? undefined,
     longitude: dto.branch.longitude ?? undefined,

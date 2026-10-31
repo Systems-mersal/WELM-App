@@ -15,6 +15,7 @@ import mercedesDetail from "../../assets/figma/cars/mercedes-detail.png";
 import { AppButton } from "../../components/buttons/AppButton";
 import { useVehicleLabel } from "../../components/common/CategoryChips";
 import { AppIcon } from "../../components/icons/AppIcon";
+import { VehicleGallery } from "../../components/media/VehicleGallery";
 import { AppText } from "../../components/typography/AppText";
 import { getVehicleById } from "../../constants/vehicles";
 import { useWelmVehicle } from "../../features/vehicles";
@@ -59,9 +60,10 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
     },
   );
 
-  const galleryImage = useMemo(() => {
-    if (!vehicle) return mercedesDetail;
-    return vehicle.id === "mercedes-e350" ? mercedesDetail : vehicle.imageSource;
+  const galleryImages = useMemo(() => {
+    if (!vehicle) return [mercedesDetail];
+    if (vehicle.gallery?.length) return vehicle.gallery;
+    return [vehicle.id === "mercedes-e350" ? mercedesDetail : vehicle.imageSource];
   }, [vehicle]);
 
   const setVehicleId = useBookingDraftStore((state) => state.setVehicleId);
@@ -116,15 +118,12 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
       >
-        <View className="relative h-[260px] w-full">
-          <Image
-            source={galleryImage}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
+        <View className="relative h-[300px] w-full">
+          <VehicleGallery images={galleryImages} height={300} />
           <View
             className="absolute inset-x-0 top-0 flex-row items-center justify-between px-6"
             style={{ paddingTop: insets.top + 8 }}
+            pointerEvents="box-none"
           >
             <Pressable
               accessibilityRole="button"
@@ -146,12 +145,6 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             >
               <AppIcon name={chevronStart} size={18} color={colors.text} />
             </Pressable>
-          </View>
-          <View className="absolute inset-x-0 bottom-3 flex-row items-center justify-center gap-1.5">
-            <View className="h-1.5 w-1.5 rounded-full bg-white/50" />
-            <View className="h-1.5 w-1.5 rounded-full bg-white/50" />
-            <View className="h-1.5 w-[18px] rounded-full bg-white" />
-            <View className="h-1.5 w-1.5 rounded-full bg-white/50" />
           </View>
         </View>
 
