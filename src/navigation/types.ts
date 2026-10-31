@@ -4,9 +4,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export type MainTabParamList = {
   Home: undefined;
-  Explore: undefined;
   Bookings: undefined;
-  Favorites: undefined;
   Profile: undefined;
 };
 

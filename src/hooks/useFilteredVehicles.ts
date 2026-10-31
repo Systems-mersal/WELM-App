@@ -1,7 +1,11 @@
+import { useMemo } from "react";
+
 import { useCompanyVehicles } from "../features/vehicles";
+import { filterVehiclesInRadius } from "../lib/vehicle-radius";
+import { useLocationStore } from "../stores/location-store";
 import type { Vehicle } from "../types";
 
-/** All available cars for Home / Explore (not scoped to company or radius). */
+/** Available cars inside the current map pin and search radius. */
 export function useFilteredVehicles(): {
   vehicles: Vehicle[];
   isLoading: boolean;
@@ -9,13 +13,26 @@ export function useFilteredVehicles(): {
   isEmpty: boolean;
   refetch: () => void;
 } {
-  const { vehicles, isLoading, isError, refetch } = useCompanyVehicles();
+  const latitude = useLocationStore((state) => state.latitude);
+  const longitude = useLocationStore((state) => state.longitude);
+  const radiusKm = useLocationStore((state) => state.radiusKm);
+  const { vehicles, isLoading, isFetching, isError, refetch } =
+    useCompanyVehicles();
+
+  const visible = useMemo(() => {
+    if (latitude == null || longitude == null) {
+      return vehicles;
+    }
+    return filterVehiclesInRadius(vehicles, latitude, longitude, radiusKm);
+  }, [latitude, longitude, radiusKm, vehicles]);
+
+  const waitingForMatch = isFetching && visible.length === 0;
 
   return {
-    vehicles,
-    isLoading,
+    vehicles: visible,
+    isLoading: isLoading || waitingForMatch,
     isError,
-    isEmpty: !isLoading && vehicles.length === 0,
+    isEmpty: !isLoading && !waitingForMatch && visible.length === 0,
     refetch: () => {
       void refetch();
     },

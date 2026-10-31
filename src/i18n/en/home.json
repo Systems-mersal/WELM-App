@@ -44,6 +44,8 @@
   "select-city-subtitle": "Choose a city to see cars nearby.",
   "current-location": "Current location",
   "change-location": "Change location",
+  "reset-location": "Reset to current location",
+  "expand-map": "Enlarge map",
   "change-radius": "Change radius",
   "use-current-location": "Use current location",
   "empty-title": "No cars in this area",

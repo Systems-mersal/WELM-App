@@ -28,6 +28,8 @@ const FEATHER_ICON_MAP = {
   image: "image",
   "upload-cloud": "upload-cloud",
   lock: "lock",
+  crosshair: "crosshair",
+  maximize: "maximize-2",
 } as const;
 
 const IONICONS_LOGO_MAP = {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View, useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,7 +9,6 @@ import { SectionHeader } from "../../components/common/SectionHeader";
 import { CityPickerSheet, SelectCityCard } from "../../components/location/CityPickerSheet";
 import { AppText } from "../../components/typography/AppText";
 import type { MainTabNavigationProp } from "../../navigation/types";
-import { BrandBanner } from "./components/BrandBanner";
 import { EnableLocationCard } from "./components/EnableLocationCard";
 import { HomeHeader } from "./components/HomeHeader";
 import { NearbyMap } from "./components/NearbyMap";
@@ -33,7 +32,12 @@ export function HomeScreen() {
   const cityKey = useLocationStore((state) => state.cityKey);
   const selectCity = useLocationStore((state) => state.selectCity);
   const enableLocation = useLocationStore((state) => state.enableLocation);
+  const setSearchPoint = useLocationStore((state) => state.setSearchPoint);
   const autoLocated = useRef(false);
+  const [focusNonce, setFocusNonce] = useState(0);
+  const [mapGesture, setMapGesture] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
+  const mapHeight = Math.round(windowHeight * 0.3);
   const { vehicles, isLoading, isError, isEmpty, refetch } =
     useFilteredVehicles();
 
@@ -61,6 +65,14 @@ export function HomeScreen() {
     navigation.navigate("LocationRadius");
   };
 
+  const resetLocation = () => {
+    void enableLocation().then((result) => {
+      if (result === "granted") {
+        setFocusNonce((value) => value + 1);
+      }
+    });
+  };
+
   const openVehicleDetails = (vehicleId: string) => {
     navigation.navigate("VehicleDetails", { vehicleId });
   };
@@ -73,6 +85,7 @@ export function HomeScreen() {
 
   return (
     <Screen
+      scrollEnabled={!mapGesture}
       className="bg-background"
       edges={["top", "left", "right"]}
       contentClassName="px-6 pt-2"
@@ -84,10 +97,12 @@ export function HomeScreen() {
       <View className="gap-5 pb-2">
         <HomeHeader
           onNotificationsPress={() => navigation.navigate("Notifications")}
-          onLocationPress={openLocationMap}
         />
         {locationRequesting && !hasSearchPoint ? (
-          <View className="h-56 items-center justify-center gap-3 rounded-2xl border border-border bg-white">
+          <View
+            style={{ height: mapHeight }}
+            className="items-center justify-center gap-3 rounded-2xl border border-border bg-white"
+          >
             <ActivityIndicator color={colors.primary} />
             <AppText variant="caption" muted>
               {t("current-location")}
@@ -95,21 +110,20 @@ export function HomeScreen() {
           </View>
         ) : null}
         {latitude != null && longitude != null ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("change-location")}
-            onPress={openLocationMap}
-          >
-            <View pointerEvents="none">
-              <NearbyMap
-                latitude={latitude}
-                longitude={longitude}
-                radiusKm={radiusKm}
-                vehicles={vehicles}
-                onVehiclePress={openVehicleDetails}
-              />
-            </View>
-          </Pressable>
+          <NearbyMap
+            latitude={latitude}
+            longitude={longitude}
+            radiusKm={radiusKm}
+            height={mapHeight}
+            vehicles={vehicles}
+            focusNonce={focusNonce}
+            onCommit={setSearchPoint}
+            onReset={resetLocation}
+            onExpand={openLocationMap}
+            onGestureStart={() => setMapGesture(true)}
+            onGestureEnd={() => setMapGesture(false)}
+            onVehiclePress={openVehicleDetails}
+          />
         ) : null}
         {showLocationPrompt ? (
           <EnableLocationCard onChooseCity={() => setCitySheetOpen(true)} />
@@ -117,16 +131,8 @@ export function HomeScreen() {
         {needsCity ? (
           <SelectCityCard onChooseCity={() => setCitySheetOpen(true)} />
         ) : null}
-        <BrandBanner />
-        <SearchBar
-          placeholder={t("search-placeholder")}
-          onFilterPress={() => navigation.navigate("Explore")}
-        />
-        <SectionHeader
-          title={t("available-cars")}
-          actionLabel={t("view-all")}
-          onActionPress={() => navigation.navigate("Explore")}
-        />
+        <SearchBar placeholder={t("search-placeholder")} />
+        <SectionHeader title={t("available-cars")} />
         {isLoading ? (
           <View className="items-center py-10">
             <ActivityIndicator color={colors.primary} />

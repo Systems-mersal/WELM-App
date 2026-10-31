@@ -44,6 +44,8 @@
   "select-city-subtitle": "اختر مدينة لعرض السيارات القريبة.",
   "current-location": "موقعك الحالي",
   "change-location": "تغيير الموقع",
+  "reset-location": "إعادة الموقع الحالي",
+  "expand-map": "تكبير الخريطة",
   "change-radius": "تغيير النطاق",
   "use-current-location": "استخدام الموقع الحالي",
   "empty-title": "لا توجد سيارات في هذه المنطقة",

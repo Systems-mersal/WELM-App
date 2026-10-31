@@ -6,16 +6,14 @@ import { useTranslation } from "react-i18next";
 import { AppIcon, type AppIconName } from "../icons/AppIcon";
 import { AppText } from "../typography/AppText";
 
-type TabRouteName = "Home" | "Explore" | "Bookings" | "Favorites" | "Profile";
+type TabRouteName = "Home" | "Bookings" | "Profile";
 
 const TAB_CONFIG: Record<
   TabRouteName,
   { icon: AppIconName; labelKey: string }
 > = {
   Home: { icon: "home", labelKey: "tabs.home" },
-  Explore: { icon: "search", labelKey: "tabs.explore" },
   Bookings: { icon: "calendar", labelKey: "tabs.bookings" },
-  Favorites: { icon: "heart", labelKey: "tabs.favorites" },
   Profile: { icon: "user", labelKey: "tabs.profile" },
 };
 

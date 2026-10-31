@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,6 @@ import { SelectSheet } from "../../components/sheets/SelectSheet";
 import { AppText } from "../../components/typography/AppText";
 import {
   SignupProgress,
-  fetchWelmCompanies,
   patchWelmProfile,
   routeAfterIdentity,
   welmAuthUserMessage,
@@ -80,8 +79,6 @@ export function ProfileGateScreen({ navigation }: Props) {
   const [email, setEmail] = useState(user?.email ?? "");
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-
   const [name, setName] = useState(user?.name ?? "");
   const [idType, setIdType] = useState<IdDocumentType | undefined>(
     user?.idDocumentType ?? "national",
@@ -158,24 +155,6 @@ export function ProfileGateScreen({ navigation }: Props) {
   const emailFromProvider = Boolean(
     providerPill && providerEmail && email.trim() === providerEmail,
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetchWelmCompanies()
-      .then((companies) => {
-        if (!cancelled) {
-          setCompanyId(companies[0]?.id ?? null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompanyId(null);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const nationalityOptions = useMemo(
     () =>
@@ -350,19 +329,7 @@ export function ProfileGateScreen({ navigation }: Props) {
 
     setSaveBusy(true);
     try {
-      let ownerId = companyId;
-      if (!ownerId) {
-        const companies = await fetchWelmCompanies();
-        ownerId = companies[0]?.id ?? null;
-        setCompanyId(ownerId);
-      }
-      if (!ownerId) {
-        setSaveError(t("company-required"));
-        return;
-      }
-
       const saved = await patchWelmProfile({
-        companyId: ownerId,
         name: trimmedName,
         idDocumentType: idType,
         nationalId: trimmedId,
@@ -411,7 +378,6 @@ export function ProfileGateScreen({ navigation }: Props) {
   }, [
     birthCalendar,
     canSubmit,
-    companyId,
     dateOfBirth,
     email,
     hijriDob,

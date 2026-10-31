@@ -193,10 +193,6 @@ export function EditPersonalInfoScreen({ navigation }: Props) {
         name: trimmedName,
         email: trimmedEmail,
         phone: phoneE164,
-        // companyId,
-        // companyName: companyName ?? "",
-        companyId: companyId ?? "",
-        companyName: companyName ?? "",
         photoUri,
       });
 
