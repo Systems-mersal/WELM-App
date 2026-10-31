@@ -67,6 +67,8 @@ export {
   verifyWelmEmailOtp,
   registerWelmAccount,
   loginWelmAccount,
+  startWelmPasswordReset,
+  completeWelmPasswordReset,
   fetchWelmCompanies,
   welmCompanyDisplayName,
   patchWelmProfile,

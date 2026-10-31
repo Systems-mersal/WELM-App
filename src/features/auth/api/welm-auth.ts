@@ -16,6 +16,8 @@ import {
   type WelmPhoneVerifyResponse,
   type WelmEmailStartResponse,
   type WelmEmailVerifyResponse,
+  type WelmPasswordForgotResponse,
+  type WelmPasswordResetResponse,
   type WelmCompanyOption,
   type WelmSocialAuthRequest,
   type WelmProfilePatchRequest,
@@ -393,6 +395,49 @@ export async function verifyWelmEmailOtp(
     );
     if (!data?.verified) {
       throw new WelmAuthApiError("unknown", "Invalid email verify response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+const PASSWORD_FORGOT_PATH = "/api/welm/auth/password/forgot";
+const PASSWORD_RESET_PATH = "/api/welm/auth/password/reset";
+
+/** POST /api/welm/auth/password/forgot */
+export async function startWelmPasswordReset(
+  email: string,
+): Promise<WelmPasswordForgotResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPasswordForgotResponse>(
+      PASSWORD_FORGOT_PATH,
+      { email },
+    );
+    if (!data?.sent || !data.email) {
+      throw new WelmAuthApiError("unknown", "Invalid password reset response");
+    }
+    return data;
+  } catch (error) {
+    throw mapAxiosError(error);
+  }
+}
+
+/** POST /api/welm/auth/password/reset */
+export async function completeWelmPasswordReset(
+  email: string,
+  code: string,
+  password: string,
+): Promise<WelmPasswordResetResponse> {
+  assertEnabled();
+  try {
+    const { data } = await apiClient.post<WelmPasswordResetResponse>(
+      PASSWORD_RESET_PATH,
+      { email, code, password },
+    );
+    if (!data?.reset) {
+      throw new WelmAuthApiError("unknown", "Invalid password reset response");
     }
     return data;
   } catch (error) {

@@ -70,6 +70,17 @@ export type WelmEmailVerifyResponse = {
   isNew: boolean;
 };
 
+export type WelmPasswordForgotResponse = {
+  sent: boolean;
+  email: string;
+  resendInSeconds?: number;
+  debugCode?: string;
+};
+
+export type WelmPasswordResetResponse = {
+  reset: boolean;
+};
+
 export type WelmCompanyOption = {
   id: string;
   name: string;

@@ -298,6 +298,19 @@ export function LoginScreen({ navigation }: Props) {
               </Pressable>
             }
           />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              navigation.navigate("ForgotPassword", {
+                email: isValidEmail(email) ? email.trim() : undefined,
+              });
+            }}
+            className="self-end"
+          >
+            <AppText variant="label" className="text-primary">
+              {t("forgot-password")}
+            </AppText>
+          </Pressable>
         </View>
 
         {authError ? (

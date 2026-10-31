@@ -27,6 +27,7 @@ export type RootStackParamList = {
       }
     | undefined;
   CreateAccount: undefined;
+  ForgotPassword: { email?: string } | undefined;
   LinkMobile: { provider: "apple" | "google" };
   AccountExists: undefined;
   ProfileGate: undefined;

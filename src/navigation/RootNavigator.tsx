@@ -6,6 +6,7 @@ import { BookingDatesScreen } from "../screens/BookingDates/BookingDatesScreen";
 import { BookingExtrasScreen } from "../screens/BookingExtras/BookingExtrasScreen";
 import { BookingReviewScreen } from "../screens/BookingReview/BookingReviewScreen";
 import { CreateAccountScreen } from "../screens/CreateAccount/CreateAccountScreen";
+import { ForgotPasswordScreen } from "../screens/ForgotPassword/ForgotPasswordScreen";
 import { AccountExistsScreen } from "../screens/AccountExists/AccountExistsScreen";
 import { DocumentsScreen } from "../screens/Documents/DocumentsScreen";
 import { LegalScreen } from "../screens/Legal/LegalScreen";
@@ -36,6 +37,7 @@ export function RootNavigator() {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="LinkMobile" component={LinkMobileScreen} />
       <Stack.Screen name="AccountExists" component={AccountExistsScreen} />
       <Stack.Screen name="Legal" component={LegalScreen} />
