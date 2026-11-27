@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/.env.development)",
+      "Read(**/.env.development.local)",
+      "Read(**/.env.production)",
+      "Read(**/.env.production.local)",
+      "Read(**/.env.test)",
+      "Read(**/.env.test.local)",
+      "Read(**/.env.testing)",
+      "Read(**/.env.staging)",
+      "Read(**/.envrc)",
+      "Read(**/*.p8)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.pem)",
+      "Read(**/*.jks)",
+      "Read(**/*.keystore)",
+      "Read(**/*.mobileprovision)",
+      "Read(**/*Production*.postman_environment.json)",
+      "Read(**/.next/**)",
+      "Read(~/.supabase/**)",
+      "Read(~/.vercel/**)",
+      "Read(~/Library/Application Support/com.vercel.cli/**)",
+      "Read(~/Library/Keychains/**)",
+      "Read(~/.expo/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.npmrc)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(~/.zsh_history)",
+      "Read(~/.bash_history)",
+      "Read(~/.claude/projects/**/*.jsonl)",
+      "Bash(supabase db push*)",
+      "Bash(supabase db reset --linked*)",
+      "Bash(supabase db reset --db-url*)",
+      "Bash(supabase link*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git filter-repo*)",
+      "Bash(git filter-branch*)",
+      "Bash(env)",
+      "Bash(printenv*)",
+      "Bash(export -p*)",
+      "Bash(npm run start:prod*)",
+      "Bash(pnpm start:prod*)",
+      "Bash(pnpm run start:prod*)",
+      "Bash(eas submit*)",
+      "Bash(eas update*)",
+      "Bash(eas build --profile production*)",
+      "Bash(vercel *)",
+      "Bash(npx vercel *)",
+      "mcp__computer-use",
+      "mcp__computer-use__*",
+      "mcp__claude-in-chrome",
+      "mcp__claude-in-chrome__*"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": [
+        ".env",
+        "server/.env",
+        "~/.supabase",
+        "~/.vercel",
+        "~/Library/Application Support/com.vercel.cli",
+        "~/Library/Keychains",
+        "~/.expo",
+        "~/.aws",
+        "~/.ssh",
+        "~/.config/gh",
+        "~/.docker/config.json",
+        "~/.npmrc",
+        "~/.netrc",
+        "~/.git-credentials",
+        "~/.zsh_history",
+        "~/.bash_history",
+        "~/.claude/projects"
+      ]
+    },
+    "network": {
+      "allowedDomains": ["localhost", "127.0.0.1"],
+      "deniedDomains": [
+        "www.mersal.com.sa",
+        "mersal.com.sa",
+        "*.mersal.com.sa",
+        "jzqyjeoaqivfkmfdkzwz.supabase.co"
+      ],
+      "allowLocalBinding": true
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|Read|Grep|Glob|Edit|Write|MultiEdit|NotebookEdit|WebFetch|mcp__.*)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/tajeer_guard.py\" pre",
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(Bash|Read|Grep|Glob|WebFetch|mcp__.*)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/tajeer_guard.py\" post",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/tajeer_guard.py\" prompt",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
