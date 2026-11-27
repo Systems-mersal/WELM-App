@@ -1,0 +1,15 @@
+# Tajeer+ Phase 0: keep secrets out of Cursor's AI context (best-effort; mirrors .claude/settings.json)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.envrc
+*.p8
+*.p12
+*.pfx
+*.pem
+*.jks
+*.keystore
+*.mobileprovision
